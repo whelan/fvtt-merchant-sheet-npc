@@ -1,5 +1,5 @@
-// import Item5e from "module/item/entity.js";
-
+import SwadeCurrencyCalculator from "./systems/SwadeCurrencyCalculator.js";
+import CurrencyCalculator from "./systems/CurrencyCalculator.js";
 
 
 class MerchantSheetNPCHelper
@@ -10,7 +10,7 @@ class MerchantSheetNPCHelper
      * It first tries to get an entry from the actor's permissions, if none is found it uses default, otherwise returns 0.
      *
      */
-    static getLootPermissionForPlayer(actorData, player) {
+    static getMerchantPermissionForPlayer(actorData, player) {
         let defaultPermission = actorData.permission.default;
         if (player.data._id in actorData.permission)
         {
@@ -474,8 +474,8 @@ class MerchantSheetNPC extends ActorSheet {
             return ui.notifications.error(`No active character for user.`);
         }
 
-        let itemId = $(event.currentTarget).parents(".item").attr("data-item-id");
-        let stackModifier = $(event.currentTarget).parents(".item").attr("data-item-stack");
+        let itemId = $(event.currentTarget).parents(".merchant-item").attr("data-item-id");
+        let stackModifier = $(event.currentTarget).parents(".merchant-item").attr("data-item-stack");
         const item = this.actor.getEmbeddedEntity("OwnedItem", itemId);
 
         const packet = {
@@ -493,12 +493,6 @@ class MerchantSheetNPC extends ActorSheet {
             } else {
                 packet.quantity = stackModifier;
             }
-            console.log("MerchantSheet", "Sending buy request to " + targetGm.name, packet);
-            game.socket.emit(MerchantSheetNPC.SOCKET, packet);
-            return;
-        }
-
-        if (item.data.quantity === packet.quantity) {
             console.log("MerchantSheet", "Sending buy request to " + targetGm.name, packet);
             game.socket.emit(MerchantSheetNPC.SOCKET, packet);
             return;
@@ -646,7 +640,7 @@ class MerchantSheetNPC extends ActorSheet {
         //console.log("Merchant sheet | actorData", actorData);
         // Calculate observers
         for (let player of players) {
-            let playerPermission = MerchantSheetNPCHelper.getLootPermissionForPlayer(actorData, player);
+            let playerPermission = MerchantSheetNPCHelper.getMerchantPermissionForPlayer(actorData, player);
             if (player != "default" && playerPermission >= 2) {
                 //console.log("Merchant sheet | player", player);
                 let actor = game.actors.get(player.data.character);
@@ -948,7 +942,7 @@ class MerchantSheetNPC extends ActorSheet {
                 player.actorId = actor.data._id;
                 player.playerId = player.data._id;
 
-                player.merchantPermission = MerchantSheetNPCHelper.getLootPermissionForPlayer(actorData, player);
+                player.merchantPermission = MerchantSheetNPCHelper.getMerchantPermissionForPlayer(actorData, player);
 
                 if (player.merchantPermission >= 2 && !observers.includes(actor.data._id))
                 {
@@ -986,8 +980,14 @@ Actors.registerSheet("core", MerchantSheetNPC, {
     makeDefault: false
 });
 
+var currencyCalculator = new CurrencyCalculator();
+
 
 Hooks.once("init", () => {
+    if (game.system.id === "swade") {
+        // console.log("Swade");
+        currencyCalculator = new SwadeCurrencyCalculator
+    }
 
     Handlebars.registerHelper('ifeq', function (a, b, options) {
         if (a == b) { return options.fn(this); }
@@ -1033,7 +1033,7 @@ Hooks.once("init", () => {
     function chatMessage(speaker, owner, message, item) {
         if (game.settings.get("merchantsheetnpc", "buyChat")) {
             message = `
-            <div class="dnd5e chat-card item-card" data-actor-id="${owner._id}" data-item-id="${item._id}">
+            <div class="chat-card item-card" data-actor-id="${owner._id}" data-item-id="${item._id}">
                 <header class="card-header flexrow">
                     <img src="${item.img}" title="${item.name}" width="36" height="36">
                     <h3 class="item-name">${item.name}</h3>
@@ -1128,7 +1128,6 @@ Hooks.once("init", () => {
         console.log(`Buying item: ${seller}, ${buyer}, ${itemId}, ${quantity}`);
 
         let sellItem = seller.getEmbeddedEntity("OwnedItem", itemId);
-
         // If the buyer attempts to buy more then what's in stock, buy all the stock.
         if (sellItem.data.quantity < quantity) {
             quantity = sellItem.data.quantity;
@@ -1154,14 +1153,15 @@ Hooks.once("init", () => {
 
         itemCostInGold *= quantity;
         console.log(`ItemCost: ${itemCostInGold}`)
-        // let currency = buyer.data.data.currency;
-        // if (currency === 'Undefined') {
-            let currency = buyer.data.data.details.currency
-        // }
+        let currency = currencyCalculator.actorCurrency(buyer);
+
         let buyerFunds = duplicate(currency);
 
         console.log(`Funds before purchase: ${buyerFunds}`);
-
+        if (currencyCalculator.buyerHaveNotEnoughFunds(itemCostInGold,buyerFunds)) {
+            errorMessageToActor(buyer, `Not enough funds to purchase item.`);
+            return;
+        }
         // const conversionRates = {
         //     "pp": 1,
         //     "gp": CONFIG.DND5E.currencyConversion.gp.each,
@@ -1186,10 +1186,6 @@ Hooks.once("init", () => {
         //
         // // console.log(`buyerFundsAsPlatinum : ${buyerFundsAsPlatinum}`);
         //
-        if (itemCostInGold > buyerFunds) {
-            errorMessageToActor(buyer, `Not enough funds to purchase item.`);
-            return;
-        }
         //
         // let convertCurrency = game.settings.get("merchantsheetnpc", "convertCurrency");
         //
@@ -1230,7 +1226,7 @@ Hooks.once("init", () => {
         //         // console.log(`Substracted: ${amount * conversionRates[compCurrency]} ${compCurrency}`);
         //     }
         // }
-        buyerFunds = buyerFunds - itemCostInGold;
+        currencyCalculator.subtractAmountFromActor(buyer,buyerFunds,itemCostInGold);
         // console.log(`Smoothing out`);
         // Finally we exchange partial coins with as little change as possible
         // for (let currency in buyerFunds) {
@@ -1257,17 +1253,15 @@ Hooks.once("init", () => {
         // }
 
         // Update buyer's funds
-        buyer.update({ "data.currency": buyerFunds });
-        buyer.update({ "data.details.currency": buyerFunds });
-
-        console.log(`Funds after purchase: ${buyerFunds}`);
 
         let moved = await moveItems(seller, buyer, [{ itemId, quantity }]);
+
+        let chatPrice = currencyCalculator.priceInText(itemCostInGold);
 
         for (let m of moved) {
             chatMessage(
                 seller, buyer,
-                `${buyer.name} purchases ${quantity} x ${m.item.name} for ${itemCostInGold}.`,
+                `${buyer.name} purchases ${quantity} x ${m.item.name} for ${chatPrice}.`,
                 m.item);
         }
     }
@@ -1280,7 +1274,7 @@ Hooks.once("init", () => {
         //console.log("Merchant sheet | actorData", actorData);
         // Calculate observers
         for (let player of players) {
-            let playerPermission = MerchantSheetNPCHelper.getLootPermissionForPlayer(actorData, player);
+            let playerPermission = MerchantSheetNPCHelper.getMerchantPermissionForPlayer(actorData, player);
             if (player != "default" && playerPermission >= 2) {
                 //console.log("Merchant sheet | player", player);
                 let actor = game.actors.get(player.data.character);
