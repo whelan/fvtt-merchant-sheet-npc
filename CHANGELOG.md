@@ -1,3 +1,8 @@
+## Version 0.0.4
+
+* Added multi system base for currency calculation. Also fixed some small bugs for Swade purchases.
+* Now supports dnd5e as well. Using the calculations and settings from loot-sheet. 
+
 ## Version 0.0.3
 
 * Fixed Css for both Swade and dnd5e. Images and text is now alligned. 
