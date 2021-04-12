@@ -6,7 +6,19 @@ export default class Dnd5eCurrencyCalculator extends CurrencyCalculator {
         return actor.data.data.currency;
     }
 
-    updateActorWithNewFunds(buyer, buyerFunds) {
-        buyer.update({ "data.currency": buyerFunds });
+    buyerHaveNotEnoughFunds(itemCostInGold, buyerFunds) {
+        return itemCostInGold > buyerFunds;
     }
+
+    subtractAmountFromActor(buyer, buyerFunds, itemCostInGold) {
+        buyerFunds = buyerFunds - itemCostInGold;
+        this.updateActorWithNewFunds(buyer,buyerFunds);
+        console.log(`Funds after purchase: ${buyerFunds}`);
+    }
+
+    priceInText(itemCostInGold) {
+        return itemCostInGold;
+    }
+
+
 }
