@@ -1,4 +1,4 @@
-import SwadeCurrencyCalculator from "./systems/SwadeCurrencyCalculator.js";
+// import SwadeCurrencyCalculator from "./systems/SwadeCurrencyCalculator.js";
 import CurrencyCalculator from "./systems/CurrencyCalculator.js";
 
 
@@ -984,10 +984,9 @@ var currencyCalculator = new CurrencyCalculator();
 
 
 Hooks.once("init", () => {
-    if (game.system.id === "swade") {
-        // console.log("Swade");
-        currencyCalculator = new SwadeCurrencyCalculator
-    }
+    let systemId = game.system.id;
+    const systemIdCapitalized = systemId.charAt(0).toUpperCase() + systemId.slice(1)
+    import("./systems/"+systemIdCapitalized+"CurrencyCalculator.js").then(() => currencyCalculator)
 
     Handlebars.registerHelper('ifeq', function (a, b, options) {
         if (a == b) { return options.fn(this); }
