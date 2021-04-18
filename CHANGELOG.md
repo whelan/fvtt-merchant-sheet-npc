@@ -1,5 +1,9 @@
 ## Version 0.0.4
 
+* Used Loot sheet 5e calculations for dnd5e version of merchant. So now dnd5e is supported as well. 
+
+## Version 0.0.4
+
 * Added multi system base for currency calculation. Also fixed some small bugs for Swade purchases.
 
 ## Version 0.0.3

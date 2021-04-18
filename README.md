@@ -17,7 +17,9 @@ Can be used to create an inventory of a shopkeeper to allow players to buy from 
 
 
 ### Compatibility:
-- Tested with FVTT v0.7.9 and swade system only.
+- Tested with FVTT v0.7.9 and these systems: 
+  * swade
+  * dnd5e  
 
 ### Installation Instructions
 
