@@ -14,13 +14,15 @@ export default class CurrencyCalculator {
     }
 
     subtractAmountFromActor(buyer, buyerFunds, itemCostInGold) {
+        console.log('base calculator')
         buyerFunds = buyerFunds - itemCostInGold;
         this.updateActorWithNewFunds(buyer,buyerFunds);
         console.log(`Funds after purchase: ${buyerFunds}`);
     }
 
     updateActorWithNewFunds(buyer, buyerFunds) {
-        buyer.update({ "data.currency": buyerFunds });
+        console.log('Base update Buyer');
+        // buyer.update({ "data.currency": buyerFunds });
     }
 
     priceInText(itemCostInGold) {

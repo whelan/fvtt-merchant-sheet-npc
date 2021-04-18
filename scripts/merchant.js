@@ -980,13 +980,17 @@ Actors.registerSheet("core", MerchantSheetNPC, {
     makeDefault: false
 });
 
-var currencyCalculator = new CurrencyCalculator();
+var currencyModuleImport = "./systems/CurrencyCalculator.js";
+var currencyCalculator = new CurrencyCalculator;
 
+
+async function systemCurrencyCalculator() {
+    currencyModuleImport = "./systems/"+game.system.id.charAt(0).toUpperCase() + game.system.id.slice(1) + "CurrencyCalculator.js";
+    await import(currencyModuleImport).then((obj) => currencyCalculator = new obj.default()).catch(() => currencyCalculator = new CurrencyCalculator());
+}
 
 Hooks.once("init", () => {
-    let systemId = game.system.id;
-    const systemIdCapitalized = systemId.charAt(0).toUpperCase() + systemId.slice(1)
-    import("./systems/"+systemIdCapitalized+"CurrencyCalculator.js").then(() => currencyCalculator)
+    systemCurrencyCalculator().then(() => console.log("Merchant Sheet | System calculator is loaded"));
 
     Handlebars.registerHelper('ifeq', function (a, b, options) {
         if (a == b) { return options.fn(this); }
@@ -1225,6 +1229,8 @@ Hooks.once("init", () => {
         //         // console.log(`Substracted: ${amount * conversionRates[compCurrency]} ${compCurrency}`);
         //     }
         // }
+        console.log('Subtract from actor');
+
         currencyCalculator.subtractAmountFromActor(buyer,buyerFunds,itemCostInGold);
         // console.log(`Smoothing out`);
         // Finally we exchange partial coins with as little change as possible

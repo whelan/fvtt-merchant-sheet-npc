@@ -7,12 +7,6 @@ export default class Dnd5eCurrencyCalculator extends CurrencyCalculator {
     }
 
     buyerHaveNotEnoughFunds(itemCostInGold, buyerFunds) {
-        return itemCostInGold > buyerFunds;
-    }
-
-    subtractAmountFromActor(buyer, buyerFunds, itemCostInGold) {
-        console.log(`Funds before purchase: ${buyerFunds}`);
-
         const conversionRates = {
             "pp": 1,
             "gp": CONFIG.DND5E.currencyConversion.gp.each,
@@ -37,12 +31,40 @@ export default class Dnd5eCurrencyCalculator extends CurrencyCalculator {
 
         console.log(`buyerFundsAsPlatinum : ${buyerFundsAsPlatinum}`);
 
-        if (itemCostInPlatinum > buyerFundsAsPlatinum) {
-            errorMessageToActor(buyer, `Not enough funds to purchase item.`);
-            return;
-        }
+        return itemCostInPlatinum > buyerFundsAsPlatinum;
+    }
 
-        let convertCurrency = game.settings.get("lootsheetnpc5e", "convertCurrency");
+    updateActorWithNewFunds(buyer, buyerFunds) {
+        buyer.update({ "data.currency": buyerFunds });
+    }
+
+
+    subtractAmountFromActor(buyer, buyerFunds, itemCostInGold) {
+        const conversionRates = {
+            "pp": 1,
+            "gp": CONFIG.DND5E.currencyConversion.gp.each,
+            "ep": CONFIG.DND5E.currencyConversion.ep.each,
+            "sp": CONFIG.DND5E.currencyConversion.sp.each,
+            "cp": CONFIG.DND5E.currencyConversion.cp.each
+        };
+
+        const compensationCurrency = {"pp": "gp", "gp": "ep", "ep": "sp", "sp": "cp"};
+
+        let itemCostInPlatinum = itemCostInGold / conversionRates["gp"]
+        console.log(`itemCostInGold : ${itemCostInGold}`);
+        console.log(`itemCostInPlatinum : ${itemCostInPlatinum}`);
+        console.log(`conversionRates["gp"] : ${conversionRates["gp"]}`);
+        console.log(`conversionRates["ep"] : ${conversionRates["ep"]}`);
+
+        let buyerFundsAsPlatinum = buyerFunds["pp"];
+        buyerFundsAsPlatinum += buyerFunds["gp"] / conversionRates["gp"];
+        buyerFundsAsPlatinum += buyerFunds["ep"] / conversionRates["gp"] / conversionRates["ep"];
+        buyerFundsAsPlatinum += buyerFunds["sp"] / conversionRates["gp"] / conversionRates["ep"] / conversionRates["sp"];
+        buyerFundsAsPlatinum += buyerFunds["cp"] / conversionRates["gp"] / conversionRates["ep"] / conversionRates["sp"] / conversionRates["cp"];
+
+        console.log(`buyerFundsAsPlatinum : ${buyerFundsAsPlatinum}`);
+
+        let convertCurrency = game.settings.get("merchantsheetnpc", "convertCurrency");
 
         if (convertCurrency) {
             buyerFundsAsPlatinum -= itemCostInPlatinum;
@@ -108,6 +130,7 @@ export default class Dnd5eCurrencyCalculator extends CurrencyCalculator {
         }
         // buyerFunds = buyerFunds - itemCostInGold;
         this.updateActorWithNewFunds(buyer,buyerFunds);
+        console.log(buyerFunds);
         console.log(`Funds after purchase: ${buyerFunds}`);
     }
 
