@@ -1,5 +1,16 @@
-// import SwadeCurrencyCalculator from "./systems/SwadeCurrencyCalculator.js";
 import CurrencyCalculator from "./systems/CurrencyCalculator.js";
+
+var currencyModuleImport = "./systems/CurrencyCalculator.js";
+var currencyCalculator;
+
+
+async function systemCurrencyCalculator() {
+    currencyModuleImport = "./systems/"+game.system.id.charAt(0).toUpperCase() + game.system.id.slice(1) + "CurrencyCalculator.js";
+    console.log("Merchant Sheet | importing " + currencyModuleImport);
+    await import(currencyModuleImport).then((obj) => currencyCalculator = new obj.default());//.catch(() => currencyCalculator = new CurrencyCalculator());
+    currencyCalculator.initSettings();
+}
+
 
 
 class MerchantSheetNPCHelper
@@ -129,7 +140,7 @@ class MerchantSheetNPC extends ActorSheet {
         const sheetData = super.getData();
 
         // Prepare GM Settings
-        this._prepareGMSettings(sheetData.actor);
+        this.prepareGMSettings(sheetData.actor);
 
         // Prepare isGM attribute in sheet Data
 
@@ -166,7 +177,8 @@ class MerchantSheetNPC extends ActorSheet {
         sheetData.priceModifier = priceModifier;
         sheetData.stackModifier = stackModifier;
         sheetData.rolltables = game.tables.entities;
-        sheetData.items = this.actor.data.items;
+        // sheetData.items = this.actor.data.items;
+        sheetData.sections = currencyCalculator.prepareItems(this.actor.data.items);
 
         // Return data for rendering
         return sheetData;
@@ -920,7 +932,7 @@ class MerchantSheetNPC extends ActorSheet {
      * Prepares GM settings to be rendered by the Merchant sheet.
      * @private
      */
-    _prepareGMSettings(actorData) {
+    prepareGMSettings(actorData) {
         const playerData = [],
             observers = [];
 
@@ -980,14 +992,6 @@ Actors.registerSheet("core", MerchantSheetNPC, {
     makeDefault: false
 });
 
-var currencyModuleImport = "./systems/CurrencyCalculator.js";
-var currencyCalculator = new CurrencyCalculator;
-
-
-async function systemCurrencyCalculator() {
-    currencyModuleImport = "./systems/"+game.system.id.charAt(0).toUpperCase() + game.system.id.slice(1) + "CurrencyCalculator.js";
-    await import(currencyModuleImport).then((obj) => currencyCalculator = new obj.default()).catch(() => currencyCalculator = new CurrencyCalculator());
-}
 
 Hooks.once("init", () => {
     systemCurrencyCalculator().then(() => console.log("Merchant Sheet | System calculator is loaded"));
@@ -995,15 +999,6 @@ Hooks.once("init", () => {
     Handlebars.registerHelper('ifeq', function (a, b, options) {
         if (a == b) { return options.fn(this); }
         return options.inverse(this);
-    });
-
-    game.settings.register("merchantsheetnpc", "convertCurrency", {
-        name: "Convert currency after purchases?",
-        hint: "If enabled, all currency will be converted to the highest denomination possible after a purchase. If disabled, currency will subtracted simply.",
-        scope: "world",
-        config: true,
-        default: false,
-        type: Boolean
     });
 
     game.settings.register("merchantsheetnpc", "buyChat", {
@@ -1183,102 +1178,6 @@ Hooks.once("init", () => {
         }
     }
 
-    function distributeCoins(containerActor) {
-        let actorData = containerActor.data
-        let observers = [];
-        let players = game.users.players;
-
-        //console.log("Merchant sheet | actorData", actorData);
-        // Calculate observers
-        for (let player of players) {
-            let playerPermission = MerchantSheetNPCHelper.getMerchantPermissionForPlayer(actorData, player);
-            if (player != "default" && playerPermission >= 2) {
-                //console.log("Merchant sheet | player", player);
-                let actor = game.actors.get(player.data.character);
-                //console.log("Merchant sheet | actor", actor);
-                if (actor !== null && (player.data.role === 1 || player.data.role === 2)) observers.push(actor);
-            }
-        }
-
-        //console.log("Merchant sheet | observers", observers);
-        if (observers.length === 0) return;
-
-        // Calculate split of currency
-        let currencySplit = duplicate(actorData.data.currency);
-        //console.log("Merchant sheet | Currency data", currencySplit);
-
-        // keep track of the remainder
-        let currencyRemainder = {};
-
-        for (let c in currencySplit) {
-            if (observers.length) {
-                // calculate remainder
-                currencyRemainder[c] = (currencySplit[c].value % observers.length);
-                //console.log("Remainder: " + currencyRemainder[c]);
-
-                currencySplit[c].value = Math.floor(currencySplit[c].value / observers.length);
-            }
-            else currencySplit[c].value = 0;
-        }
-
-        // add currency to actors existing coins
-        let msg = [];
-        for (let u of observers) {
-            //console.log("Merchant sheet | u of observers", u);
-            if (u === null) continue;
-
-            msg = [];
-            let currency = u.data.data.currency,
-                newCurrency = duplicate(u.data.data.currency);
-
-            //console.log("Merchant sheet | Current Currency", currency);
-
-            for (let c in currency) {
-                // add msg for chat description
-                if (currencySplit[c].value) {
-                    //console.log("Merchant sheet | New currency for " + c, currencySplit[c]);
-                    msg.push(` ${currencySplit[c].value} ${c} coins`)
-                }
-
-                // Add currency to permitted actor
-                newCurrency[c] = parseInt(currency[c] || 0) + currencySplit[c].value;
-
-                //console.log("Merchant sheet | New Currency", newCurrency);
-                u.update({
-                    'data.currency': newCurrency
-                });
-            }
-
-            // Remove currency from loot actor.
-            let lootCurrency = containerActor.data.data.currency,
-                zeroCurrency = {};
-
-            for (let c in lootCurrency) {
-                zeroCurrency[c] = {
-                    'type': currencySplit[c].type,
-                    'label': currencySplit[c].type,
-                    'value': currencyRemainder[c]
-                }
-                containerActor.update({
-                    "data.currency": zeroCurrency
-                });
-            }
-
-            // Create chat message for coins received
-            if (msg.length != 0) {
-                let message = `${u.data.name} receives: `;
-                message += msg.join(",");
-                ChatMessage.create({
-                    user: game.user._id,
-                    speaker: {
-                        actor: containerActor,
-                        alias: containerActor.name
-                    },
-                    content: message
-                });
-            }
-        }
-    }
     game.socket.on(MerchantSheetNPC.SOCKET, data => {
         console.log("Merchant sheet | Socket Message: ", data);
         if (game.user.isGM && data.processorId === game.user.id) {
@@ -1295,16 +1194,6 @@ Hooks.once("init", () => {
                     ui.notifications.error("Player attempted to purchase an item on a different scene.");
                 }
             }
-
-            if (data.type === "distributeCoins") {
-                let container = canvas.tokens.get(data.tokenId);
-                if (!container || !container.actor) {
-                    errorMessageToActor(looter, "GM not available, the GM must on the same scene to distribute coins.")
-                    return ui.notifications.error("Player attempted to distribute coins on a different scene.");
-                }
-                distributeCoins(container.actor);
-            }
-
         }
         if (data.type === "error" && data.targetId === game.user.actorId) {
             console.log("Merchant sheet | Transaction Error: ", data.message);

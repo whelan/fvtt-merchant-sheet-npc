@@ -9,4 +9,5 @@ export default class SwadeCurrencyCalculator extends CurrencyCalculator {
     updateActorWithNewFunds(buyer, buyerFunds) {
         buyer.update({ "data.details.currency": buyerFunds });
     }
+
 }

@@ -1,83 +1,110 @@
-
-
 <form class="{{cssClass}}" autocomplete="off">
 
 
-        <!-- HEADER -->
-        <header class="sheet-header flexrow">
-            <h1 class="charname">
-                <input name="name" type="text" value="{{actor.name}}" placeholder="Character Name"/>
-            </h1>
-            {{#if isGM}}
+    <!-- HEADER -->
+    <header class="sheet-header flexrow">
+        <h1 class="charname">
+            <input name="name" type="text" value="{{actor.name}}" placeholder="Character Name"/>
+        </h1>
+        {{#if isGM}}
+        <div class="charbutton">
             <div class="charbutton">
-                <div class="charbutton">
-                    <button type="button" class="price-modifier" type="price-modifier" name="price-modifier" value=""><i class="fa fa-balance-scale"></i> Price Modifier</button>
-                </div>
-                <div class="charbutton">
-                    <button type="button" class="stack-modifier" type="stack-modifier" name="stack-modifier" value=""><i class="fa fa-coins"></i> Stack Modifier</button>
-                </div>
+                <button type="button" class="price-modifier" type="price-modifier" name="price-modifier" value=""><i
+                        class="fa fa-balance-scale"></i> Price Modifier
+                </button>
             </div>
-            {{/if}}
-        </header>
+            <div class="charbutton">
+                <button type="button" class="stack-modifier" type="stack-modifier" name="stack-modifier" value=""><i
+                        class="fa fa-coins"></i> Stack Modifier
+                </button>
+            </div>
+        </div>
+        {{/if}}
+    </header>
 
     <section class="sheet-lower flexrow">
 
-		<!-- SIDEBAR -->
+        <!-- SIDEBAR -->
         <section class="sheet-sidebar sidebar">
-			<div class="sheet-profile-img">
-				<img class="sheet-profile" src="{{actor.img}}" title="{{actor.name}}" data-edit="img"/>
-			</div>
+            <div class="sheet-profile-img">
+                <img class="sheet-profile" src="{{actor.img}}" title="{{actor.name}}" data-edit="img"/>
+            </div>
 
             {{#if isGM}}
-            
+
             <h3 class="gm-section">GM Settings</h3>
 
             <!-- GM SETTINGS -->
             <div class="gm-settings" data-group="sidebar" data-tab="gm-settings">
-                <h3 class="gm-header"><a class="permission-proficiency-bulk" title="{{actor.flags.merchant.playersPermissionDescription}}">{{{actor.flags.merchant.playersPermissionIcon}}}</a> Permissions <i class="fas fa-info-circle help" onclick="$('.permission-info').toggle();"></i></h3>
-                <input type="hidden" name="actor.flags.merchant.playersPermission" value="{{actor.flags.merchant.playersPermission}}" data-dtype="Number"/>
-                <div class="permission-info">Ensure players have selected a character via the Player Configuration (right-click player in bottom left) menu.</div>
+                <h3 class="gm-header"><a class="permission-proficiency-bulk"
+                                         title="{{actor.flags.merchant.playersPermissionDescription}}">{{{actor.flags.merchant.playersPermissionIcon}}}</a>
+                    Permissions <i class="fas fa-info-circle help" onclick="$('.permission-info').toggle();"></i></h3>
+                <input type="hidden" name="actor.flags.merchant.playersPermission"
+                       value="{{actor.flags.merchant.playersPermission}}" data-dtype="Number"/>
+                <div class="permission-info">Ensure players have selected a character via the Player Configuration
+                    (right-click player in bottom left) menu.
+                </div>
                 <ol class="permissions-list">
                     {{#each actor.flags.merchant.players as |player p|}}
-                        <li class="permission" data-skill="{{p}}">
-                            <input type="hidden" name="{{player.playerId}}" value="{{player.merchantPermission}}" data-dtype="Number" actor="{{player.actorId}}"/>
-                            <a class="permission-proficiency" title="{{player.merchantPermissionDescription}}">{{{player.icon}}}</a>
-                            <h4 class="permission-name">{{player.actor}} ({{player.name}})</h4>
-                        </li>
+                    <li class="permission" data-skill="{{p}}">
+                        <input type="hidden" name="{{player.playerId}}" value="{{player.merchantPermission}}"
+                               data-dtype="Number" actor="{{player.actorId}}"/>
+                        <a class="permission-proficiency" title="{{player.merchantPermissionDescription}}">{{{player.icon}}}</a>
+                        <h4 class="permission-name">{{player.actor}} ({{player.name}})</h4>
+                    </li>
                     {{/each}}
                 </ol>
-            {{/if}}
+                {{/if}}
 
         </section>
-		
+
         <!-- BODY -->
 
         <section class="sheet-content content">
 
             <ol class="items-list inventory-list">
-            {{#each items as |item iid| }}
-            <li class="merchant-item flexrow" data-item-id="{{item._id}}" data-item-stack="{{../stackModifier}}">
-                <div class="merchant-item-image" style="background-image: url({{item.img}})"></div>
-                <div class="item-quantity">{{item.name}}</div>
-                <div class="item-quantity">
-                    <a class="item-control item-quantity" title="Buy Stack"><i class="fas fa-box" title="Quantity"></i> {{item.data.quantity}}</a>
-                </div>
-                <div class="item-weight">
-                    <i class="fas fa-weight-hanging" title="Weight"></i> {{merchantsheetweight item.data.weight}}{{merchantsheetstackweight item.data.weight item.data.quantity}}
-                </div>
-                <div class="item-price">
-                    <i class="fas fa-coins" title="Price"></i> {{ merchantsheetprice item.data.price ../priceModifier }}
-                </div>
+                {{#each sections as |section sid|}}
+                {{#if section.items}}
+                <li class="items-header flexrow inventory-header">
+                    <h3 class="item-name">{{section.label}}</h3>
+                    {{#if ../owner}}
+                    <div class="item-controls">
+                        <a class="item-control item-create" title="Create Item" data-type="{{section.type}}">
+                            <i class="fas fa-plus"></i> Add
+                        </a>
+                    </div>
+                    {{/if}}
+                </li>
+                {{#each section.items as |item iid| }}
+                <li class="merchant-item flexrow" data-item-id="{{item._id}}"
+                    data-item-stack="{{../stackModifier}}">
+                    <div class="merchant-item-image" style="background-image: url({{item.img}})"></div>
+                    <div class="item-quantity">{{item.name}}</div>
+                    <div class="item-quantity">
+                        <a class="item-control item-quantity" title="Buy Stack"><i class="fas fa-box"
+                                                                                   title="Quantity"></i>
+                            {{item.data.quantity}}</a>
+                    </div>
+                    <div class="item-weight">
+                        <i class="fas fa-weight-hanging" title="Weight"></i> {{merchantsheetweight
+                        item.data.weight}}{{merchantsheetstackweight item.data.weight item.data.quantity}}
+                    </div>
+                    <div class="item-price">
+                        <i class="fas fa-coins" title="Price"></i> {{ merchantsheetprice item.data.price
+                        ../priceModifier }}
+                    </div>
 
-                <div class="item-controls">
-                    <a class="item-control item-buystack" title="Buy Stack"><i class="fas fa-coins"></i></a>
-                    <a class="item-control item-buy" title="Buy Item"><i class="fas fa-dollar-sign"></i></a>
-                </div>
-            </li>
-            {{/each}}
-            </ol>
+                    <div class="item-controls">
+                        <a class="item-control item-buystack" title="Buy Stack"><i class="fas fa-coins"></i></a>
+                        <a class="item-control item-buy" title="Buy Item"><i class="fas fa-dollar-sign"></i></a>
+                    </div>
+                </li>
+                {{/each}}
+                    {{/if}}
+                    {{/each}}
+                </ol>
         </section>
 
-        
+
     </section>
 </form>

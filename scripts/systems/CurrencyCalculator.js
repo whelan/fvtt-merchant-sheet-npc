@@ -28,4 +28,21 @@ export default class CurrencyCalculator {
     priceInText(itemCostInGold) {
         return itemCostInGold;
     }
+
+    initSettings() {
+
+    }
+
+    prepareItems(items) {
+        console.log("Merchant Sheet | Prepare basic Features");
+
+        const features = {
+            weapons: {
+                label: "All",
+                items: items,
+                type: "all"
+            }
+        }
+        return features;
+    }
 }
