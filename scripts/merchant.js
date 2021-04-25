@@ -3,7 +3,12 @@ var currencyCalculator;
 async function systemCurrencyCalculator() {
     let currencyModuleImport = "./systems/"+game.system.id.charAt(0).toUpperCase() + game.system.id.slice(1) + "CurrencyCalculator.js";
     console.log("Merchant Sheet | importing " + currencyModuleImport);
-    await import(currencyModuleImport).then((obj) => currencyCalculator = new obj.default());
+    await import(currencyModuleImport).then((obj) => currencyCalculator = new obj.default()).catch(
+        (reason) => {
+            console.log(reason);
+            import("./systems/CurrencyCalculator.js").then((obj) => currencyCalculator = new obj.default());
+        }
+    );
     currencyCalculator.initSettings();
 }
 

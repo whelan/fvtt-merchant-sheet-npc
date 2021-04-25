@@ -179,7 +179,6 @@ export default class Dnd5eCurrencyCalculator extends CurrencyCalculator {
             else if (i.type === "loot") features.loot.items.push(i);
             else features.loot.items.push(i);
         }
-        console.log(features);
 
         return features;
     }
