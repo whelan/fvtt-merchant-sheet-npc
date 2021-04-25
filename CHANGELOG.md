@@ -1,4 +1,8 @@
-## Version 0.0.4
+## Version 0.1.0
+
+* Categories is now implemented for both Dnd5e and Swade.  
+
+## Version 0.0.6
 
 * Used Loot sheet 5e calculations for dnd5e version of merchant. So now dnd5e is supported as well. 
 
