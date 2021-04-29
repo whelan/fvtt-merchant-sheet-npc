@@ -86,6 +86,50 @@ class QuantityDialog extends Dialog {
         });
     }
 }
+class SellerQuantityDialog extends Dialog {
+    constructor(callback, options) {
+        if (typeof (options) !== "object") {
+            options = {};
+        }
+
+        let applyChanges = false;
+        super({
+            title: "Quantity",
+            content: `
+            <form>
+                <div class="form-group">
+                    <label>Quantity:</label>
+                    <input type=number min="1" id="quantity" name="quantity" value="{{test}}">
+                </div>
+            </form>`,
+            buttons: {
+                yes: {
+                    icon: "<i class='fas fa-check'></i>",
+                    label: options.acceptLabel ? options.acceptLabel : "Accept",
+                    callback: () => applyChanges = true
+                },
+                no: {
+                    icon: "<i class='fas fa-times'></i>",
+                    label: "Cancel"
+                },
+            },
+            default: "yes",
+            close: () => {
+                if (applyChanges) {
+                    var quantity = document.getElementById('quantity').value
+
+                    if (isNaN(quantity)) {
+                        console.log("Merchant sheet | Item quantity invalid");
+                        return ui.notifications.error(`Item quantity invalid.`);
+                    }
+
+                    callback(quantity);
+
+                }
+            }
+        });
+    }
+}
 
 class MerchantSheetNPC extends ActorSheet {
 
@@ -212,6 +256,7 @@ class MerchantSheetNPC extends ActorSheet {
         // Buy Item
         html.find('.item-buy').click(ev => this._buyItem(ev));
         html.find('.item-buystack').click(ev => this._buyItem(ev, 1));
+        html.find('.item-quantity').click(ev => this._changeQuantity(ev));
 
 
         // Roll Table
@@ -562,6 +607,49 @@ class MerchantSheetNPC extends ActorSheet {
             close: () => console.log("Merchant sheet | Price Modifier Closed")
         });
         d.render(true);
+    }
+
+    /**
+     * Handle stack
+     * @private
+     */
+    async _changeQuantity(event) {
+        event.preventDefault();
+        console.log("Merchant sheet | Change quantity");
+        let itemId = $(event.currentTarget).parents(".merchant-item").attr("data-item-id");
+        this.actor.updateOwnedItem({_id: itemId, "data.quantity": 10});
+
+        //console.log(this.actor.isToken);
+
+        // let priceModifier = await this.actor.getFlag("merchantsheetnpc", "priceModifier");
+        // if (!priceModifier) priceModifier = 1.0;
+        //
+        // priceModifier = Math.round(priceModifier * 100);
+        //
+        // var html = "<p>Use this slider to increase or decrease the price of all items in this inventory. <i class='fa fa-question-circle' title='This uses a percentage factor where 100% is the current price, 0% is 0, and 200% is double the price.'></i></p>";
+        // html += '<p><input name="price-modifier-percent" id="price-modifier-percent" type="range" min="0" max="200" value="' + priceModifier + '" class="slider"></p>';
+        // html += '<p><label>Percentage:</label> <input type=number min="0" max="200" value="' + priceModifier + '" id="price-modifier-percent-display"></p>';
+        // html += '<script>var pmSlider = document.getElementById("price-modifier-percent"); var pmDisplay = document.getElementById("price-modifier-percent-display"); pmDisplay.value = pmSlider.value; pmSlider.oninput = function() { pmDisplay.value = this.value; }; pmDisplay.oninput = function() { pmSlider.value = this.value; };</script>';
+        //
+        // let d = new Dialog({
+        //     title: "Price Modifier",
+        //     content: html,
+        //     buttons: {
+        //         one: {
+        //             icon: '<i class="fas fa-check"></i>',
+        //             label: "Update",
+        //             callback: () => this.actor.setFlag("merchantsheetnpc", "priceModifier", document.getElementById("price-modifier-percent").value / 100)
+        //         },
+        //         two: {
+        //             icon: '<i class="fas fa-times"></i>',
+        //             label: "Cancel",
+        //             callback: () => console.log("Merchant sheet | Price Modifier Cancelled")
+        //         }
+        //     },
+        //     default: "two",
+        //     close: () => console.log("Merchant sheet | Price Modifier Closed")
+        // });
+        // d.render(true);
     }
 
     /**
