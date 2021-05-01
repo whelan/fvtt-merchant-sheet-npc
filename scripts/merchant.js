@@ -86,6 +86,50 @@ class QuantityDialog extends Dialog {
         });
     }
 }
+class SellerQuantityDialog extends Dialog {
+    constructor(callback, options) {
+        if (typeof (options) !== "object") {
+            options = {};
+        }
+
+        let applyChanges = false;
+        super({
+            title: "Quantity",
+            content: `
+            <form>
+                <div class="form-group">
+                    <label>Quantity:</label>
+                    <input type=number min="1" id="quantity" name="quantity" value="{{test}}">
+                </div>
+            </form>`,
+            buttons: {
+                yes: {
+                    icon: "<i class='fas fa-check'></i>",
+                    label: options.acceptLabel ? options.acceptLabel : "Accept",
+                    callback: () => applyChanges = true
+                },
+                no: {
+                    icon: "<i class='fas fa-times'></i>",
+                    label: "Cancel"
+                },
+            },
+            default: "yes",
+            close: () => {
+                if (applyChanges) {
+                    var quantity = document.getElementById('quantity').value
+
+                    if (isNaN(quantity)) {
+                        console.log("Merchant sheet | Item quantity invalid");
+                        return ui.notifications.error(`Item quantity invalid.`);
+                    }
+
+                    callback(quantity);
+
+                }
+            }
+        });
+    }
+}
 
 class MerchantSheetNPC extends ActorSheet {
 
@@ -119,6 +163,10 @@ class MerchantSheetNPC extends ActorSheet {
 
         Handlebars.registerHelper('merchantsheetweight', function (weight) {
             return (Math.round(weight * 1e5) / 1e5).toString();
+        });
+
+        Handlebars.registerHelper('itemInfinity', function (qty) {
+            return (qty === Number.MAX_VALUE)
         });
 
         const path = "./module/templates/actors/";
@@ -212,6 +260,8 @@ class MerchantSheetNPC extends ActorSheet {
         // Buy Item
         html.find('.item-buy').click(ev => this._buyItem(ev));
         html.find('.item-buystack').click(ev => this._buyItem(ev, 1));
+        html.find('.change-item-quantity').click(ev => this._changeQuantity(ev));
+        html.find('.change-item-price').click(ev => this._changePrice(ev));
 
 
         // Roll Table
@@ -499,6 +549,8 @@ class MerchantSheetNPC extends ActorSheet {
             quantity: 1,
             processorId: targetGm.id
         };
+        console.log(stackModifier)
+        console.log(item.data.quantity)
 
         if (stack || event.shiftKey) {
             if (item.data.quantity < stackModifier) {
@@ -565,13 +617,98 @@ class MerchantSheetNPC extends ActorSheet {
     }
 
     /**
+     * Handle stack
+     * @private
+     */
+    async _changePrice(event) {
+        event.preventDefault();
+        console.log("Merchant sheet | Change item price");
+        let itemId = $(event.currentTarget).parents(".merchant-item").attr("data-item-id");
+
+        const item = this.actor.getEmbeddedEntity("OwnedItem", itemId);
+
+        var html = "<p>Enter the price for the item.</p>";
+        html += '<p><input name="price-value" id="price-value" value="' + item.data.price + '" class="field"></p>';
+        let d = new Dialog({
+            title: "Item Price Modifier",
+            content: html,
+            buttons: {
+                one: {
+                    icon: '<i class="fas fa-check"></i>',
+                    label: "Update",
+                    callback: () => {
+                        this.actor.updateOwnedItem({
+                            _id: itemId,
+                            "data.price": document.getElementById("price-value").value
+                        })
+                    }
+                },
+                two: {
+                    icon: '<i class="fas fa-times"></i>',
+                    label: "Cancel",
+                    callback: () => console.log("Merchant sheet | Change price Cancelled")
+                }
+            },
+            default: "two",
+            close: () => console.log("Merchant sheet | Change price Closed")
+        });
+        d.render(true);
+    }
+
+
+    /**
+     * Handle stack
+     * @private
+     */
+    async _changeQuantity(event) {
+        event.preventDefault();
+        console.log("Merchant sheet | Change quantity");
+        let itemId = $(event.currentTarget).parents(".merchant-item").attr("data-item-id");
+
+        const item = this.actor.getEmbeddedEntity("OwnedItem", itemId);
+
+        var html = "<p>Enter the quantity for the item.</p>";
+        html += '<p><input name="quantity-value" id="quantity-value" value="' + item.data.quantity + '" class="field"></p>';
+        html += '<p><label>Infinity:</label> <input type=checkbox '
+        if (item.data.quantity === Number.MAX_VALUE) { html += ' checked '}
+        html += ' id="quantity-infinity"></p>';
+        let d = new Dialog({
+            title: "Quantity Modifier",
+            content: html,
+            buttons: {
+                one: {
+                    icon: '<i class="fas fa-check"></i>',
+                    label: "Update",
+                    callback: () => {
+                        console.log(document.getElementById("quantity-infinity").checked)
+                        if (document.getElementById("quantity-infinity").checked) {
+                            this.actor.updateOwnedItem({_id: itemId, "data.quantity": Number.MAX_VALUE})
+                        } else {
+                            this.actor.updateOwnedItem({
+                                _id: itemId,
+                                "data.quantity": document.getElementById("quantity-value").value
+                            })
+                        }
+                    }
+                },
+                two: {
+                    icon: '<i class="fas fa-times"></i>',
+                    label: "Cancel",
+                    callback: () => console.log("Merchant sheet | Change quantity Cancelled")
+                }
+            },
+            default: "two",
+            close: () => console.log("Merchant sheet | Change quantity Closed")
+        });
+        d.render(true);
+    }
+
+    /**
      * Handle stack modifier
      * @private
      */
     async _stackModifier(event) {
         event.preventDefault();
-        //console.log("Merchant sheet | Price Modifier clicked");
-        //console.log(this.actor.isToken);
 
         let stackModifier = await this.actor.getFlag("merchantsheetnpc", "stackModifier");
         if (!stackModifier) stackModifier = 20;
@@ -1080,7 +1217,7 @@ Hooks.once("init", () => {
             }
 
             let newItem = duplicate(item);
-            const update = { _id: itemId, "data.quantity": item.data.quantity - quantity };
+            const update = { _id: itemId, "data.quantity": item.data.quantity >= (Number.MAX_VALUE-10000) ? Number.MAX_VALUE : item.data.quantity - quantity };
 
             if (update["data.quantity"] === 0) {
                 deletes.push(itemId);

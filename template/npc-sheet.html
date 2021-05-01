@@ -77,21 +77,27 @@
                 </li>
                 {{#each section.items as |item iid| }}
                 <li class="merchant-item flexrow" data-item-id="{{item._id}}"
-                    data-item-stack="{{../stackModifier}}">
+                    data-item-stack="{{../../stackModifier}}">
                     <div class="merchant-item-image" style="background-image: url({{item.img}})"></div>
                     <div class="item-quantity">{{item.name}}</div>
                     <div class="item-quantity">
-                        <a class="item-control item-quantity" title="Buy Stack"><i class="fas fa-box"
+                        <a class="item-control change-item-quantity" title="Change quantity"><i class="fas fa-box"
                                                                                    title="Quantity"></i>
-                            {{item.data.quantity}}</a>
+                            {{#if (itemInfinity item.data.quantity)}}
+                                <i class="fas fa-infinity"></i>
+                            {{else}}
+                                {{item.data.quantity}}
+                            {{/if}}
+                        </a>
                     </div>
                     <div class="item-weight">
                         <i class="fas fa-weight-hanging" title="Weight"></i> {{merchantsheetweight
                         item.data.weight}}{{merchantsheetstackweight item.data.weight item.data.quantity}}
                     </div>
                     <div class="item-price">
-                        <i class="fas fa-coins" title="Price"></i> {{ merchantsheetprice item.data.price
-                        ../priceModifier }}
+                        <a class="item-control change-item-price" title="Change price">
+                        <i class="fas fa-coins" title="Price"></i> {{ merchantsheetprice item.data.price ../../priceModifier }}
+                        </a>
                     </div>
 
                     <div class="item-controls">
