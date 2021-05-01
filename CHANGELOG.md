@@ -1,3 +1,10 @@
+## Version 0.2.0
+
+* Base price on itmes can be set
+* Able to modify quantity on itme even set it to unlimited.
+* Bugfix: Able to buy stack again
+* Bugfix: Able to see price on items
+
 ## Version 0.1.0
 
 * Categories is now implemented for both Dnd5e and Swade.  
