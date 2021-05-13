@@ -10,7 +10,12 @@
         <div class="charbutton">
             <div class="charbutton">
                 <button type="button" class="price-modifier" type="price-modifier" name="price-modifier" value=""><i
-                        class="fa fa-balance-scale"></i> Price Modifier
+                        class="fa fa-balance-scale"></i> Sell Price Modifier
+                </button>
+            </div>
+            <div class="charbutton">
+                <button type="button" class="buy-modifier" type="stack-modifier" name="buy-modifier" value=""><i
+                        class="fa fa-balance-scale"></i> Buy price modifier
                 </button>
             </div>
             <div class="charbutton">
@@ -103,6 +108,9 @@
                     <div class="item-controls">
                         <a class="item-control item-buystack" title="Buy Stack"><i class="fas fa-coins"></i></a>
                         <a class="item-control item-buy" title="Buy Item"><i class="fas fa-dollar-sign"></i></a>
+                        {{#if ../../isGM}}
+                        <a class="item-control item-delete" title="Delete Item"><i class="fas fa-trash"></i></a>
+                        {{/if}}
                     </div>
                 </li>
                 {{/each}}
