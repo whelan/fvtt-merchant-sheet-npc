@@ -249,6 +249,7 @@ class MerchantSheetNPC extends ActorSheet {
 
         // Price Modifier
         html.find('.price-modifier').click(ev => this._priceModifier(ev));
+        html.find('.buy-modifier').click(ev => this._buyModifier(ev));
         html.find('.stack-modifier').click(ev => this._stackModifier(ev));
 
         html.find('.merchant-settings').change(ev => this._merchantSettingChange(ev));
@@ -260,6 +261,7 @@ class MerchantSheetNPC extends ActorSheet {
         // Buy Item
         html.find('.item-buy').click(ev => this._buyItem(ev));
         html.find('.item-buystack').click(ev => this._buyItem(ev, 1));
+        html.find('.item-delete').click(ev => this._deleteItem(ev));
         html.find('.change-item-quantity').click(ev => this._changeQuantity(ev));
         html.find('.change-item-price').click(ev => this._changePrice(ev));
 
@@ -507,8 +509,18 @@ class MerchantSheetNPC extends ActorSheet {
 
     /* -------------------------------------------- */
 
+    /**
+     * Handle buy item
+     * @private
+     */
+    _deleteItem(event) {
+        event.preventDefault();
+        console.log("Merchant sheet | Delete Item clicked");
+        let itemId = $(event.currentTarget).parents(".merchant-item").attr("data-item-id");
+        this.actor.deleteEmbeddedEntity("OwnedItem", itemId);
+    }
 
-    /* -------------------------------------------- */
+        /* -------------------------------------------- */
 
     /**
      * Handle buy item
@@ -612,6 +624,44 @@ class MerchantSheetNPC extends ActorSheet {
             },
             default: "two",
             close: () => console.log("Merchant sheet | Price Modifier Closed")
+        });
+        d.render(true);
+    }
+
+    /**
+     * Handle buy modifier
+     * @private
+     */
+    async _buyModifier(event) {
+        event.preventDefault();
+
+        let buyModifier = await this.actor.getFlag("merchantsheetnpc", "buyModifier");
+        if (!buyModifier) buyModifier = 0.5;
+
+        buyModifier = Math.round(buyModifier * 100);
+
+        var html = "<p>Use this slider to increase or decrease the price of buying items to this inventory. <i class='fa fa-question-circle' title='This uses a percentage factor where 100% is the current price, 0% is 0, and 200% is double the price.'></i></p>";
+        html += '<p><input name="price-modifier-percent" id="price-modifier-percent" type="range" min="0" max="200" value="' + buyModifier + '" class="slider"></p>';
+        html += '<p><label>Percentage:</label> <input type=number min="0" max="200" value="' + buyModifier + '" id="price-modifier-percent-display"></p>';
+        html += '<script>var pmSlider = document.getElementById("price-modifier-percent"); var pmDisplay = document.getElementById("price-modifier-percent-display"); pmDisplay.value = pmSlider.value; pmSlider.oninput = function() { pmDisplay.value = this.value; }; pmDisplay.oninput = function() { pmSlider.value = this.value; };</script>';
+
+        let d = new Dialog({
+            title: "Price Modifier",
+            content: html,
+            buttons: {
+                one: {
+                    icon: '<i class="fas fa-check"></i>',
+                    label: "Update",
+                    callback: () => this.actor.setFlag("merchantsheetnpc", "buyModifier", document.getElementById("price-modifier-percent").value / 100)
+                },
+                two: {
+                    icon: '<i class="fas fa-times"></i>',
+                    label: "Cancel",
+                    callback: () => console.log("Merchant sheet | Buy Modifier Cancelled")
+                }
+            },
+            default: "two",
+            close: () => console.log("Merchant sheet | Buy Modifier Closed")
         });
         d.render(true);
     }
@@ -739,50 +789,9 @@ class MerchantSheetNPC extends ActorSheet {
         d.render(true);
     }
 
-    /* -------------------------------------------- */
-
-    /**
-     * Handle distribution of coins
-     * @private
-     */
-    _distributeCoins(event) {
-        event.preventDefault();
-        //console.log("Merchant sheet | Split Coins clicked");
-
-        let targetGm = null;
-        game.users.forEach((u) => {
-            if (u.isGM && u.active && u.viewedScene === game.user.viewedScene) {
-                targetGm = u;
-            }
-        });
-
-        if (!targetGm) {
-            return ui.notifications.error("No active GM on your scene, they must be online and on the same scene to purchase an item.");
-        }
-
-        if (this.token === null) {
-            return ui.notifications.error(`You must loot items from a token.`);
-        }
-
-        if (game.user.isGM) {
-            //don't use socket
-            let container = canvas.tokens.get(this.token.id);
-            this._hackydistributeCoins(container.actor);
-            return;
-        }
-
-        const packet = {
-            type: "distributeCoins",
-            looterId: game.user.actorId,
-            tokenId: this.token.id,
-            processorId: targetGm.id
-        };
-        console.log("LootSheet5e", "Sending distribute coins request to " + targetGm.name, packet);
-        game.socket.emit(MerchantSheetNPC.SOCKET, packet);
-    }
 
     _hackydistributeCoins(containerActor) {
-        //This is identical as the distributeCoins function defined in the init hook which for some reason can't be called from the above _distributeCoins method of the LootSheetNPC5E class. I couldn't be bothered to figure out why a socket can't be called as the GM... so this is a hack but it works.
+        //This is identical as the distributeCoins function defined in the init hook which for some reason can't be called from the above _distributeCoins method of the MerchantSheetNPC5E class. I couldn't be bothered to figure out why a socket can't be called as the GM... so this is a hack but it works.
         let actorData = containerActor.data
         let observers = [];
         let players = game.users.players;
@@ -1130,6 +1139,71 @@ Actors.registerSheet("core", MerchantSheetNPC, {
     makeDefault: false
 });
 
+async function sellItem(target, dragSource, sourceActor, quantity, totalItemsPrice) {
+    let sellerFunds = currencyCalculator.actorCurrency(sourceActor);
+    currencyCalculator.addAmountForActor(sourceActor,sellerFunds,totalItemsPrice)
+    if (dragSource.data.data.quantity <= quantity) {
+        sourceActor.deleteOwnedItem(dragSource.data._id);
+    } else {
+        let destItem = await sourceActor.data.items.find(i => i.name == dragSource.data.name);
+        destItem.data.quantity = Number(destItem.data.quantity) - quantity;
+        await sourceActor.updateEmbeddedEntity("OwnedItem", destItem);
+    }
+}
+
+Hooks.on('dropActorSheetData',(target,sheet,dragSource,user)=>{
+    function checkCompatable(a,b){
+        if(a==b) return false;
+    }
+
+    if(dragSource.type=="Item" && dragSource.actorId) {
+        if(!target.data._id) {
+            console.warn("Merchant sheet | target has no data._id?",target);
+            return;
+        }
+        if(target.data._id ==  dragSource.actorId) return;  // ignore dropping on self
+        let sourceActor = game.actors.get(dragSource.actorId);
+        console.log("Merchant sheet | drop item");
+        if(sourceActor) {
+            // if both source and target have the same type then allow deleting original item.
+            // this is a safety check because some game systems may allow dropping on targets
+            // that don't actually allow the GM or player to see the inventory, making the item
+            // inaccessible.
+            console.log(dragSource)
+            let buyModifier = target.getFlag("merchantsheetnpc", "buyModifier")
+            if (!buyModifier) buyModifier = 0.5;
+
+
+
+            var html = "<p>Would you like to sell "+dragSource.data.name+" each worth "+currencyCalculator.priceInText(buyModifier * dragSource.data.data.price)+"</p>";
+            html += '<p><input name="quantity-modifier" id="quantity-modifier" type="range" min="0" max="'+dragSource.data.data.quantity+'" value="1" class="slider"></p>';
+            html += '<p><label>Quantity:</label> <input type=number min="0" max="'+dragSource.data.data.quantity+'" value="1" id="quantity-modifier-display"></p> <input type="hidden" id="quantity-modifier-price" value = "'+(buyModifier * dragSource.data.data.price)+'"/>';
+            html += '<script>var pmSlider = document.getElementById("quantity-modifier"); var pmDisplay = document.getElementById("quantity-modifier-display"); var total = document.getElementById("quantity-modifier-total"); var price = document.getElementById("quantity-modifier-price"); pmDisplay.value = pmSlider.value; pmSlider.oninput = function() { pmDisplay.value = this.value;  total.value =this.value * price.value; }; pmDisplay.oninput = function() { pmSlider.value = this.value; };</script>';
+            html += '<p>Total<input type="text"  value="'+(buyModifier * dragSource.data.data.price)+'" id = "quantity-modifier-total"/> </p>' ;
+
+            let d = new Dialog({
+                title: "Sell item",
+                content: html,
+                buttons: {
+                    one: {
+                        icon: '<i class="fas fa-check"></i>',
+                        label: "Sell",
+                        callback: () => sellItem(target,dragSource,sourceActor, document.getElementById("quantity-modifier").value,document.getElementById("quantity-modifier-total").value)
+                    },
+                    two: {
+                        icon: '<i class="fas fa-times"></i>',
+                        label: "Cancel",
+                        callback: () => console.log("Merchant sheet | Price Modifier Cancelled")
+                    }
+                },
+                default: "two",
+                close: () => console.log("Merchant sheet | Price Modifier Closed")
+            });
+            d.render(true);
+
+        }
+    }
+});
 
 Hooks.once("init", () => {
     systemCurrencyCalculator().then(() => console.log("Merchant Sheet | System calculator is loaded"));

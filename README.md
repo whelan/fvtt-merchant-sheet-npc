@@ -14,7 +14,10 @@ More features detailed below.
 
 ##### Shopkeeper Sheet
 Can be used to create an inventory of a shopkeeper to allow players to buy from their inventory. Prices are listed next to each item.
-
+Able to delete items on merchant as well. 
+Drop items from player sheets to merchant to sell items. 
+- Small thing that needs to be fixed is that drop items is not cleaned up on merchant. 
+- Merchant has unlimited amount of money. 
 
 ### Compatibility:
 - Tested with FVTT v0.7.9 and these systems: 
