@@ -43,7 +43,7 @@ export default class CurrencyCalculator {
         const features = {
             weapons: {
                 label: "All",
-                items: items,
+                items: [],
                 type: "all"
             }
         }

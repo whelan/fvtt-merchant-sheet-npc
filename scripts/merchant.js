@@ -24,10 +24,14 @@ class MerchantSheetNPCHelper
      */
     static getMerchantPermissionForPlayer(actorData, player) {
         let defaultPermission = actorData.permission.default;
+        console.log(defaultPermission)
+
+        console.log()
         if (player.data._id in actorData.permission)
+        // if (actorData.testUserPermission(player,2,{}))
         {
+            return true;
             //console.log("Merchant sheet | Found individual actor permission");
-            return actorData.permission[player.data._id];
             //console.log("Merchant sheet | assigning " + actorData.permission[player.data._id] + " permission to hidden field");
         }
         else if (typeof defaultPermission !== "undefined")
@@ -225,9 +229,7 @@ class MerchantSheetNPC extends ActorSheet {
         sheetData.totalQuantity = totalQuantity;
         sheetData.priceModifier = priceModifier;
         sheetData.stackModifier = stackModifier;
-        sheetData.rolltables = game.tables.entities;
-        // sheetData.items = this.actor.data.items;
-        sheetData.sections = currencyCalculator.prepareItems(this.actor.data.items);
+        sheetData.sections = currencyCalculator.prepareItems(this.actor.itemTypes);
 
         // Return data for rendering
         return sheetData;
@@ -322,7 +324,7 @@ class MerchantSheetNPC extends ActorSheet {
         const itemQtyLimit = this.actor.getFlag(moduleNamespace, "itemQtyLimit") || "0";
         const clearInventory = this.actor.getFlag(moduleNamespace, "clearInventory");
         const itemOnlyOnce = this.actor.getFlag(moduleNamespace, "itemOnlyOnce");
-        const reducedVerbosity = game.settings.get("merchantsheetnpc", "reduceUpdateVerbosity");
+        const reducedVerbosity = game.settings.get(moduleNamespace, "reduceUpdateVerbosity");
 
         let shopQtyRoll = new Roll(shopQtyFormula);
         shopQtyRoll.roll();
@@ -344,7 +346,7 @@ class MerchantSheetNPC extends ActorSheet {
         if (clearInventory) {
 
             let currentItems = this.actor.data.items.map(i => i._id);
-            await this.actor.deleteEmbeddedEntity("OwnedItem", currentItems);
+            await this.actor.deleteEmbeddedDocuments("Item", currentItems);
             // console.log(currentItems);
         }
 
@@ -385,8 +387,8 @@ class MerchantSheetNPC extends ActorSheet {
 
                 let existingItem = this.actor.items.find(item => item.data.name == newItem.name);
 
-                if (existingItem === null) {
-                    await this.actor.createEmbeddedEntity("OwnedItem", newItem);
+                if (existingItem === undefined) {
+                    await this.actor.createEmbeddedDocuments("Item", newItem);
                     console.log(`Merchant sheet | ${newItem.name} does not exist.`);
                     existingItem = this.actor.items.find(item => item.data.name == newItem.name);
 
@@ -484,7 +486,7 @@ class MerchantSheetNPC extends ActorSheet {
                     const items = game.packs.get(rolltable.results[index].collection);
                     newItem = await items.getEntity(rolltable.results[index].resultId);
                 }
-                if (!newItem || newItem === null) {
+                if (!newItem || newItem === undefined) {
                     return ui.notifications.error(`No item found "${rolltable.results[index].resultId}".`);
                 }
 
@@ -492,7 +494,7 @@ class MerchantSheetNPC extends ActorSheet {
                     newItem = await Item5e.createScrollFromSpell(newItem)
                 }
 
-                await this.actor.createEmbeddedEntity("OwnedItem", newItem);
+                await this.actor.createEmbeddedDocuments("Item", newItem);
                 let existingItem = this.actor.items.find(item => item.data.name == newItem.name);
 
                 if (itemQtyLimit > 0 && Number(itemQtyLimit) < Number(itemQtyRoll.total)) {
@@ -517,7 +519,7 @@ class MerchantSheetNPC extends ActorSheet {
         event.preventDefault();
         console.log("Merchant sheet | Delete Item clicked");
         let itemId = $(event.currentTarget).parents(".merchant-item").attr("data-item-id");
-        this.actor.deleteEmbeddedEntity("OwnedItem", itemId);
+        this.actor.deleteEmbeddedDocuments("Item", itemId);
     }
 
         /* -------------------------------------------- */
@@ -551,7 +553,7 @@ class MerchantSheetNPC extends ActorSheet {
 
         let itemId = $(event.currentTarget).parents(".merchant-item").attr("data-item-id");
         let stackModifier = $(event.currentTarget).parents(".merchant-item").attr("data-item-stack");
-        const item = this.actor.getEmbeddedEntity("OwnedItem", itemId);
+        const item = this.actor.getEmbeddedDocument("Item", itemId);
 
         const packet = {
             type: "buy",
@@ -675,7 +677,7 @@ class MerchantSheetNPC extends ActorSheet {
         console.log("Merchant sheet | Change item price");
         let itemId = $(event.currentTarget).parents(".merchant-item").attr("data-item-id");
 
-        const item = this.actor.getEmbeddedEntity("OwnedItem", itemId);
+        const item = this.actor.getEmbeddedDocument("Item", itemId);
 
         var html = "<p>Enter the price for the item.</p>";
         html += '<p><input name="price-value" id="price-value" value="' + item.data.price + '" class="field"></p>';
@@ -715,7 +717,7 @@ class MerchantSheetNPC extends ActorSheet {
         console.log("Merchant sheet | Change quantity");
         let itemId = $(event.currentTarget).parents(".merchant-item").attr("data-item-id");
 
-        const item = this.actor.getEmbeddedEntity("OwnedItem", itemId);
+        const item = this.actor.getEmbeddedDocument("Item", itemId);
 
         var html = "<p>Enter the quantity for the item.</p>";
         html += '<p><input name="quantity-value" id="quantity-value" value="' + item.data.quantity + '" class="field"></p>';
@@ -798,15 +800,15 @@ class MerchantSheetNPC extends ActorSheet {
 
         //console.log("Merchant sheet | actorData", actorData);
         // Calculate observers
-        for (let player of players) {
-            let playerPermission = MerchantSheetNPCHelper.getMerchantPermissionForPlayer(actorData, player);
-            if (player != "default" && playerPermission >= 2) {
-                //console.log("Merchant sheet | player", player);
-                let actor = game.actors.get(player.data.character);
-                //console.log("Merchant sheet | actor", actor);
-                if (actor !== null && (player.data.role === 1 || player.data.role === 2)) observers.push(actor);
-            }
-        }
+        // for (let player of players) {
+        //     let playerPermission = MerchantSheetNPCHelper.getMerchantPermissionForPlayer(actorData, player);
+        //     if (player != "default" && playerPermission >= 2) {
+        //         //console.log("Merchant sheet | player", player);
+        //         let actor = game.actors.get(player.data.character);
+        //         //console.log("Merchant sheet | actor", actor);
+        //         if (actor !== null && (player.data.role === 1 || player.data.role === 2)) observers.push(actor);
+        //     }
+        // }
 
         //console.log("Merchant sheet | observers", observers);
         if (observers.length === 0) return;
@@ -971,73 +973,6 @@ class MerchantSheetNPC extends ActorSheet {
 
     /* -------------------------------------------- */
 
-    /**
-     * Organize and classify Items for Loot NPC sheets
-     * @private
-     */
-    _prepareItems(actorData) {
-
-        //console.log("Merchant sheet | Prepare Features");
-        // Actions
-        const features = {
-            weapons: {
-                label: "Weapons",
-                items: [],
-                type: "weapon"
-            },
-            equipment: {
-                label: "Equipment",
-                items: [],
-                type: "equipment"
-            },
-            consumables: {
-                label: "Consumables",
-                items: [],
-                type: "consumable"
-            },
-            tools: {
-                label: "Tools",
-                items: [],
-                type: "tool"
-            },
-            containers: {
-                label: "Containers",
-                items: [],
-                type: "container"
-            },
-            loot: {
-                label: "Loot",
-                items: [],
-                type: "loot"
-            },
-
-        };
-
-        console.log("Merchant sheet | Prepare Items");
-        // Iterate through items, allocating to containers
-        let items = actorData.items;
-        items = items.sort(function (a, b) {
-            return a.name.localeCompare(b.name);
-        });
-        for (let i of items) {
-            i.img = i.img || DEFAULT_TOKEN;
-            //console.log("Merchant sheet | item", i);
-
-            // Features
-            if (i.type === "weapon") features.weapons.items.push(i);
-            else if (i.type === "equipment") features.equipment.items.push(i);
-            else if (i.type === "consumable") features.consumables.items.push(i);
-            else if (i.type === "tool") features.tools.items.push(i);
-            else if (["container", "backpack"].includes(i.type)) features.containers.items.push(i);
-            else if (i.type === "loot") features.loot.items.push(i);
-            else features.loot.items.push(i);
-        }
-
-        // Assign and return
-        //actorData.features = features;
-        actorData.actor.features = features;
-        console.log(this.actor.features);
-    }
 
     /* -------------------------------------------- */
 
@@ -1088,39 +1023,39 @@ class MerchantSheetNPC extends ActorSheet {
 
         //console.log("Merchant sheet _prepareGMSettings | actorData.permission", actorData.permission);
 
-        for (let player of players)
-        {
-            console.log("Merchant sheet | Checking user " + player.data.name, player);
-
-            // get the name of the primary actor for a player
-            const actor = game.actors.get(player.data.character);
-            console.log("Merchant sheet | Checking actor", actor);
-
-            if (actor) {
-                player.actor = actor.data.name;
-                player.actorId = actor.data._id;
-                player.playerId = player.data._id;
-
-                player.merchantPermission = MerchantSheetNPCHelper.getMerchantPermissionForPlayer(actorData, player);
-
-                if (player.merchantPermission >= 2 && !observers.includes(actor.data._id))
-                {
-                    observers.push(actor.data._id);
-                }
-
-                //Set icons and permission texts for html
-                //console.log("Merchant sheet | merchantPermission", player.merchantPermission);
-                if (commonPlayersPermission < 0) {
-                    commonPlayersPermission = player.merchantPermission;
-                } else if (commonPlayersPermission !== player.merchantPermission) {
-                    commonPlayersPermission = 999;
-                }
-
-                player.icon = this._getPermissionIcon(player.merchantPermission);
-                player.merchantPermissionDescription = this._getPermissionDescription(player.merchantPermission);
-                playerData.push(player);
-            }
-        }
+        // for (let player of players)
+        // {
+        //     console.log("Merchant sheet | Checking user " + player.data.name, player);
+        //
+        //     // get the name of the primary actor for a player
+        //     const actor = game.actors.get(player.data.character);
+        //     console.log("Merchant sheet | Checking actor", actor);
+        //
+        //     if (actor) {
+        //         player.actor = actor.data.name;
+        //         player.actorId = actor.data._id;
+        //         player.playerId = player.data._id;
+        //
+        //         player.merchantPermission = MerchantSheetNPCHelper.getMerchantPermissionForPlayer(actorData.data, player);
+        //
+        //         if (player.merchantPermission >= 2 && !observers.includes(actor.data._id))
+        //         {
+        //             observers.push(actor.data._id);
+        //         }
+        //
+        //         //Set icons and permission texts for html
+        //         //console.log("Merchant sheet | merchantPermission", player.merchantPermission);
+        //         if (commonPlayersPermission < 0) {
+        //             commonPlayersPermission = player.merchantPermission;
+        //         } else if (commonPlayersPermission !== player.merchantPermission) {
+        //             commonPlayersPermission = 999;
+        //         }
+        //
+        //         player.icon = this._getPermissionIcon(player.merchantPermission);
+        //         player.merchantPermissionDescription = this._getPermissionDescription(player.merchantPermission);
+        //         playerData.push(player);
+        //     }
+        // }
 
         let merchant = {}
         merchant.players = playerData;
@@ -1128,7 +1063,7 @@ class MerchantSheetNPC extends ActorSheet {
         merchant.playersPermission = commonPlayersPermission;
         merchant.playersPermissionIcon = this._getPermissionIcon(commonPlayersPermission);
         merchant.playersPermissionDescription = this._getPermissionDescription(commonPlayersPermission);
-        actorData.flags.merchant = merchant;
+        actorData.setFlag("merchantsheetnpc","merchant",merchant)
     }
 
 }
@@ -1147,7 +1082,7 @@ async function sellItem(target, dragSource, sourceActor, quantity, totalItemsPri
     } else {
         let destItem = await sourceActor.data.items.find(i => i.name == dragSource.data.name);
         destItem.data.quantity = Number(destItem.data.quantity) - quantity;
-        await sourceActor.updateEmbeddedEntity("OwnedItem", destItem);
+        await sourceActor.updateEmbeddedDocuments("Item", destItem);
     }
 }
 
@@ -1283,7 +1218,7 @@ Hooks.once("init", () => {
         for (let i of items) {
             let itemId = i.itemId;
             let quantity = i.quantity;
-            let item = source.getEmbeddedEntity("OwnedItem", itemId);
+            let item = source.getEmbeddedDocument("Item", itemId);
 
             // Move all items if we select more than the quantity.
             if (item.data.quantity < quantity) {
@@ -1316,19 +1251,19 @@ Hooks.once("init", () => {
         }
 
         if (deletes.length > 0) {
-            await source.deleteEmbeddedEntity("OwnedItem", deletes);
+            await source.deleteEmbeddedDocuments("Item", deletes);
         }
 
         if (updates.length > 0) {
-            await source.updateEmbeddedEntity("OwnedItem", updates);
+            await source.updateEmbeddedDocuments("Item", updates);
         }
 
         if (additions.length > 0) {
-            await destination.createEmbeddedEntity("OwnedItem", additions);
+            await destination.createEmbeddedDocuments("Item", additions);
         }
 
         if (destUpdates.length > 0) {
-            await destination.updateEmbeddedEntity("OwnedItem", destUpdates);
+            await destination.updateEmbeddedDocuments("Item", destUpdates);
         }
 
         return results;
@@ -1337,7 +1272,7 @@ Hooks.once("init", () => {
     async function transaction(seller, buyer, itemId, quantity) {
         console.log(`Buying item: ${seller}, ${buyer}, ${itemId}, ${quantity}`);
 
-        let sellItem = seller.getEmbeddedEntity("OwnedItem", itemId);
+        let sellItem = seller.getEmbeddedDocument("Item", itemId);
         // If the buyer attempts to buy more then what's in stock, buy all the stock.
         if (sellItem.data.quantity < quantity) {
             quantity = sellItem.data.quantity;

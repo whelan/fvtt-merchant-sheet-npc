@@ -1,3 +1,7 @@
+## Version 1.1.0
+
+* Fixed 0.8 support
+
 ## Version 1.0.0
 
 * Possible to sell to merchant as well. The percentage of the items price can be set for all items on a merchant. Default is 50%. Dialog is shown to seller where seller can choose quantity of items to sell and cancel if price is too low. 

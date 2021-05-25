@@ -237,26 +237,12 @@ export default class Dnd5eCurrencyCalculator extends CurrencyCalculator {
             },
 
         };
-
-        //console.log("Loot Sheet | Prepare Items");
-        // Iterate through items, allocating to containers
-        items = items.sort(function (a, b) {
-            return a.name.localeCompare(b.name);
-        });
-        for (let i of items) {
-            i.img = i.img || DEFAULT_TOKEN;
-            //console.log("Loot Sheet | item", i);
-
-            // Features
-            if (i.type === "weapon") features.weapons.items.push(i);
-            else if (i.type === "equipment") features.equipment.items.push(i);
-            else if (i.type === "consumable") features.consumables.items.push(i);
-            else if (i.type === "tool") features.tools.items.push(i);
-            else if (["container", "backpack"].includes(i.type)) features.containers.items.push(i);
-            else if (i.type === "loot") features.loot.items.push(i);
-            else features.loot.items.push(i);
-        }
-
+        features.weapons.items = items.weapon
+        features.equipment.items = items.equipment
+        features.consumables.items = items.consumables
+        features.tools.items = items.tools
+        features.containers.items = items.containers
+        features.loot.items = items.loot
         return features;
     }
 

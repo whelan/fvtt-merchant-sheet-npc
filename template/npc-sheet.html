@@ -67,6 +67,7 @@
 
         <section class="sheet-content content">
 
+
             <ol class="items-list inventory-list">
                 {{#each sections as |section sid|}}
                 {{#if section.items}}
@@ -81,27 +82,27 @@
                     {{/if}}
                 </li>
                 {{#each section.items as |item iid| }}
-                <li class="merchant-item flexrow" data-item-id="{{item._id}}"
+                <li class="merchant-item flexrow" data-item-id="{{item.data._id}}"
                     data-item-stack="{{../../stackModifier}}">
                     <div class="merchant-item-image" style="background-image: url({{item.img}})"></div>
                     <div class="item-quantity">{{item.name}}</div>
                     <div class="item-quantity">
                         <a class="item-control change-item-quantity" title="Change quantity"><i class="fas fa-box"
                                                                                    title="Quantity"></i>
-                            {{#if (itemInfinity item.data.quantity)}}
+                            {{#if (itemInfinity item.data.data.quantity)}}
                                 <i class="fas fa-infinity"></i>
                             {{else}}
-                                {{item.data.quantity}}
+                                {{item.data.data.quantity}}
                             {{/if}}
                         </a>
                     </div>
                     <div class="item-weight">
                         <i class="fas fa-weight-hanging" title="Weight"></i> {{merchantsheetweight
-                        item.data.weight}}{{merchantsheetstackweight item.data.weight item.data.quantity}}
+                        item.data.data.weight}}{{merchantsheetstackweight item.data.data.weight item.data.data.quantity}}
                     </div>
                     <div class="item-price">
                         <a class="item-control change-item-price" title="Change price">
-                        <i class="fas fa-coins" title="Price"></i> {{ merchantsheetprice item.data.price ../../priceModifier }}
+                        <i class="fas fa-coins" title="Price"></i> {{ merchantsheetprice item.data.data.price ../../priceModifier }}
                         </a>
                     </div>
 
