@@ -26,21 +26,18 @@ class MerchantSheetNPCHelper
         let defaultPermission = actorData.permission.default;
         console.log(defaultPermission)
 
-        console.log()
-        if (player.data._id in actorData.permission)
-        // if (actorData.testUserPermission(player,2,{}))
-        {
-            return true;
-            //console.log("Merchant sheet | Found individual actor permission");
-            //console.log("Merchant sheet | assigning " + actorData.permission[player.data._id] + " permission to hidden field");
+        console.log("Merchant sheet | actorData: ",actorData)
+        if (player.data._id in actorData.permission) {
+            console.log("Merchant sheet | Found individual actor permission");
+            console.log("Merchant sheet | assigning " + actorData.permission[player.data._id] + " permission to hidden field");
+            return actorData.permission[player.data._id];
         }
-        else if (typeof defaultPermission !== "undefined")
-        {
-            //console.log("Merchant sheet | default permissions", actorData.permission.default);
+        else if (typeof defaultPermission !== "undefined") {
+            console.log("Merchant sheet | default permissions", actorData.permission.default);
             return defaultPermission;
         }
-        else
-        {
+        else {
+            console.log("Merchant sheet | No access", player.data._id);
             return 0;
         }
     }
@@ -193,7 +190,7 @@ class MerchantSheetNPC extends ActorSheet {
         const sheetData = super.getData();
 
         // Prepare GM Settings
-        this.prepareGMSettings(sheetData.actor);
+        let merchant = this.prepareGMSettings(sheetData.actor);
 
         // Prepare isGM attribute in sheet Data
 
@@ -205,15 +202,16 @@ class MerchantSheetNPC extends ActorSheet {
 
 
         let priceModifier = 1.0;
-        priceModifier = await this.actor.getFlag("merchantsheetnpc", "priceModifier");
-        if (!priceModifier) await this.actor.setFlag("merchantsheetnpc", "priceModifier", 1.0);
-        priceModifier = await this.actor.getFlag("merchantsheetnpc", "priceModifier");
+        let moduleName = "merchantsheetnpc";
+        priceModifier = await this.actor.getFlag(moduleName, "priceModifier");
+        if (!priceModifier) await this.actor.setFlag(moduleName, "priceModifier", 1.0);
+        priceModifier = await this.actor.getFlag(moduleName, "priceModifier");
 
         let stackModifier = 20;
-        stackModifier = await this.actor.getFlag("merchantsheetnpc", "stackModifier");
-        if (!stackModifier) await this.actor.setFlag("merchantsheetnpc", "stackModifier", 20);
-        stackModifier = await this.actor.getFlag("merchantsheetnpc", "stackModifier");
-
+        stackModifier = await this.actor.getFlag(moduleName, "stackModifier");
+        if (!stackModifier) await this.actor.setFlag(moduleName, "stackModifier", 20);
+        stackModifier = await this.actor.getFlag(moduleName, "stackModifier");
+        await this.actor.setFlag(moduleName,"merchant",merchant)
         let totalWeight = 0;
         this.actor.data.items.forEach((item)=>totalWeight += Math.round((item.data.quantity * item.data.weight * 100) / 100));
 
@@ -230,6 +228,7 @@ class MerchantSheetNPC extends ActorSheet {
         sheetData.priceModifier = priceModifier;
         sheetData.stackModifier = stackModifier;
         sheetData.sections = currencyCalculator.prepareItems(this.actor.itemTypes);
+        sheetData.merchant = merchant
 
         // Return data for rendering
         return sheetData;
@@ -948,12 +947,12 @@ class MerchantSheetNPC extends ActorSheet {
         let idx = levels.indexOf(level),
             newLevel = levels[(idx === levels.length - 1) ? 0 : idx + 1];
 
-        let users = game.users.entities;
+        let users = game.users.contents;
 
         let currentPermissions = duplicate(actorData.permission);
         for (let u of users) {
             if (u.data.role === 1 || u.data.role === 2) {
-                currentPermissions[u._id] = newLevel;
+                currentPermissions[u.data._id] = newLevel;
             }
         }
         const merchantPermissions = new PermissionControl(this.actor);
@@ -964,10 +963,14 @@ class MerchantSheetNPC extends ActorSheet {
 
     _updatePermissions(actorData, playerId, newLevel, event) {
         // Read player permission on this actor and adjust to new level
+        console.log("Merchant sheet | _updatePermission ",actorData, playerId, newLevel, event)
         let currentPermissions = duplicate(actorData.permission);
         currentPermissions[playerId] = newLevel;
         // Save updated player permissions
-        const merchantPermissions = new PermissionControl(this.actor);
+        console.log("Merchant sheet | _updatePermission ",currentPermissions, actorData.permission)
+        const merchantPermissions = new PermissionControl(this.actor.data);
+        console.log("Merchant sheet | _updatePermission merchantPermissions",merchantPermissions)
+        // actorData.update(currentPermissions)
         merchantPermissions._updateObject(event, currentPermissions);
     }
 
@@ -982,6 +985,7 @@ class MerchantSheetNPC extends ActorSheet {
      * @private
      */
     _getPermissionIcon(level) {
+        console.log("Merchant sheet _getPermissionIcon | level ", level);
         const icons = {
             0: '<i class="far fa-circle"></i>',
             2: '<i class="fas fa-eye"></i>',
@@ -1021,41 +1025,46 @@ class MerchantSheetNPC extends ActorSheet {
         let players = game.users.players;
         let commonPlayersPermission = -1;
 
-        //console.log("Merchant sheet _prepareGMSettings | actorData.permission", actorData.permission);
+        console.log("Merchant sheet _prepareGMSettings | actorData.permission", actorData.permission);
+        console.log("Merchant sheet _prepareGMSettings | actorData.permission", actorData.data.permission);
 
-        // for (let player of players)
-        // {
-        //     console.log("Merchant sheet | Checking user " + player.data.name, player);
-        //
+        for (let player of players) {
+            console.log("Merchant sheet | Checking user " + player.data.name, player);
+
         //     // get the name of the primary actor for a player
-        //     const actor = game.actors.get(player.data.character);
-        //     console.log("Merchant sheet | Checking actor", actor);
+            const actor = game.actors.get(player.data.character);
+            console.log("Merchant sheet | Checking actor", actor);
         //
-        //     if (actor) {
-        //         player.actor = actor.data.name;
-        //         player.actorId = actor.data._id;
-        //         player.playerId = player.data._id;
+            if (actor) {
+
+                console.log(player.data.name)
+                console.log(actor.data)
+
+
+                player.actor = actor.data.name;
+                player.actorId = actor.data._id;
+                player.playerId = player.data._id;
+
         //
-        //         player.merchantPermission = MerchantSheetNPCHelper.getMerchantPermissionForPlayer(actorData.data, player);
+                player.merchantPermission = MerchantSheetNPCHelper.getMerchantPermissionForPlayer(this.actor.data, player);
         //
-        //         if (player.merchantPermission >= 2 && !observers.includes(actor.data._id))
-        //         {
-        //             observers.push(actor.data._id);
-        //         }
-        //
-        //         //Set icons and permission texts for html
-        //         //console.log("Merchant sheet | merchantPermission", player.merchantPermission);
-        //         if (commonPlayersPermission < 0) {
-        //             commonPlayersPermission = player.merchantPermission;
-        //         } else if (commonPlayersPermission !== player.merchantPermission) {
-        //             commonPlayersPermission = 999;
-        //         }
-        //
-        //         player.icon = this._getPermissionIcon(player.merchantPermission);
-        //         player.merchantPermissionDescription = this._getPermissionDescription(player.merchantPermission);
-        //         playerData.push(player);
-        //     }
-        // }
+                if (player.merchantPermission >= 2 && !observers.includes(actor.data._id)) {
+                    observers.push(actor.data._id);
+                }
+
+                //Set icons and permission texts for html
+                console.log("Merchant sheet | merchantPermission", player.merchantPermission);
+                if (commonPlayersPermission < 0) {
+                    commonPlayersPermission = player.merchantPermission;
+                } else if (commonPlayersPermission !== player.merchantPermission) {
+                    commonPlayersPermission = 999;
+                }
+
+                player.icon = this._getPermissionIcon(player.merchantPermission);
+                player.merchantPermissionDescription = this._getPermissionDescription(player.merchantPermission);
+                playerData.push(player);
+            }
+        }
 
         let merchant = {}
         merchant.players = playerData;
@@ -1063,7 +1072,9 @@ class MerchantSheetNPC extends ActorSheet {
         merchant.playersPermission = commonPlayersPermission;
         merchant.playersPermissionIcon = this._getPermissionIcon(commonPlayersPermission);
         merchant.playersPermissionDescription = this._getPermissionDescription(commonPlayersPermission);
-        actorData.setFlag("merchantsheetnpc","merchant",merchant)
+        console.log(playerData)
+        console.log(merchant)
+        return merchant
     }
 
 }
