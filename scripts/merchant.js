@@ -24,19 +24,16 @@ class MerchantSheetNPCHelper
      */
     static getMerchantPermissionForPlayer(actorData, player) {
         let defaultPermission = actorData.permission.default;
-        if (player.data._id in actorData.permission)
-        {
-            //console.log("Merchant sheet | Found individual actor permission");
+        if (player.data._id in actorData.permission) {
+            console.log("Merchant sheet | assigning " + actorData.permission[player.data._id] + " permission to hidden field");
             return actorData.permission[player.data._id];
-            //console.log("Merchant sheet | assigning " + actorData.permission[player.data._id] + " permission to hidden field");
         }
-        else if (typeof defaultPermission !== "undefined")
-        {
-            //console.log("Merchant sheet | default permissions", actorData.permission.default);
+        else if (typeof defaultPermission !== "undefined") {
+            console.log("Merchant sheet | default permissions", actorData.permission.default);
             return defaultPermission;
         }
-        else
-        {
+        else {
+            console.log("Merchant sheet | No access", player.data._id);
             return 0;
         }
     }
@@ -56,6 +53,50 @@ class QuantityDialog extends Dialog {
                 <div class="form-group">
                     <label>Quantity:</label>
                     <input type=number min="1" id="quantity" name="quantity" value="1">
+                </div>
+            </form>`,
+            buttons: {
+                yes: {
+                    icon: "<i class='fas fa-check'></i>",
+                    label: options.acceptLabel ? options.acceptLabel : "Accept",
+                    callback: () => applyChanges = true
+                },
+                no: {
+                    icon: "<i class='fas fa-times'></i>",
+                    label: "Cancel"
+                },
+            },
+            default: "yes",
+            close: () => {
+                if (applyChanges) {
+                    var quantity = document.getElementById('quantity').value
+
+                    if (isNaN(quantity)) {
+                        console.log("Merchant sheet | Item quantity invalid");
+                        return ui.notifications.error(`Item quantity invalid.`);
+                    }
+
+                    callback(quantity);
+
+                }
+            }
+        });
+    }
+}
+class SellerQuantityDialog extends Dialog {
+    constructor(callback, options) {
+        if (typeof (options) !== "object") {
+            options = {};
+        }
+
+        let applyChanges = false;
+        super({
+            title: "Quantity",
+            content: `
+            <form>
+                <div class="form-group">
+                    <label>Quantity:</label>
+                    <input type=number min="1" id="quantity" name="quantity" value="{{test}}">
                 </div>
             </form>`,
             buttons: {
@@ -121,6 +162,10 @@ class MerchantSheetNPC extends ActorSheet {
             return (Math.round(weight * 1e5) / 1e5).toString();
         });
 
+        Handlebars.registerHelper('itemInfinity', function (qty) {
+            return (qty === Number.MAX_VALUE)
+        });
+
         const path = "./module/templates/actors/";
         if (!game.user.isGM && this.actor.limited) return path + "limited-sheet.html";
         return "modules/merchantsheetnpc/template/npc-sheet.html";
@@ -141,7 +186,7 @@ class MerchantSheetNPC extends ActorSheet {
         const sheetData = super.getData();
 
         // Prepare GM Settings
-        this.prepareGMSettings(sheetData.actor);
+        let merchant = this.prepareGMSettings(sheetData.actor);
 
         // Prepare isGM attribute in sheet Data
 
@@ -149,19 +194,19 @@ class MerchantSheetNPC extends ActorSheet {
         if (game.user.isGM) sheetData.isGM = true;
         else sheetData.isGM = false;
         //console.log("sheetData.isGM: ", sheetData.isGM);
-        console.log(this.actor);
 
 
         let priceModifier = 1.0;
-        priceModifier = await this.actor.getFlag("merchantsheetnpc", "priceModifier");
-        if (!priceModifier) await this.actor.setFlag("merchantsheetnpc", "priceModifier", 1.0);
-        priceModifier = await this.actor.getFlag("merchantsheetnpc", "priceModifier");
+        let moduleName = "merchantsheetnpc";
+        priceModifier = await this.actor.getFlag(moduleName, "priceModifier");
+        if (!priceModifier) await this.actor.setFlag(moduleName, "priceModifier", 1.0);
+        priceModifier = await this.actor.getFlag(moduleName, "priceModifier");
 
         let stackModifier = 20;
-        stackModifier = await this.actor.getFlag("merchantsheetnpc", "stackModifier");
-        if (!stackModifier) await this.actor.setFlag("merchantsheetnpc", "stackModifier", 20);
-        stackModifier = await this.actor.getFlag("merchantsheetnpc", "stackModifier");
-
+        stackModifier = await this.actor.getFlag(moduleName, "stackModifier");
+        if (!stackModifier) await this.actor.setFlag(moduleName, "stackModifier", 20);
+        stackModifier = await this.actor.getFlag(moduleName, "stackModifier");
+        await this.actor.setFlag(moduleName,"merchant",merchant)
         let totalWeight = 0;
         this.actor.data.items.forEach((item)=>totalWeight += Math.round((item.data.quantity * item.data.weight * 100) / 100));
 
@@ -177,9 +222,8 @@ class MerchantSheetNPC extends ActorSheet {
         sheetData.totalQuantity = totalQuantity;
         sheetData.priceModifier = priceModifier;
         sheetData.stackModifier = stackModifier;
-        sheetData.rolltables = game.tables.entities;
-        // sheetData.items = this.actor.data.items;
-        sheetData.sections = currencyCalculator.prepareItems(this.actor.data.items);
+        sheetData.sections = currencyCalculator.prepareItems(this.actor.itemTypes);
+        sheetData.merchant = merchant
 
         // Return data for rendering
         return sheetData;
@@ -201,6 +245,7 @@ class MerchantSheetNPC extends ActorSheet {
 
         // Price Modifier
         html.find('.price-modifier').click(ev => this._priceModifier(ev));
+        html.find('.buy-modifier').click(ev => this._buyModifier(ev));
         html.find('.stack-modifier').click(ev => this._stackModifier(ev));
 
         html.find('.merchant-settings').change(ev => this._merchantSettingChange(ev));
@@ -212,6 +257,9 @@ class MerchantSheetNPC extends ActorSheet {
         // Buy Item
         html.find('.item-buy').click(ev => this._buyItem(ev));
         html.find('.item-buystack').click(ev => this._buyItem(ev, 1));
+        html.find('.item-delete').click(ev => this._deleteItem(ev));
+        html.find('.change-item-quantity').click(ev => this._changeQuantity(ev));
+        html.find('.change-item-price').click(ev => this._changePrice(ev));
 
 
         // Roll Table
@@ -270,7 +318,7 @@ class MerchantSheetNPC extends ActorSheet {
         const itemQtyLimit = this.actor.getFlag(moduleNamespace, "itemQtyLimit") || "0";
         const clearInventory = this.actor.getFlag(moduleNamespace, "clearInventory");
         const itemOnlyOnce = this.actor.getFlag(moduleNamespace, "itemOnlyOnce");
-        const reducedVerbosity = game.settings.get("merchantsheetnpc", "reduceUpdateVerbosity");
+        const reducedVerbosity = game.settings.get(moduleNamespace, "reduceUpdateVerbosity");
 
         let shopQtyRoll = new Roll(shopQtyFormula);
         shopQtyRoll.roll();
@@ -292,7 +340,7 @@ class MerchantSheetNPC extends ActorSheet {
         if (clearInventory) {
 
             let currentItems = this.actor.data.items.map(i => i._id);
-            await this.actor.deleteEmbeddedEntity("OwnedItem", currentItems);
+            await this.actor.deleteEmbeddedDocuments("Item", currentItems);
             // console.log(currentItems);
         }
 
@@ -333,8 +381,8 @@ class MerchantSheetNPC extends ActorSheet {
 
                 let existingItem = this.actor.items.find(item => item.data.name == newItem.name);
 
-                if (existingItem === null) {
-                    await this.actor.createEmbeddedEntity("OwnedItem", newItem);
+                if (existingItem === undefined) {
+                    await this.actor.createEmbeddedDocuments("Item", newItem);
                     console.log(`Merchant sheet | ${newItem.name} does not exist.`);
                     existingItem = this.actor.items.find(item => item.data.name == newItem.name);
 
@@ -432,7 +480,7 @@ class MerchantSheetNPC extends ActorSheet {
                     const items = game.packs.get(rolltable.results[index].collection);
                     newItem = await items.getEntity(rolltable.results[index].resultId);
                 }
-                if (!newItem || newItem === null) {
+                if (!newItem || newItem === undefined) {
                     return ui.notifications.error(`No item found "${rolltable.results[index].resultId}".`);
                 }
 
@@ -440,7 +488,7 @@ class MerchantSheetNPC extends ActorSheet {
                     newItem = await Item5e.createScrollFromSpell(newItem)
                 }
 
-                await this.actor.createEmbeddedEntity("OwnedItem", newItem);
+                await this.actor.createEmbeddedDocuments("Item", newItem);
                 let existingItem = this.actor.items.find(item => item.data.name == newItem.name);
 
                 if (itemQtyLimit > 0 && Number(itemQtyLimit) < Number(itemQtyRoll.total)) {
@@ -457,8 +505,18 @@ class MerchantSheetNPC extends ActorSheet {
 
     /* -------------------------------------------- */
 
+    /**
+     * Handle buy item
+     * @private
+     */
+    _deleteItem(event) {
+        event.preventDefault();
+        console.log("Merchant sheet | Delete Item clicked");
+        let itemId = $(event.currentTarget).parents(".merchant-item").attr("data-item-id");
+        this.actor.deleteEmbeddedDocuments("Item", itemId);
+    }
 
-    /* -------------------------------------------- */
+        /* -------------------------------------------- */
 
     /**
      * Handle buy item
@@ -489,7 +547,7 @@ class MerchantSheetNPC extends ActorSheet {
 
         let itemId = $(event.currentTarget).parents(".merchant-item").attr("data-item-id");
         let stackModifier = $(event.currentTarget).parents(".merchant-item").attr("data-item-stack");
-        const item = this.actor.getEmbeddedEntity("OwnedItem", itemId);
+        const item = this.actor.getEmbeddedDocument("Item", itemId);
 
         const packet = {
             type: "buy",
@@ -499,6 +557,8 @@ class MerchantSheetNPC extends ActorSheet {
             quantity: 1,
             processorId: targetGm.id
         };
+        console.log(stackModifier)
+        console.log(item.data.quantity)
 
         if (stack || event.shiftKey) {
             if (item.data.quantity < stackModifier) {
@@ -565,13 +625,136 @@ class MerchantSheetNPC extends ActorSheet {
     }
 
     /**
+     * Handle buy modifier
+     * @private
+     */
+    async _buyModifier(event) {
+        event.preventDefault();
+
+        let buyModifier = await this.actor.getFlag("merchantsheetnpc", "buyModifier");
+        if (!buyModifier) buyModifier = 0.5;
+
+        buyModifier = Math.round(buyModifier * 100);
+
+        var html = "<p>Use this slider to increase or decrease the price of buying items to this inventory. <i class='fa fa-question-circle' title='This uses a percentage factor where 100% is the current price, 0% is 0, and 200% is double the price.'></i></p>";
+        html += '<p><input name="price-modifier-percent" id="price-modifier-percent" type="range" min="0" max="200" value="' + buyModifier + '" class="slider"></p>';
+        html += '<p><label>Percentage:</label> <input type=number min="0" max="200" value="' + buyModifier + '" id="price-modifier-percent-display"></p>';
+        html += '<script>var pmSlider = document.getElementById("price-modifier-percent"); var pmDisplay = document.getElementById("price-modifier-percent-display"); pmDisplay.value = pmSlider.value; pmSlider.oninput = function() { pmDisplay.value = this.value; }; pmDisplay.oninput = function() { pmSlider.value = this.value; };</script>';
+
+        let d = new Dialog({
+            title: "Price Modifier",
+            content: html,
+            buttons: {
+                one: {
+                    icon: '<i class="fas fa-check"></i>',
+                    label: "Update",
+                    callback: () => this.actor.setFlag("merchantsheetnpc", "buyModifier", document.getElementById("price-modifier-percent").value / 100)
+                },
+                two: {
+                    icon: '<i class="fas fa-times"></i>',
+                    label: "Cancel",
+                    callback: () => console.log("Merchant sheet | Buy Modifier Cancelled")
+                }
+            },
+            default: "two",
+            close: () => console.log("Merchant sheet | Buy Modifier Closed")
+        });
+        d.render(true);
+    }
+
+    /**
+     * Handle stack
+     * @private
+     */
+    async _changePrice(event) {
+        event.preventDefault();
+        console.log("Merchant sheet | Change item price");
+        let itemId = $(event.currentTarget).parents(".merchant-item").attr("data-item-id");
+
+        const item = this.actor.getEmbeddedDocument("Item", itemId);
+
+        var html = "<p>Enter the price for the item.</p>";
+        html += '<p><input name="price-value" id="price-value" value="' + item.data.price + '" class="field"></p>';
+        let d = new Dialog({
+            title: "Item Price Modifier",
+            content: html,
+            buttons: {
+                one: {
+                    icon: '<i class="fas fa-check"></i>',
+                    label: "Update",
+                    callback: () => {
+                        this.actor.updateOwnedItem({
+                            _id: itemId,
+                            "data.price": document.getElementById("price-value").value
+                        })
+                    }
+                },
+                two: {
+                    icon: '<i class="fas fa-times"></i>',
+                    label: "Cancel",
+                    callback: () => console.log("Merchant sheet | Change price Cancelled")
+                }
+            },
+            default: "two",
+            close: () => console.log("Merchant sheet | Change price Closed")
+        });
+        d.render(true);
+    }
+
+
+    /**
+     * Handle stack
+     * @private
+     */
+    async _changeQuantity(event) {
+        event.preventDefault();
+        console.log("Merchant sheet | Change quantity");
+        let itemId = $(event.currentTarget).parents(".merchant-item").attr("data-item-id");
+
+        const item = this.actor.getEmbeddedDocument("Item", itemId);
+
+        var html = "<p>Enter the quantity for the item.</p>";
+        html += '<p><input name="quantity-value" id="quantity-value" value="' + item.data.quantity + '" class="field"></p>';
+        html += '<p><label>Infinity:</label> <input type=checkbox '
+        if (item.data.quantity === Number.MAX_VALUE) { html += ' checked '}
+        html += ' id="quantity-infinity"></p>';
+        let d = new Dialog({
+            title: "Quantity Modifier",
+            content: html,
+            buttons: {
+                one: {
+                    icon: '<i class="fas fa-check"></i>',
+                    label: "Update",
+                    callback: () => {
+                        console.log(document.getElementById("quantity-infinity").checked)
+                        if (document.getElementById("quantity-infinity").checked) {
+                            this.actor.updateOwnedItem({_id: itemId, "data.quantity": Number.MAX_VALUE})
+                        } else {
+                            this.actor.updateOwnedItem({
+                                _id: itemId,
+                                "data.quantity": document.getElementById("quantity-value").value
+                            })
+                        }
+                    }
+                },
+                two: {
+                    icon: '<i class="fas fa-times"></i>',
+                    label: "Cancel",
+                    callback: () => console.log("Merchant sheet | Change quantity Cancelled")
+                }
+            },
+            default: "two",
+            close: () => console.log("Merchant sheet | Change quantity Closed")
+        });
+        d.render(true);
+    }
+
+    /**
      * Handle stack modifier
      * @private
      */
     async _stackModifier(event) {
         event.preventDefault();
-        //console.log("Merchant sheet | Price Modifier clicked");
-        //console.log(this.actor.isToken);
 
         let stackModifier = await this.actor.getFlag("merchantsheetnpc", "stackModifier");
         if (!stackModifier) stackModifier = 20;
@@ -602,65 +785,24 @@ class MerchantSheetNPC extends ActorSheet {
         d.render(true);
     }
 
-    /* -------------------------------------------- */
-
-    /**
-     * Handle distribution of coins
-     * @private
-     */
-    _distributeCoins(event) {
-        event.preventDefault();
-        //console.log("Merchant sheet | Split Coins clicked");
-
-        let targetGm = null;
-        game.users.forEach((u) => {
-            if (u.isGM && u.active && u.viewedScene === game.user.viewedScene) {
-                targetGm = u;
-            }
-        });
-
-        if (!targetGm) {
-            return ui.notifications.error("No active GM on your scene, they must be online and on the same scene to purchase an item.");
-        }
-
-        if (this.token === null) {
-            return ui.notifications.error(`You must loot items from a token.`);
-        }
-
-        if (game.user.isGM) {
-            //don't use socket
-            let container = canvas.tokens.get(this.token.id);
-            this._hackydistributeCoins(container.actor);
-            return;
-        }
-
-        const packet = {
-            type: "distributeCoins",
-            looterId: game.user.actorId,
-            tokenId: this.token.id,
-            processorId: targetGm.id
-        };
-        console.log("LootSheet5e", "Sending distribute coins request to " + targetGm.name, packet);
-        game.socket.emit(MerchantSheetNPC.SOCKET, packet);
-    }
 
     _hackydistributeCoins(containerActor) {
-        //This is identical as the distributeCoins function defined in the init hook which for some reason can't be called from the above _distributeCoins method of the LootSheetNPC5E class. I couldn't be bothered to figure out why a socket can't be called as the GM... so this is a hack but it works.
+        //This is identical as the distributeCoins function defined in the init hook which for some reason can't be called from the above _distributeCoins method of the MerchantSheetNPC5E class. I couldn't be bothered to figure out why a socket can't be called as the GM... so this is a hack but it works.
         let actorData = containerActor.data
         let observers = [];
         let players = game.users.players;
 
         //console.log("Merchant sheet | actorData", actorData);
         // Calculate observers
-        for (let player of players) {
-            let playerPermission = MerchantSheetNPCHelper.getMerchantPermissionForPlayer(actorData, player);
-            if (player != "default" && playerPermission >= 2) {
-                //console.log("Merchant sheet | player", player);
-                let actor = game.actors.get(player.data.character);
-                //console.log("Merchant sheet | actor", actor);
-                if (actor !== null && (player.data.role === 1 || player.data.role === 2)) observers.push(actor);
-            }
-        }
+        // for (let player of players) {
+        //     let playerPermission = MerchantSheetNPCHelper.getMerchantPermissionForPlayer(actorData, player);
+        //     if (player != "default" && playerPermission >= 2) {
+        //         //console.log("Merchant sheet | player", player);
+        //         let actor = game.actors.get(player.data.character);
+        //         //console.log("Merchant sheet | actor", actor);
+        //         if (actor !== null && (player.data.role === 1 || player.data.role === 2)) observers.push(actor);
+        //     }
+        // }
 
         //console.log("Merchant sheet | observers", observers);
         if (observers.length === 0) return;
@@ -754,7 +896,7 @@ class MerchantSheetNPC extends ActorSheet {
         //console.log("Merchant sheet | this.actor.data.permission", this.actor.data.permission);
 
 
-        let actorData = this.actor.data;
+        let actorData = this.actor;
 
 
         let field = $(event.currentTarget).siblings('input[type="hidden"]');
@@ -800,12 +942,12 @@ class MerchantSheetNPC extends ActorSheet {
         let idx = levels.indexOf(level),
             newLevel = levels[(idx === levels.length - 1) ? 0 : idx + 1];
 
-        let users = game.users.entities;
+        let users = game.users.contents;
 
         let currentPermissions = duplicate(actorData.permission);
         for (let u of users) {
             if (u.data.role === 1 || u.data.role === 2) {
-                currentPermissions[u._id] = newLevel;
+                currentPermissions[u.data._id] = newLevel;
             }
         }
         const merchantPermissions = new PermissionControl(this.actor);
@@ -816,82 +958,19 @@ class MerchantSheetNPC extends ActorSheet {
 
     _updatePermissions(actorData, playerId, newLevel, event) {
         // Read player permission on this actor and adjust to new level
-        let currentPermissions = duplicate(actorData.permission);
+        console.log("Merchant sheet | _updatePermission ",actorData, playerId, newLevel, event)
+        let currentPermissions = duplicate(actorData.data.permission);
         currentPermissions[playerId] = newLevel;
         // Save updated player permissions
-        const merchantPermissions = new PermissionControl(this.actor);
+        console.log("Merchant sheet | _updatePermission ",currentPermissions, actorData.data.permission)
+        const merchantPermissions = new PermissionControl(this.actor.data);
+        console.log("Merchant sheet | _updatePermission merchantPermissions",merchantPermissions)
+        // actorData.update(currentPermissions)
         merchantPermissions._updateObject(event, currentPermissions);
     }
 
     /* -------------------------------------------- */
 
-    /**
-     * Organize and classify Items for Loot NPC sheets
-     * @private
-     */
-    _prepareItems(actorData) {
-
-        //console.log("Merchant sheet | Prepare Features");
-        // Actions
-        const features = {
-            weapons: {
-                label: "Weapons",
-                items: [],
-                type: "weapon"
-            },
-            equipment: {
-                label: "Equipment",
-                items: [],
-                type: "equipment"
-            },
-            consumables: {
-                label: "Consumables",
-                items: [],
-                type: "consumable"
-            },
-            tools: {
-                label: "Tools",
-                items: [],
-                type: "tool"
-            },
-            containers: {
-                label: "Containers",
-                items: [],
-                type: "container"
-            },
-            loot: {
-                label: "Loot",
-                items: [],
-                type: "loot"
-            },
-
-        };
-
-        console.log("Merchant sheet | Prepare Items");
-        // Iterate through items, allocating to containers
-        let items = actorData.items;
-        items = items.sort(function (a, b) {
-            return a.name.localeCompare(b.name);
-        });
-        for (let i of items) {
-            i.img = i.img || DEFAULT_TOKEN;
-            //console.log("Merchant sheet | item", i);
-
-            // Features
-            if (i.type === "weapon") features.weapons.items.push(i);
-            else if (i.type === "equipment") features.equipment.items.push(i);
-            else if (i.type === "consumable") features.consumables.items.push(i);
-            else if (i.type === "tool") features.tools.items.push(i);
-            else if (["container", "backpack"].includes(i.type)) features.containers.items.push(i);
-            else if (i.type === "loot") features.loot.items.push(i);
-            else features.loot.items.push(i);
-        }
-
-        // Assign and return
-        //actorData.features = features;
-        actorData.actor.features = features;
-        console.log(this.actor.features);
-    }
 
     /* -------------------------------------------- */
 
@@ -901,6 +980,7 @@ class MerchantSheetNPC extends ActorSheet {
      * @private
      */
     _getPermissionIcon(level) {
+        console.log("Merchant sheet _getPermissionIcon | level ", level);
         const icons = {
             0: '<i class="far fa-circle"></i>',
             2: '<i class="fas fa-eye"></i>',
@@ -940,30 +1020,35 @@ class MerchantSheetNPC extends ActorSheet {
         let players = game.users.players;
         let commonPlayersPermission = -1;
 
-        //console.log("Merchant sheet _prepareGMSettings | actorData.permission", actorData.permission);
+        console.log("Merchant sheet _prepareGMSettings | actorData.permission", actorData.permission);
+        console.log("Merchant sheet _prepareGMSettings | actorData.permission", actorData.data.permission);
 
-        for (let player of players)
-        {
+        for (let player of players) {
             console.log("Merchant sheet | Checking user " + player.data.name, player);
 
-            // get the name of the primary actor for a player
+        //     // get the name of the primary actor for a player
             const actor = game.actors.get(player.data.character);
             console.log("Merchant sheet | Checking actor", actor);
-
+        //
             if (actor) {
+
+                console.log(player.data.name)
+                console.log(actor.data)
+
+
                 player.actor = actor.data.name;
                 player.actorId = actor.data._id;
                 player.playerId = player.data._id;
 
-                player.merchantPermission = MerchantSheetNPCHelper.getMerchantPermissionForPlayer(actorData, player);
-
-                if (player.merchantPermission >= 2 && !observers.includes(actor.data._id))
-                {
+        //
+                player.merchantPermission = MerchantSheetNPCHelper.getMerchantPermissionForPlayer(this.actor.data, player);
+        //
+                if (player.merchantPermission >= 2 && !observers.includes(actor.data._id)) {
                     observers.push(actor.data._id);
                 }
 
                 //Set icons and permission texts for html
-                //console.log("Merchant sheet | merchantPermission", player.merchantPermission);
+                console.log("Merchant sheet | merchantPermission", player.merchantPermission);
                 if (commonPlayersPermission < 0) {
                     commonPlayersPermission = player.merchantPermission;
                 } else if (commonPlayersPermission !== player.merchantPermission) {
@@ -982,7 +1067,9 @@ class MerchantSheetNPC extends ActorSheet {
         merchant.playersPermission = commonPlayersPermission;
         merchant.playersPermissionIcon = this._getPermissionIcon(commonPlayersPermission);
         merchant.playersPermissionDescription = this._getPermissionDescription(commonPlayersPermission);
-        actorData.flags.merchant = merchant;
+        console.log(playerData)
+        console.log(merchant)
+        return merchant
     }
 
 }
@@ -993,6 +1080,71 @@ Actors.registerSheet("core", MerchantSheetNPC, {
     makeDefault: false
 });
 
+async function sellItem(target, dragSource, sourceActor, quantity, totalItemsPrice) {
+    let sellerFunds = currencyCalculator.actorCurrency(sourceActor);
+    currencyCalculator.addAmountForActor(sourceActor,sellerFunds,totalItemsPrice)
+    if (dragSource.data.data.quantity <= quantity) {
+        sourceActor.deleteEmbeddedDocuments("Item",[dragSource.data._id]);
+    } else {
+        let destItem = await sourceActor.data.items.find(i => i.name == dragSource.data.name);
+        destItem.data.quantity = Number(destItem.data.quantity) - quantity;
+        await sourceActor.updateEmbeddedDocuments("Item", destItem);
+    }
+}
+
+Hooks.on('dropActorSheetData',(target,sheet,dragSource,user)=>{
+    function checkCompatable(a,b){
+        if(a==b) return false;
+    }
+
+    if(dragSource.type=="Item" && dragSource.actorId) {
+        if(!target.data._id) {
+            console.warn("Merchant sheet | target has no data._id?",target);
+            return;
+        }
+        if(target.data._id ==  dragSource.actorId) return;  // ignore dropping on self
+        let sourceActor = game.actors.get(dragSource.actorId);
+        console.log("Merchant sheet | drop item");
+        if(sourceActor) {
+            // if both source and target have the same type then allow deleting original item.
+            // this is a safety check because some game systems may allow dropping on targets
+            // that don't actually allow the GM or player to see the inventory, making the item
+            // inaccessible.
+            console.log(dragSource)
+            let buyModifier = target.getFlag("merchantsheetnpc", "buyModifier")
+            if (!buyModifier) buyModifier = 0.5;
+
+
+
+            var html = "<p>Would you like to sell "+dragSource.data.name+" each worth "+currencyCalculator.priceInText(buyModifier * dragSource.data.data.price)+"</p>";
+            html += '<p><input name="quantity-modifier" id="quantity-modifier" type="range" min="0" max="'+dragSource.data.data.quantity+'" value="1" class="slider"></p>';
+            html += '<p><label>Quantity:</label> <input type=number min="0" max="'+dragSource.data.data.quantity+'" value="1" id="quantity-modifier-display"></p> <input type="hidden" id="quantity-modifier-price" value = "'+(buyModifier * dragSource.data.data.price)+'"/>';
+            html += '<script>var pmSlider = document.getElementById("quantity-modifier"); var pmDisplay = document.getElementById("quantity-modifier-display"); var total = document.getElementById("quantity-modifier-total"); var price = document.getElementById("quantity-modifier-price"); pmDisplay.value = pmSlider.value; pmSlider.oninput = function() { pmDisplay.value = this.value;  total.value =this.value * price.value; }; pmDisplay.oninput = function() { pmSlider.value = this.value; };</script>';
+            html += '<p>Total<input type="text"  value="'+(buyModifier * dragSource.data.data.price)+'" id = "quantity-modifier-total"/> </p>' ;
+
+            let d = new Dialog({
+                title: "Sell item",
+                content: html,
+                buttons: {
+                    one: {
+                        icon: '<i class="fas fa-check"></i>',
+                        label: "Sell",
+                        callback: () => sellItem(target,dragSource,sourceActor, document.getElementById("quantity-modifier").value,document.getElementById("quantity-modifier-total").value)
+                    },
+                    two: {
+                        icon: '<i class="fas fa-times"></i>',
+                        label: "Cancel",
+                        callback: () => console.log("Merchant sheet | Price Modifier Cancelled")
+                    }
+                },
+                default: "two",
+                close: () => console.log("Merchant sheet | Price Modifier Closed")
+            });
+            d.render(true);
+
+        }
+    }
+});
 
 Hooks.once("init", () => {
     systemCurrencyCalculator().then(() => console.log("Merchant Sheet | System calculator is loaded"));
@@ -1032,9 +1184,9 @@ Hooks.once("init", () => {
     function chatMessage(speaker, owner, message, item) {
         if (game.settings.get("merchantsheetnpc", "buyChat")) {
             message = `
-            <div class="chat-card item-card" data-actor-id="${owner._id}" data-item-id="${item._id}">
+            <div class="chat-card item-card" data-actor-id="${owner.id}" data-item-id="${item.id}">
                 <header class="card-header flexrow">
-                    <img src="${item.img}" title="${item.name}" width="36" height="36">
+                    <div class= "merchant-item-image" style="background-image: url(${item.img})"></div>
                     <h3 class="item-name">${item.name}</h3>
                 </header>
 
@@ -1044,7 +1196,7 @@ Hooks.once("init", () => {
             </div>
             `;
             ChatMessage.create({
-                user: game.user._id,
+                user: game.user.id,
                 speaker: {
                     actor: speaker,
                     alias: speaker.name
@@ -1072,7 +1224,7 @@ Hooks.once("init", () => {
         for (let i of items) {
             let itemId = i.itemId;
             let quantity = i.quantity;
-            let item = source.getEmbeddedEntity("OwnedItem", itemId);
+            let item = source.getEmbeddedDocument("Item", itemId);
 
             // Move all items if we select more than the quantity.
             if (item.data.quantity < quantity) {
@@ -1080,7 +1232,7 @@ Hooks.once("init", () => {
             }
 
             let newItem = duplicate(item);
-            const update = { _id: itemId, "data.quantity": item.data.quantity - quantity };
+            const update = { _id: itemId, "data.quantity": item.data.quantity >= (Number.MAX_VALUE-10000) ? Number.MAX_VALUE : item.data.quantity - quantity };
 
             if (update["data.quantity"] === 0) {
                 deletes.push(itemId);
@@ -1105,19 +1257,19 @@ Hooks.once("init", () => {
         }
 
         if (deletes.length > 0) {
-            await source.deleteEmbeddedEntity("OwnedItem", deletes);
+            await source.deleteEmbeddedDocuments("Item", deletes);
         }
 
         if (updates.length > 0) {
-            await source.updateEmbeddedEntity("OwnedItem", updates);
+            await source.updateEmbeddedDocuments("Item", updates);
         }
 
         if (additions.length > 0) {
-            await destination.createEmbeddedEntity("OwnedItem", additions);
+            await destination.createEmbeddedDocuments("Item", additions);
         }
 
         if (destUpdates.length > 0) {
-            await destination.updateEmbeddedEntity("OwnedItem", destUpdates);
+            await destination.updateEmbeddedDocuments("Item", destUpdates);
         }
 
         return results;
@@ -1126,7 +1278,7 @@ Hooks.once("init", () => {
     async function transaction(seller, buyer, itemId, quantity) {
         console.log(`Buying item: ${seller}, ${buyer}, ${itemId}, ${quantity}`);
 
-        let sellItem = seller.getEmbeddedEntity("OwnedItem", itemId);
+        let sellItem = seller.getEmbeddedDocument("Item", itemId);
         // If the buyer attempts to buy more then what's in stock, buy all the stock.
         if (sellItem.data.quantity < quantity) {
             quantity = sellItem.data.quantity;
@@ -1148,20 +1300,17 @@ Hooks.once("init", () => {
         if (!sellerModifier) sellerModifier = 1.0;
         if (!sellerStack && quantity > sellerStack) quantity = sellerStack;
 
-        let itemCostInGold = Math.round(sellItem.data.price * sellerModifier * 100) / 100;
+        let itemCostInGold = Math.round(sellItem.data.data.price * sellerModifier * 100) / 100;
 
         itemCostInGold *= quantity;
-        console.log(`ItemCost: ${itemCostInGold}`)
         let currency = currencyCalculator.actorCurrency(buyer);
 
         let buyerFunds = duplicate(currency);
 
-        console.log(`Funds before purchase: ${buyerFunds}`);
         if (currencyCalculator.buyerHaveNotEnoughFunds(itemCostInGold,buyerFunds)) {
             errorMessageToActor(buyer, `Not enough funds to purchase item.`);
             return;
         }
-        console.log('Subtract from actor');
 
         currencyCalculator.subtractAmountFromActor(buyer,buyerFunds,itemCostInGold);
 
@@ -1180,11 +1329,9 @@ Hooks.once("init", () => {
     }
 
     game.socket.on(MerchantSheetNPC.SOCKET, data => {
-        console.log("Merchant sheet | Socket Message: ", data);
         if (game.user.isGM && data.processorId === game.user.id) {
             if (data.type === "buy") {
                 let buyer = game.actors.get(data.buyerId);
-                console.log(buyer)
                 let seller = canvas.tokens.get(data.tokenId);
 
                 if (buyer && seller && seller.actor) {

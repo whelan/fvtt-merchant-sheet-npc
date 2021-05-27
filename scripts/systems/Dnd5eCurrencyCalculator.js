@@ -38,6 +38,7 @@ export default class Dnd5eCurrencyCalculator extends CurrencyCalculator {
     }
 
     updateActorWithNewFunds(buyer, buyerFunds) {
+        console.log("Merchant hseet | buyer and funds", buyer,buyerFunds)
         buyer.update({ "data.currency": buyerFunds });
     }
 
@@ -115,8 +116,83 @@ export default class Dnd5eCurrencyCalculator extends CurrencyCalculator {
         }
         // buyerFunds = buyerFunds - itemCostInGold;
         this.updateActorWithNewFunds(buyer,buyerFunds);
-        console.log(buyerFunds);
-        console.log(`Funds after purchase: ${buyerFunds}`);
+        console.log(`Merchant sheet | Funds after purchase: ${buyerFunds}`);
+    }
+
+    addAmountForActor(seller, sellerFunds, itemCostInGold) {
+
+        let itemCostInPlatinum = itemCostInGold / conversionRates["gp"]
+        let buyerFundsAsPlatinum = this.convertToPlatinum(sellerFunds);
+
+        console.log(`buyerFundsAsPlatinum : ${buyerFundsAsPlatinum}`);
+
+        let convertCurrency = game.settings.get("merchantsheetnpc", "convertCurrency");
+
+        if (convertCurrency) {
+            buyerFundsAsPlatinum += itemCostInPlatinum;
+
+            // Remove every coin we have
+            for (let currency in sellerFunds) {
+                sellerFunds[currency] = 0
+            }
+
+            // Give us fractions of platinum coins, which will be smoothed out below
+            sellerFunds["pp"] = buyerFundsAsPlatinum
+
+        } else {
+            // We just pay in partial platinum.
+            // We dont care if we get partial coins or negative once because we compensate later
+            sellerFunds["pp"] += itemCostInPlatinum
+
+            // Now we exchange all negative funds with coins of lower value
+            // We dont need to care about running out of money because we checked that earlier
+            for (let currency in sellerFunds) {
+                let amount = sellerFunds[currency]
+                // console.log(`${currency} : ${amount}`);
+                if (amount >= 0) continue;
+
+                // If we have ever so slightly negative cp, it is likely due to floating point error
+                // We dont care and just give it to the player
+                if (currency == "cp") {
+                    sellerFunds["cp"] = 0;
+                    continue;
+                }
+
+                let compCurrency = compensationCurrency[currency]
+
+                sellerFunds[currency] = 0;
+                sellerFunds[compCurrency] += amount * conversionRates[compCurrency]; // amount is a negative value so we add it
+                // console.log(`Substracted: ${amount * conversionRates[compCurrency]} ${compCurrency}`);
+            }
+        }
+
+        // console.log(`Smoothing out`);
+        // Finally we exchange partial coins with as little change as possible
+        for (let currency in sellerFunds) {
+            let amount = sellerFunds[currency]
+
+            // console.log(`${currency} : ${amount}: ${conversionRates[currency]}`);
+
+            // We round to 5 decimals. 1 pp is 1000cp, so 5 decimals always rounds good enough
+            // We need to round because otherwise we get 15.99999999999918 instead of 16 due to floating point precision
+            // If we would floor 15.99999999999918 everything explodes
+            let newFund = Math.floor(Math.round(amount * 1e5) / 1e5);
+            sellerFunds[currency] = newFund;
+
+            // console.log(`New Buyer funds ${currency}: ${sellerFunds[currency]}`);
+            let compCurrency = compensationCurrency[currency]
+
+            // We dont care about fractions of CP
+            if (currency != "cp") {
+                // We calculate the amount of lower currency we get for the fraction of higher currency we have
+                let toAdd = Math.round((amount - newFund) * 1e5) / 1e5 * conversionRates[compCurrency]
+                sellerFunds[compCurrency] += toAdd
+                // console.log(`Added ${toAdd} to ${compCurrency} it is now ${sellerFunds[compCurrency]}`);
+            }
+        }
+        // sellerFunds = sellerFunds - itemCostInGold;
+        this.updateActorWithNewFunds(seller,sellerFunds);
+        console.log(`Merchant Sheet | Funds after sell: ${sellerFunds}`);
     }
 
     priceInText(itemCostInGold) {
@@ -160,26 +236,12 @@ export default class Dnd5eCurrencyCalculator extends CurrencyCalculator {
             },
 
         };
-
-        //console.log("Loot Sheet | Prepare Items");
-        // Iterate through items, allocating to containers
-        items = items.sort(function (a, b) {
-            return a.name.localeCompare(b.name);
-        });
-        for (let i of items) {
-            i.img = i.img || DEFAULT_TOKEN;
-            //console.log("Loot Sheet | item", i);
-
-            // Features
-            if (i.type === "weapon") features.weapons.items.push(i);
-            else if (i.type === "equipment") features.equipment.items.push(i);
-            else if (i.type === "consumable") features.consumables.items.push(i);
-            else if (i.type === "tool") features.tools.items.push(i);
-            else if (["container", "backpack"].includes(i.type)) features.containers.items.push(i);
-            else if (i.type === "loot") features.loot.items.push(i);
-            else features.loot.items.push(i);
-        }
-
+        features.weapons.items = items.weapon
+        features.equipment.items = items.equipment
+        features.consumables.items = items.consumables
+        features.tools.items = items.tools
+        features.containers.items = items.containers
+        features.loot.items = items.loot
         return features;
     }
 

@@ -14,15 +14,20 @@ export default class CurrencyCalculator {
     }
 
     subtractAmountFromActor(buyer, buyerFunds, itemCostInGold) {
-        console.log('base calculator')
         buyerFunds = buyerFunds - itemCostInGold;
         this.updateActorWithNewFunds(buyer,buyerFunds);
-        console.log(`Funds after purchase: ${buyerFunds}`);
+        console.log(`Merchant Sheet | Funds after purchase: ${buyerFunds}`);
+    }
+
+    addAmountForActor(seller, sellerFunds, price) {
+        let modifyPrice = sellerFunds * 1;
+        sellerFunds = modifyPrice + price;
+        this.updateActorWithNewFunds(seller,sellerFunds);
+        console.log(`Merchant Sheet | Funds after sell: ${sellerFunds}`);
     }
 
     updateActorWithNewFunds(buyer, buyerFunds) {
-        console.log('Base update Buyer');
-        // buyer.update({ "data.currency": buyerFunds });
+        buyer.update({ "data.currency": buyerFunds });
     }
 
     priceInText(itemCostInGold) {
@@ -39,7 +44,7 @@ export default class CurrencyCalculator {
         const features = {
             weapons: {
                 label: "All",
-                items: items,
+                items: [],
                 type: "all"
             }
         }

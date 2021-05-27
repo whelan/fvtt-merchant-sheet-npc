@@ -1,3 +1,20 @@
+## Version 1.1.0
+
+* Fixed 0.8 support
+
+## Version 1.0.0
+
+* Possible to sell to merchant as well. The percentage of the items price can be set for all items on a merchant. Default is 50%. Dialog is shown to seller where seller can choose quantity of items to sell and cancel if price is too low. 
+* Able to delete items on merchant as GM
+* Bugfix: Fixed Swade problem with deducting currency when purchasing items
+
+## Version 0.2.0
+
+* Base price on itmes can be set
+* Able to modify quantity on itme even set it to unlimited.
+* Bugfix: Able to buy stack again
+* Bugfix: Able to see price on items
+
 ## Version 0.1.0
 
 * Categories is now implemented for both Dnd5e and Swade.  
