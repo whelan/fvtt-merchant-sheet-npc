@@ -3,7 +3,7 @@ import CurrencyCalculator from "./CurrencyCalculator.js";
 export default class SwadeCurrencyCalculator extends CurrencyCalculator {
 
     actorCurrency(actor) {
-        return actor.data.data.details.currency;
+        return actor.data.details.currency;
     }
 
     updateActorWithNewFunds(buyer, buyerFunds) {
@@ -40,10 +40,10 @@ export default class SwadeCurrencyCalculator extends CurrencyCalculator {
         //console.log("Loot Sheet | Prepare Items");
         // Iterate through items, allocating to containers
         // for (let i of items) {
-        // features.gear.items = items.gear;
-        // features.armor.items = items.armor;
-        // features.shields.items = items.shield;
-        // features.weapons.items = items.weapon;
+        features.gear.items = items.gear;
+        features.armor.items = items.armor;
+        features.shields.items = items.shield;
+        features.weapons.items = items.weapon;
         // }
 
         return features;
