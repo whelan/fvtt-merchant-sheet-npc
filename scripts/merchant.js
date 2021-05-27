@@ -24,11 +24,7 @@ class MerchantSheetNPCHelper
      */
     static getMerchantPermissionForPlayer(actorData, player) {
         let defaultPermission = actorData.permission.default;
-        console.log(defaultPermission)
-
-        console.log("Merchant sheet | actorData: ",actorData)
         if (player.data._id in actorData.permission) {
-            console.log("Merchant sheet | Found individual actor permission");
             console.log("Merchant sheet | assigning " + actorData.permission[player.data._id] + " permission to hidden field");
             return actorData.permission[player.data._id];
         }
@@ -198,7 +194,6 @@ class MerchantSheetNPC extends ActorSheet {
         if (game.user.isGM) sheetData.isGM = true;
         else sheetData.isGM = false;
         //console.log("sheetData.isGM: ", sheetData.isGM);
-        console.log(this.actor);
 
 
         let priceModifier = 1.0;
@@ -901,7 +896,7 @@ class MerchantSheetNPC extends ActorSheet {
         //console.log("Merchant sheet | this.actor.data.permission", this.actor.data.permission);
 
 
-        let actorData = this.actor.data;
+        let actorData = this.actor;
 
 
         let field = $(event.currentTarget).siblings('input[type="hidden"]');
@@ -964,10 +959,10 @@ class MerchantSheetNPC extends ActorSheet {
     _updatePermissions(actorData, playerId, newLevel, event) {
         // Read player permission on this actor and adjust to new level
         console.log("Merchant sheet | _updatePermission ",actorData, playerId, newLevel, event)
-        let currentPermissions = duplicate(actorData.permission);
+        let currentPermissions = duplicate(actorData.data.permission);
         currentPermissions[playerId] = newLevel;
         // Save updated player permissions
-        console.log("Merchant sheet | _updatePermission ",currentPermissions, actorData.permission)
+        console.log("Merchant sheet | _updatePermission ",currentPermissions, actorData.data.permission)
         const merchantPermissions = new PermissionControl(this.actor.data);
         console.log("Merchant sheet | _updatePermission merchantPermissions",merchantPermissions)
         // actorData.update(currentPermissions)
@@ -1089,7 +1084,7 @@ async function sellItem(target, dragSource, sourceActor, quantity, totalItemsPri
     let sellerFunds = currencyCalculator.actorCurrency(sourceActor);
     currencyCalculator.addAmountForActor(sourceActor,sellerFunds,totalItemsPrice)
     if (dragSource.data.data.quantity <= quantity) {
-        sourceActor.deleteOwnedItem(dragSource.data._id);
+        sourceActor.deleteEmbeddedDocuments("Item",[dragSource.data._id]);
     } else {
         let destItem = await sourceActor.data.items.find(i => i.name == dragSource.data.name);
         destItem.data.quantity = Number(destItem.data.quantity) - quantity;
@@ -1189,9 +1184,9 @@ Hooks.once("init", () => {
     function chatMessage(speaker, owner, message, item) {
         if (game.settings.get("merchantsheetnpc", "buyChat")) {
             message = `
-            <div class="chat-card item-card" data-actor-id="${owner._id}" data-item-id="${item._id}">
+            <div class="chat-card item-card" data-actor-id="${owner.id}" data-item-id="${item.id}">
                 <header class="card-header flexrow">
-                    <img src="${item.img}" title="${item.name}" width="36" height="36">
+                    <div class= "merchant-item-image" style="background-image: url(${item.img})"></div>
                     <h3 class="item-name">${item.name}</h3>
                 </header>
 
@@ -1201,7 +1196,7 @@ Hooks.once("init", () => {
             </div>
             `;
             ChatMessage.create({
-                user: game.user._id,
+                user: game.user.id,
                 speaker: {
                     actor: speaker,
                     alias: speaker.name
@@ -1305,20 +1300,17 @@ Hooks.once("init", () => {
         if (!sellerModifier) sellerModifier = 1.0;
         if (!sellerStack && quantity > sellerStack) quantity = sellerStack;
 
-        let itemCostInGold = Math.round(sellItem.data.price * sellerModifier * 100) / 100;
+        let itemCostInGold = Math.round(sellItem.data.data.price * sellerModifier * 100) / 100;
 
         itemCostInGold *= quantity;
-        console.log(`ItemCost: ${itemCostInGold}`)
         let currency = currencyCalculator.actorCurrency(buyer);
 
         let buyerFunds = duplicate(currency);
 
-        console.log(`Funds before purchase: ${buyerFunds}`);
         if (currencyCalculator.buyerHaveNotEnoughFunds(itemCostInGold,buyerFunds)) {
             errorMessageToActor(buyer, `Not enough funds to purchase item.`);
             return;
         }
-        console.log('Subtract from actor');
 
         currencyCalculator.subtractAmountFromActor(buyer,buyerFunds,itemCostInGold);
 
@@ -1337,11 +1329,9 @@ Hooks.once("init", () => {
     }
 
     game.socket.on(MerchantSheetNPC.SOCKET, data => {
-        console.log("Merchant sheet | Socket Message: ", data);
         if (game.user.isGM && data.processorId === game.user.id) {
             if (data.type === "buy") {
                 let buyer = game.actors.get(data.buyerId);
-                console.log(buyer)
                 let seller = canvas.tokens.get(data.tokenId);
 
                 if (buyer && seller && seller.actor) {

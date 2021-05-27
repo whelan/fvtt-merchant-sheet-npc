@@ -38,6 +38,7 @@ export default class Dnd5eCurrencyCalculator extends CurrencyCalculator {
     }
 
     updateActorWithNewFunds(buyer, buyerFunds) {
+        console.log("Merchant hseet | buyer and funds", buyer,buyerFunds)
         buyer.update({ "data.currency": buyerFunds });
     }
 
@@ -115,7 +116,6 @@ export default class Dnd5eCurrencyCalculator extends CurrencyCalculator {
         }
         // buyerFunds = buyerFunds - itemCostInGold;
         this.updateActorWithNewFunds(buyer,buyerFunds);
-        console.log(buyerFunds);
         console.log(`Merchant sheet | Funds after purchase: ${buyerFunds}`);
     }
 
@@ -192,7 +192,6 @@ export default class Dnd5eCurrencyCalculator extends CurrencyCalculator {
         }
         // sellerFunds = sellerFunds - itemCostInGold;
         this.updateActorWithNewFunds(seller,sellerFunds);
-        console.log(sellerFunds);
         console.log(`Merchant Sheet | Funds after sell: ${sellerFunds}`);
     }
 
