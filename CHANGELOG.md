@@ -1,3 +1,7 @@
+## Version 1.1.2
+
+* Changed buy/sell modifier text for better understanding
+
 ## Version 1.1.1
 
 * Small UI fixes
