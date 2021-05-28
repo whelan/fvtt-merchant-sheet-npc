@@ -1,3 +1,7 @@
+## Version 1.0.2
+
+* Changed to better names for buy/sell buttons
+
 ## Version 1.0.1
 
 * Small UI fixes
