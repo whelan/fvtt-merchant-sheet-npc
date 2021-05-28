@@ -1,3 +1,8 @@
+## Version 1.1.1
+
+* Small UI fixes
+* Fix Swade selling to merchant
+
 ## Version 1.1.0
 
 * Fixed 0.8 support
