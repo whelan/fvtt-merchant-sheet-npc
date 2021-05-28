@@ -1,6 +1,7 @@
 ## Version 1.0.1
 
-Small UI fixes
+* Small UI fixes
+* Fix Swade selling to merchant
 
 ## Version 1.0.0
 
