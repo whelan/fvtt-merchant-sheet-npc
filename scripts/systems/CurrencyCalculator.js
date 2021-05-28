@@ -20,7 +20,7 @@ export default class CurrencyCalculator {
     }
 
     addAmountForActor(seller, sellerFunds, price) {
-        sellerFunds = sellerFunds + price;
+        sellerFunds = (sellerFunds*1) + (price*1);
         this.updateActorWithNewFunds(seller,sellerFunds);
         console.log(`Merchant Sheet | Funds after sell: ${sellerFunds}`);
     }
