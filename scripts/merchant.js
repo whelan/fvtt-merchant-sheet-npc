@@ -1245,7 +1245,7 @@ Hooks.once("init", () => {
             message = `
             <div class="chat-card item-card" data-actor-id="${owner._id}" data-item-id="${item._id}">
                 <header class="card-header flexrow">
-                    <img src="${item.img}" title="${item.name}" width="36" height="36">
+                    <div class= "merchant-item-image" style="background-image: url(${item.img})"></div>
                     <h3 class="item-name">${item.name}</h3>
                 </header>
 
