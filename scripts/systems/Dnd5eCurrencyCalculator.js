@@ -238,9 +238,9 @@ export default class Dnd5eCurrencyCalculator extends CurrencyCalculator {
         };
         features.weapons.items = items.weapon
         features.equipment.items = items.equipment
-        features.consumables.items = items.consumables
-        features.tools.items = items.tools
-        features.containers.items = items.containers
+        features.consumables.items = items.consumable
+        features.tools.items = items.tool
+        features.containers.items = items.backpack
         features.loot.items = items.loot
         return features;
     }
