@@ -3,7 +3,7 @@ import CurrencyCalculator from "./CurrencyCalculator.js";
 export default class SwadeCurrencyCalculator extends CurrencyCalculator {
 
     actorCurrency(actor) {
-        return actor.data.details.currency;
+        return actor.data.data.details.currency;
     }
 
     updateActorWithNewFunds(buyer, buyerFunds) {

@@ -223,8 +223,8 @@ class MerchantSheetNPC extends ActorSheet {
         sheetData.priceModifier = priceModifier;
         sheetData.stackModifier = stackModifier;
         sheetData.sections = currencyCalculator.prepareItems(this.actor.itemTypes);
-        sheetData.merchant = merchant
-
+        sheetData.merchant = merchant;
+        sheetData.owner = sheetData.isGM;
         // Return data for rendering
         return sheetData;
     }
@@ -513,7 +513,7 @@ class MerchantSheetNPC extends ActorSheet {
         event.preventDefault();
         console.log("Merchant sheet | Delete Item clicked");
         let itemId = $(event.currentTarget).parents(".merchant-item").attr("data-item-id");
-        this.actor.deleteEmbeddedDocuments("Item", itemId);
+        this.actor.deleteEmbeddedDocuments("Item", [itemId]);
     }
 
         /* -------------------------------------------- */

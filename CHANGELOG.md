@@ -1,4 +1,10 @@
-## Version 1.1.2
+## Version 1.1.4
+* Added Flavor text on the merchant 
+
+* Fixed bug with Selling and buying in swade 0.8.6 
+* Fixed bug with deleting items in 0.8.6
+
+## Version 1.1.3
 
 * Fixed bug with some of the itemtypes in dnd5e. 
 
