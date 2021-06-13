@@ -223,8 +223,8 @@ class MerchantSheetNPC extends ActorSheet {
         sheetData.priceModifier = priceModifier;
         sheetData.stackModifier = stackModifier;
         sheetData.sections = currencyCalculator.prepareItems(this.actor.itemTypes);
-        sheetData.merchant = merchant
-
+        sheetData.merchant = merchant;
+        sheetData.owner = sheetData.isGM;
         // Return data for rendering
         return sheetData;
     }

@@ -34,6 +34,11 @@
             <div class="sheet-profile-img">
                 <img class="sheet-profile" src="{{actor.img}}" title="{{actor.name}}" data-edit="img"/>
             </div>
+            {{log data}}
+
+            <div class="editor">
+                {{editor content=data.data.details.biography.value target="data.details.biography.value" button=true owner=owner editable=isGM}}
+            </div>
 
             {{#if isGM}}
 
