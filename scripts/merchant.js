@@ -513,7 +513,7 @@ class MerchantSheetNPC extends ActorSheet {
         event.preventDefault();
         console.log("Merchant sheet | Delete Item clicked");
         let itemId = $(event.currentTarget).parents(".merchant-item").attr("data-item-id");
-        this.actor.deleteEmbeddedDocuments("Item", itemId);
+        this.actor.deleteEmbeddedDocuments("Item", [itemId]);
     }
 
         /* -------------------------------------------- */
