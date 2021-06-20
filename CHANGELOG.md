@@ -1,3 +1,8 @@
+## Version 1.1.5 
+
+* Fixed problems with quantity and currency in sell and buy functions when it needs to be updated. 
+* Fixed decrease of quantity on merchant, so it would not set it to undefined.[]()
+
 ## Version 1.1.4
 * Added Flavor text on the merchant 
 
