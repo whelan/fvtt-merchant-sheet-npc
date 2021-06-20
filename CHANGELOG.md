@@ -1,7 +1,12 @@
+## Version 1.1.5 
+
+* Fixed problems with quantity and currency in sell and buy functions when it needs to be updated. 
+* Fixed decrease of quantity on merchant, so it would not set it to undefined.[]()
+
 ## Version 1.1.4
 * Added Flavor text on the merchant 
 
-* Fixed bug with Selling and buying in swade 0.8.6 
+* Fixed bug with selling and buying in swade 0.8.6 
 * Fixed bug with deleting items in 0.8.6
 
 ## Version 1.1.3

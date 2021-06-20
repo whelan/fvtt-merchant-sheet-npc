@@ -20,7 +20,7 @@ Drop items from player sheets to merchant to sell items.
 - Merchant has unlimited amount of money. 
 
 ### Compatibility:
-- Tested with FVTT 0.7.x-0.8.x and these systems: 
+- This works only in FVTT 0.8.x and with these systems (maybe more if the system is using simple quantity): 
   * swade
   * dnd5e  
 
