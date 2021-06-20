@@ -1,7 +1,7 @@
 ## Version 1.1.4
 * Added Flavor text on the merchant 
 
-* Fixed bug with Selling and buying in swade 0.8.6 
+* Fixed bug with selling and buying in swade 0.8.6 
 * Fixed bug with deleting items in 0.8.6
 
 ## Version 1.1.3

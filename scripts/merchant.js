@@ -208,13 +208,13 @@ class MerchantSheetNPC extends ActorSheet {
         stackModifier = await this.actor.getFlag(moduleName, "stackModifier");
         await this.actor.setFlag(moduleName,"merchant",merchant)
         let totalWeight = 0;
-        this.actor.data.items.forEach((item)=>totalWeight += Math.round((item.data.quantity * item.data.weight * 100) / 100));
+        this.actor.data.items.forEach((item)=>totalWeight += Math.round((item.data.data.quantity * item.data.weight * 100) / 100));
 
         let totalPrice = 0;
-        this.actor.data.items.forEach((item)=>totalPrice += Math.round((item.data.quantity * item.data.price * priceModifier * 100) / 100));
+        this.actor.data.items.forEach((item)=>totalPrice += Math.round((item.data.data.quantity * item.data.price * priceModifier * 100) / 100));
 
         let totalQuantity = 0;
-        this.actor.data.items.forEach((item)=>totalQuantity += Math.round((item.data.quantity * 100) / 100));
+        this.actor.data.items.forEach((item)=>totalQuantity += Math.round((item.data.data.quantity * 100) / 100));
 
         sheetData.totalItems = this.actor.data.items.length;
         sheetData.totalWeight = totalWeight.toLocaleString('en');
@@ -377,7 +377,7 @@ class MerchantSheetNPC extends ActorSheet {
                 itemQtyRoll.roll();
                 console.log(`Merchant sheet | Adding ${itemQtyRoll.total} x ${newItem.name}`)
 
-                // newItem.data.quantity = itemQtyRoll.result;
+                // newitem.data.data.quantity = itemQtyRoll.result;
 
                 let existingItem = this.actor.items.find(item => item.data.name == newItem.name);
 
@@ -558,11 +558,11 @@ class MerchantSheetNPC extends ActorSheet {
             processorId: targetGm.id
         };
         console.log(stackModifier)
-        console.log(item.data.quantity)
+        console.log(item.data.data.quantity)
 
         if (stack || event.shiftKey) {
-            if (item.data.quantity < stackModifier) {
-                packet.quantity = item.data.quantity;
+            if (item.data.data.quantity < stackModifier) {
+                packet.quantity = item.data.data.quantity;
             } else {
                 packet.quantity = stackModifier;
             }
@@ -714,9 +714,9 @@ class MerchantSheetNPC extends ActorSheet {
         const item = this.actor.getEmbeddedDocument("Item", itemId);
 
         var html = "<p>Enter the quantity for the item.</p>";
-        html += '<p><input name="quantity-value" id="quantity-value" value="' + item.data.quantity + '" class="field"></p>';
+        html += '<p><input name="quantity-value" id="quantity-value" value="' + item.data.data.quantity + '" class="field"></p>';
         html += '<p><label>Infinity:</label> <input type=checkbox '
-        if (item.data.quantity === Number.MAX_VALUE) { html += ' checked '}
+        if (item.data.data.quantity === Number.MAX_VALUE) { html += ' checked '}
         html += ' id="quantity-infinity"></p>';
         let d = new Dialog({
             title: "Quantity Modifier",
@@ -1083,12 +1083,17 @@ Actors.registerSheet("core", MerchantSheetNPC, {
 async function sellItem(target, dragSource, sourceActor, quantity, totalItemsPrice) {
     let sellerFunds = currencyCalculator.actorCurrency(sourceActor);
     currencyCalculator.addAmountForActor(sourceActor,sellerFunds,totalItemsPrice)
+    console.log(sourceActor)
+    console.log(dragSource)
     if (dragSource.data.data.quantity <= quantity) {
         sourceActor.deleteEmbeddedDocuments("Item",[dragSource.data._id]);
     } else {
         let destItem = await sourceActor.data.items.find(i => i.name == dragSource.data.name);
-        destItem.data.quantity = Number(destItem.data.quantity) - quantity;
-        await sourceActor.updateEmbeddedDocuments("Item", destItem);
+        const update = { _id: destItem.id, "data.quantity": Number(destItem.data.data.quantity) - quantity};
+        console.log(update)
+        dragSource.data.data.quantity = Number(destItem.data.data.quantity) - quantity;
+        // destItem.data.data.quantity = ;
+        await sourceActor.updateEmbeddedDocuments("Item", [update]);
     }
 }
 
@@ -1223,16 +1228,16 @@ Hooks.once("init", () => {
         const results = [];
         for (let i of items) {
             let itemId = i.itemId;
-            let quantity = i.quantity;
+            let quantity = Number(i.quantity);
             let item = source.getEmbeddedDocument("Item", itemId);
 
             // Move all items if we select more than the quantity.
-            if (item.data.quantity < quantity) {
-                quantity = item.data.quantity;
+            if (item.data.data.quantity < quantity) {
+                quantity = Number(item.data.data.quantity);
             }
 
             let newItem = duplicate(item);
-            const update = { _id: itemId, "data.quantity": item.data.quantity >= (Number.MAX_VALUE-10000) ? Number.MAX_VALUE : item.data.quantity - quantity };
+            const update = { _id: itemId, "data.quantity": item.data.data.quantity >= (Number.MAX_VALUE-10000) ? Number.MAX_VALUE : item.data.data.quantity - quantity };
 
             if (update["data.quantity"] === 0) {
                 deletes.push(itemId);
@@ -1251,8 +1256,9 @@ Hooks.once("init", () => {
                 additions.push(newItem);
             } else {
                 //console.log("Existing Item");
-                destItem.data.quantity = Number(destItem.data.quantity) + Number(newItem.data.quantity);
-                destUpdates.push(destItem);
+                destItem.data.data.quantity = Number(destItem.data.data.quantity) + Number(newItem.data.quantity);
+                const destUpdate = { _id: destItem._id, "data.quantity": destItem.data.data.quantity };
+                destUpdates.push(destUpdate);
             }
         }
 
@@ -1280,8 +1286,8 @@ Hooks.once("init", () => {
 
         let sellItem = seller.getEmbeddedDocument("Item", itemId);
         // If the buyer attempts to buy more then what's in stock, buy all the stock.
-        if (sellItem.data.quantity < quantity) {
-            quantity = sellItem.data.quantity;
+        if (sellItem.data.data.quantity < quantity) {
+            quantity = sellItem.data.data.quantity;
         }
 
         // On negative quantity we show an error
