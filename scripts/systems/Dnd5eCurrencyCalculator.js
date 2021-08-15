@@ -237,11 +237,29 @@ export default class Dnd5eCurrencyCalculator extends CurrencyCalculator {
 
         };
         features.weapons.items = items.weapon
+        features.weapons.items.sort(function (a, b) {
+            return a.name.localeCompare(b.name);
+        });
         features.equipment.items = items.equipment
+        features.equipment.items.sort(function (a, b) {
+            return a.name.localeCompare(b.name);
+        });
         features.consumables.items = items.consumable
+        features.consumables.items.sort(function (a, b) {
+            return a.name.localeCompare(b.name);
+        });
         features.tools.items = items.tool
+        features.tools.items.sort(function (a, b) {
+            return a.name.localeCompare(b.name);
+        });
         features.containers.items = items.backpack
+        features.containers.items.sort(function (a, b) {
+            return a.name.localeCompare(b.name);
+        });
         features.loot.items = items.loot
+        features.loot.items.sort(function (a, b) {
+            return a.name.localeCompare(b.name);
+        });
         return features;
     }
 

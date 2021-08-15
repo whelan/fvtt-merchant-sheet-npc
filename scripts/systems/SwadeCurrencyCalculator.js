@@ -41,10 +41,21 @@ export default class SwadeCurrencyCalculator extends CurrencyCalculator {
         // Iterate through items, allocating to containers
         // for (let i of items) {
         features.gear.items = items.gear;
+        features.gear.items.sort(function (a, b) {
+            return a.name.localeCompare(b.name);
+        });
         features.armor.items = items.armor;
+        features.armor.items.sort(function (a, b) {
+            return a.name.localeCompare(b.name);
+        });
         features.shields.items = items.shield;
+        features.shields.items.sort(function (a, b) {
+            return a.name.localeCompare(b.name);
+        });
         features.weapons.items = items.weapon;
-        // }
+        features.weapons.items.sort(function (a, b) {
+            return a.name.localeCompare(b.name);
+        });
 
         return features;
     }
