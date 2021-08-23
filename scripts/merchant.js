@@ -937,7 +937,7 @@ class MerchantSheetNPC extends ActorSheet {
         let level = parseFloat(field.val());
         if (typeof level === undefined || level === 999) level = 0;
 
-        const levels = [0, 3, 2]; //const levels = [0, 2, 3];
+        const levels = [0, 2]; //const levels = [0, 2, 3];
 
         let idx = levels.indexOf(level),
             newLevel = levels[(idx === levels.length - 1) ? 0 : idx + 1];
@@ -984,7 +984,6 @@ class MerchantSheetNPC extends ActorSheet {
         const icons = {
             0: '<i class="far fa-circle"></i>',
             2: '<i class="fas fa-eye"></i>',
-            3: '<i class="fas fa-check"></i>',
             999: '<i class="fas fa-users"></i>'
         };
         return icons[level];
@@ -1000,7 +999,6 @@ class MerchantSheetNPC extends ActorSheet {
         const description = {
             0: "None (cannot access sheet)",
             2: "Observer (access to sheet but can only purchase items if merchant sheet type)",
-            3: "Owner (can access items and share coins)",
             999: "Change all permissions"
         };
         return description[level];
