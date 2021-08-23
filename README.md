@@ -23,6 +23,7 @@ Drop items from player sheets to merchant to sell items.
 - This works only in FVTT 0.8.x and with these systems (maybe more if the system is using simple quantity): 
   * swade
   * dnd5e  
+  * Starfinder 
 
 ### Installation Instructions
 

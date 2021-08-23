@@ -1,3 +1,9 @@
+## Version 1.2.0 
+
+* Fixed problems with merchant permissions. Now either a player have access to it or not. The player will not own the merchant (#27) and (#26)
+* Fixed sorting in categories. The sorting is now working. (#25)
+* Added Starfinder support (#28)
+
 ## Version 1.1.5 
 
 * Fixed problems with quantity and currency in sell and buy functions when it needs to be updated. 
