@@ -49,4 +49,9 @@ export default class CurrencyCalculator {
         }
         return features;
     }
+
+    async onDropItemCreate(itemData, caller) {
+        return caller.callSuperOnDropItemCreate(itemData);
+    }
+
 }

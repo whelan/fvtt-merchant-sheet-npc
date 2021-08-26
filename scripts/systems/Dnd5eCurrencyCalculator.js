@@ -1,4 +1,5 @@
 import CurrencyCalculator from "./CurrencyCalculator.js";
+import Item5e from "../../../../systems/dnd5e/module/item/entity.js";
 
 const conversionRates = {
     "pp": 1,
@@ -12,6 +13,28 @@ const compensationCurrency = {"pp": "gp", "gp": "ep", "ep": "sp", "sp": "cp"};
 
 
 export default class Dnd5eCurrencyCalculator extends CurrencyCalculator {
+
+    async onDropItemCreate(itemData, caller) {
+        // Create a Consumable spell scroll on the Inventory tab
+        if ( (itemData.type === "spell")) {
+            const scroll = await Item5e.createScrollFromSpell(itemData);
+            itemData = scroll.data;
+        }
+
+        // Stack identical consumables
+        if ( itemData.flags.core?.sourceId ) {
+            const similarItem = this.actor.items.find(i => {
+                const sourceId = i.getFlag("core", "sourceId");
+                return sourceId && (sourceId === itemData.flags.core?.sourceId) && (i.name === itemData.name);
+            });
+            if ( similarItem ) {
+                return similarItem.update({
+                    'data.quantity': similarItem.data.data.quantity + Math.max(itemData.data.quantity, 1)
+                });
+            }
+        }
+        return caller.callSuperOnDropItemCreate(itemData);
+    }
 
     actorCurrency(actor) {
         return actor.data.data.currency;

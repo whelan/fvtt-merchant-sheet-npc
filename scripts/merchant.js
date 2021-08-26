@@ -251,9 +251,6 @@ class MerchantSheetNPC extends ActorSheet {
         html.find('.merchant-settings').change(ev => this._merchantSettingChange(ev));
         html.find('.update-inventory').click(ev => this._merchantInventoryUpdate(ev));
 
-        // Split Coins
-        html.find('.split-coins').removeAttr('disabled').click(ev => this._distributeCoins(ev));
-
         // Buy Item
         html.find('.item-buy').click(ev => this._buyItem(ev));
         html.find('.item-buystack').click(ev => this._buyItem(ev, 1));
@@ -786,102 +783,6 @@ class MerchantSheetNPC extends ActorSheet {
     }
 
 
-    _hackydistributeCoins(containerActor) {
-        //This is identical as the distributeCoins function defined in the init hook which for some reason can't be called from the above _distributeCoins method of the MerchantSheetNPC5E class. I couldn't be bothered to figure out why a socket can't be called as the GM... so this is a hack but it works.
-        let actorData = containerActor.data
-        let observers = [];
-        let players = game.users.players;
-
-        //console.log("Merchant sheet | actorData", actorData);
-        // Calculate observers
-        // for (let player of players) {
-        //     let playerPermission = MerchantSheetNPCHelper.getMerchantPermissionForPlayer(actorData, player);
-        //     if (player != "default" && playerPermission >= 2) {
-        //         //console.log("Merchant sheet | player", player);
-        //         let actor = game.actors.get(player.data.character);
-        //         //console.log("Merchant sheet | actor", actor);
-        //         if (actor !== null && (player.data.role === 1 || player.data.role === 2)) observers.push(actor);
-        //     }
-        // }
-
-        //console.log("Merchant sheet | observers", observers);
-        if (observers.length === 0) return;
-
-        // Calculate split of currency
-        let currencySplit = duplicate(actorData.data.currency);
-        //console.log("Merchant sheet | Currency data", currencySplit);
-
-        // keep track of the remainder
-        let currencyRemainder = {};
-
-        for (let c in currencySplit) {
-            if (observers.length) {
-                // calculate remainder
-                currencyRemainder[c] = (currencySplit[c].value % observers.length);
-                //console.log("Remainder: " + currencyRemainder[c]);
-
-                currencySplit[c].value = Math.floor(currencySplit[c].value / observers.length);
-            }
-            else currencySplit[c].value = 0;
-        }
-
-        // add currency to actors existing coins
-        let msg = [];
-        for (let u of observers) {
-            //console.log("Merchant sheet | u of observers", u);
-            if (u === null) continue;
-
-            msg = [];
-            let currency = u.data.data.currency,
-                newCurrency = duplicate(u.data.data.currency);
-
-            //console.log("Merchant sheet | Current Currency", currency);
-
-            for (let c in currency) {
-                // add msg for chat description
-                if (currencySplit[c].value) {
-                    //console.log("Merchant sheet | New currency for " + c, currencySplit[c]);
-                    msg.push(` ${currencySplit[c].value} ${c} coins`)
-                }
-                if (currencySplit[c].value != null) {
-                    // Add currency to permitted actor
-                    newCurrency[c] = parseInt(currency[c] || 0) + currencySplit[c].value;
-                    u.update({
-                        'data.currency': newCurrency
-                    });
-                }
-            }
-
-            // Remove currency from loot actor.
-            let lootCurrency = containerActor.data.data.currency,
-                zeroCurrency = {};
-
-            for (let c in lootCurrency) {
-                zeroCurrency[c] = {
-                    'type': currencySplit[c].type,
-                    'label': currencySplit[c].type,
-                    'value': currencyRemainder[c]
-                }
-                containerActor.update({
-                    "data.currency": zeroCurrency
-                });
-            }
-
-            // Create chat message for coins received
-            if (msg.length != 0) {
-                let message = `${u.data.name} receives: `;
-                message += msg.join(",");
-                ChatMessage.create({
-                    user: game.user._id,
-                    speaker: {
-                        actor: containerActor,
-                        alias: containerActor.name
-                    },
-                    content: message
-                });
-            }
-        }
-    }
 
     /* -------------------------------------------- */
 
@@ -1068,6 +969,16 @@ class MerchantSheetNPC extends ActorSheet {
         console.log(playerData)
         console.log(merchant)
         return merchant
+    }
+
+    async _onDropItemCreate(itemData) {
+        return currencyCalculator.onDropItemCreate(itemData,this);
+
+    }
+
+    async callSuperOnDropItemCreate(itemData) {
+        // Create the owned item as normal
+        return super._onDropItemCreate(itemData);
     }
 
 }
