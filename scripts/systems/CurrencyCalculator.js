@@ -54,4 +54,12 @@ export default class CurrencyCalculator {
         return caller.callSuperOnDropItemCreate(itemData);
     }
 
+    getPriceFromItem(item) {
+        return item.data.price;
+    }
+
+    getPriceItemKey() {
+        return "data.price";
+    }
+
 }

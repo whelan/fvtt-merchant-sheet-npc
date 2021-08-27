@@ -92,23 +92,33 @@
                     <div class="merchant-item-image" style="background-image: url({{item.img}})"></div>
                     <div class="item-quantity">{{item.name}}</div>
                     <div class="item-quantity">
-                        <a class="item-control change-item-quantity" title="Change quantity"><i class="fas fa-box"
+                        {{#if ../../isGM}}
+                        <a class="item-control change-item-quantity" title="Change quantity">
+                        {{/if}}
+                            <i class="fas fa-box"
                                                                                    title="Quantity"></i>
                             {{#if (itemInfinity item.data.data.quantity)}}
                                 <i class="fas fa-infinity"></i>
                             {{else}}
                                 {{item.data.data.quantity}}
                             {{/if}}
+                        {{#if isGM}}
                         </a>
+                        {{/if}}
+
                     </div>
                     <div class="item-weight">
                         <i class="fas fa-weight-hanging" title="Weight"></i> {{merchantsheetweight
                         item.data.data.weight}}{{merchantsheetstackweight item.data.data.weight item.data.data.quantity}}
                     </div>
                     <div class="item-price">
+                        {{#if ../../isGM}}
                         <a class="item-control change-item-price" title="Change price">
+                        {{/if}}
                         <i class="fas fa-coins" title="Price"></i> {{ merchantsheetprice item.data.data.price ../../priceModifier }}
+                        {{#if isGM}}
                         </a>
+                        {{/if}}
                     </div>
 
                     <div class="item-controls">

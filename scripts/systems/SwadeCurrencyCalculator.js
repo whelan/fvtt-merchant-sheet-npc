@@ -59,5 +59,12 @@ export default class SwadeCurrencyCalculator extends CurrencyCalculator {
 
         return features;
     }
+    getPriceFromItem(item) {
+        return item.data.data.price;
+    }
+
+    getPriceItemKey() {
+        return "data.price";
+    }
 
 }

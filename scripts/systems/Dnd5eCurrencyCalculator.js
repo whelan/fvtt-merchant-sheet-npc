@@ -22,17 +22,17 @@ export default class Dnd5eCurrencyCalculator extends CurrencyCalculator {
         }
 
         // Stack identical consumables
-        if ( itemData.flags.core?.sourceId ) {
-            const similarItem = this.actor.items.find(i => {
-                const sourceId = i.getFlag("core", "sourceId");
-                return sourceId && (sourceId === itemData.flags.core?.sourceId) && (i.name === itemData.name);
-            });
-            if ( similarItem ) {
-                return similarItem.update({
-                    'data.quantity': similarItem.data.data.quantity + Math.max(itemData.data.quantity, 1)
-                });
-            }
-        }
+        // if ( itemData.flags.core?.sourceId ) {
+        //     const similarItem = this.actor.items.find(i => {
+        //         const sourceId = i.getFlag("core", "sourceId");
+        //         return sourceId && (sourceId === itemData.flags.core?.sourceId) && (i.name === itemData.name);
+        //     });
+        //     if ( similarItem ) {
+        //         return similarItem.update({
+        //             'data.quantity': similarItem.data.data.quantity + Math.max(itemData.data.quantity, 1)
+        //         });
+        //     }
+        // }
         return caller.callSuperOnDropItemCreate(itemData);
     }
 
@@ -297,5 +297,14 @@ export default class Dnd5eCurrencyCalculator extends CurrencyCalculator {
             type: Boolean
         });
     }
+
+    getPriceFromItem(item) {
+        return item.data.data.price;
+    }
+
+    getPriceItemKey() {
+        return "data.price";
+    }
+
 
 }

@@ -143,7 +143,14 @@ class MerchantSheetNPC extends ActorSheet {
         });
 
         Handlebars.registerHelper('merchantsheetprice', function (basePrice, modifier) {
+            if (!modifier) {
+                this.actor.setFlag("merchantsheetnpc", "priceModifier", 1.0);
+                modifier = 1.0;
+            }
+            // if (!stackModifier) await this.actor.setFlag(moduleName, "stackModifier", 20);
+
             console.log ("Merchant sheet | basePrice: "+ basePrice + " modifier: " + modifier)
+
             return (Math.round(basePrice * modifier * 100) / 100).toLocaleString('en');
         });
 
@@ -199,27 +206,25 @@ class MerchantSheetNPC extends ActorSheet {
         let priceModifier = 1.0;
         let moduleName = "merchantsheetnpc";
         priceModifier = await this.actor.getFlag(moduleName, "priceModifier");
-        if (!priceModifier) await this.actor.setFlag(moduleName, "priceModifier", 1.0);
-        priceModifier = await this.actor.getFlag(moduleName, "priceModifier");
+        // priceModifier = await this.actor.getFlag(moduleName, "priceModifier");
 
         let stackModifier = 20;
         stackModifier = await this.actor.getFlag(moduleName, "stackModifier");
-        if (!stackModifier) await this.actor.setFlag(moduleName, "stackModifier", 20);
-        stackModifier = await this.actor.getFlag(moduleName, "stackModifier");
-        await this.actor.setFlag(moduleName,"merchant",merchant)
+        // stackModifier = await this.actor.getFlag(moduleName, "stackModifier");
+        // await this.actor.setFlag(moduleName,"merchant",merchant)
         let totalWeight = 0;
-        this.actor.data.items.forEach((item)=>totalWeight += Math.round((item.data.data.quantity * item.data.weight * 100) / 100));
-
-        let totalPrice = 0;
-        this.actor.data.items.forEach((item)=>totalPrice += Math.round((item.data.data.quantity * item.data.price * priceModifier * 100) / 100));
-
-        let totalQuantity = 0;
-        this.actor.data.items.forEach((item)=>totalQuantity += Math.round((item.data.data.quantity * 100) / 100));
+        // this.actor.data.items.forEach((item)=>totalWeight += Math.round((item.data.data.quantity * item.data.data.weight * 100) / 100));
+        //
+        // let totalPrice = 0;
+        // this.actor.data.items.forEach((item)=>totalPrice += Math.round((item.data.data.quantity * item.data.data.price * priceModifier * 100) / 100));
+        //
+        // let totalQuantity = 0;
+        // this.actor.data.items.forEach((item)=>totalQuantity += Math.round((item.data.data.quantity * 100) / 100));
 
         sheetData.totalItems = this.actor.data.items.length;
-        sheetData.totalWeight = totalWeight.toLocaleString('en');
-        sheetData.totalPrice = totalPrice.toLocaleString('en') + " gp";
-        sheetData.totalQuantity = totalQuantity;
+        // sheetData.totalWeight = totalWeight.toLocaleString('en');
+        // sheetData.totalPrice = totalPrice.toLocaleString('en') + " gp";
+        // sheetData.totalQuantity = totalQuantity;
         sheetData.priceModifier = priceModifier;
         sheetData.stackModifier = stackModifier;
         sheetData.sections = currencyCalculator.prepareItems(this.actor.itemTypes);
@@ -671,7 +676,7 @@ class MerchantSheetNPC extends ActorSheet {
         const item = this.actor.getEmbeddedDocument("Item", itemId);
 
         var html = "<p>Enter the price for the item.</p>";
-        html += '<p><input name="price-value" id="price-value" value="' + item.data.price + '" class="field"></p>';
+        html += '<p><input name="price-value" id="price-value" value="' + currencyCalculator.getPriceFromItem(item) + '" class="field"></p>';
         let d = new Dialog({
             title: "Item Price Modifier",
             content: html,
@@ -680,10 +685,7 @@ class MerchantSheetNPC extends ActorSheet {
                     icon: '<i class="fas fa-check"></i>',
                     label: "Update",
                     callback: () => {
-                        this.actor.updateOwnedItem({
-                            _id: itemId,
-                            "data.price": document.getElementById("price-value").value
-                        })
+                        item.update({[currencyCalculator.getPriceItemKey()]: document.getElementById("price-value").value});
                     }
                 },
                 two: {
@@ -723,7 +725,6 @@ class MerchantSheetNPC extends ActorSheet {
                     icon: '<i class="fas fa-check"></i>',
                     label: "Update",
                     callback: () => {
-                        console.log(document.getElementById("quantity-infinity").checked)
                         if (document.getElementById("quantity-infinity").checked) {
                             this.actor.updateOwnedItem({_id: itemId, "data.quantity": Number.MAX_VALUE})
                         } else {
@@ -1215,7 +1216,7 @@ Hooks.once("init", () => {
         if (!sellerModifier) sellerModifier = 1.0;
         if (!sellerStack && quantity > sellerStack) quantity = sellerStack;
 
-        let itemCostInGold = Math.round(sellItem.data.data.price * sellerModifier * 100) / 100;
+        let itemCostInGold = Math.round(currencyCalculator.getPriceFromItem(sellItem) * sellerModifier * 100) / 100;
 
         itemCostInGold *= quantity;
         let currency = currencyCalculator.actorCurrency(buyer);
