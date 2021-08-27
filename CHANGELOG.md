@@ -1,3 +1,9 @@
+## Version 1.2.1
+
+* Possible to drag spells to dnd5e sheet now, it will create a spell scroll (#18)
+* It is now changed so a player can't change the quantity or price on a merchant item (#26)
+* The currency name in Swade settings are now used in chat messages (#31)
+
 ## Version 1.2.0 
 
 * Fixed problems with merchant permissions. Now either a player have access to it or not. The player will not own the merchant (#27) and (#26)
