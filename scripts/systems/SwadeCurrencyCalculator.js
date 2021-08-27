@@ -67,4 +67,10 @@ export default class SwadeCurrencyCalculator extends CurrencyCalculator {
         return "data.price";
     }
 
+    priceInText(itemCostInGold) {
+        return itemCostInGold + ' ' + game.settings.get("swade","currencyName");
+    }
+
+
+
 }
