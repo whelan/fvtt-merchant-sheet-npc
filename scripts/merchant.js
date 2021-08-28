@@ -143,7 +143,14 @@ class MerchantSheetNPC extends ActorSheet {
         });
 
         Handlebars.registerHelper('merchantsheetprice', function (basePrice, modifier) {
+            if (!modifier) {
+                this.actor.setFlag("merchantsheetnpc", "priceModifier", 1.0);
+                modifier = 1.0;
+            }
+            // if (!stackModifier) await this.actor.setFlag(moduleName, "stackModifier", 20);
+
             console.log ("Merchant sheet | basePrice: "+ basePrice + " modifier: " + modifier)
+
             return (Math.round(basePrice * modifier * 100) / 100).toLocaleString('en');
         });
 
@@ -199,27 +206,25 @@ class MerchantSheetNPC extends ActorSheet {
         let priceModifier = 1.0;
         let moduleName = "merchantsheetnpc";
         priceModifier = await this.actor.getFlag(moduleName, "priceModifier");
-        if (!priceModifier) await this.actor.setFlag(moduleName, "priceModifier", 1.0);
-        priceModifier = await this.actor.getFlag(moduleName, "priceModifier");
+        // priceModifier = await this.actor.getFlag(moduleName, "priceModifier");
 
         let stackModifier = 20;
         stackModifier = await this.actor.getFlag(moduleName, "stackModifier");
-        if (!stackModifier) await this.actor.setFlag(moduleName, "stackModifier", 20);
-        stackModifier = await this.actor.getFlag(moduleName, "stackModifier");
-        await this.actor.setFlag(moduleName,"merchant",merchant)
+        // stackModifier = await this.actor.getFlag(moduleName, "stackModifier");
+        // await this.actor.setFlag(moduleName,"merchant",merchant)
         let totalWeight = 0;
-        this.actor.data.items.forEach((item)=>totalWeight += Math.round((item.data.data.quantity * item.data.weight * 100) / 100));
-
-        let totalPrice = 0;
-        this.actor.data.items.forEach((item)=>totalPrice += Math.round((item.data.data.quantity * item.data.price * priceModifier * 100) / 100));
-
-        let totalQuantity = 0;
-        this.actor.data.items.forEach((item)=>totalQuantity += Math.round((item.data.data.quantity * 100) / 100));
+        // this.actor.data.items.forEach((item)=>totalWeight += Math.round((item.data.data.quantity * item.data.data.weight * 100) / 100));
+        //
+        // let totalPrice = 0;
+        // this.actor.data.items.forEach((item)=>totalPrice += Math.round((item.data.data.quantity * item.data.data.price * priceModifier * 100) / 100));
+        //
+        // let totalQuantity = 0;
+        // this.actor.data.items.forEach((item)=>totalQuantity += Math.round((item.data.data.quantity * 100) / 100));
 
         sheetData.totalItems = this.actor.data.items.length;
-        sheetData.totalWeight = totalWeight.toLocaleString('en');
-        sheetData.totalPrice = totalPrice.toLocaleString('en') + " gp";
-        sheetData.totalQuantity = totalQuantity;
+        // sheetData.totalWeight = totalWeight.toLocaleString('en');
+        // sheetData.totalPrice = totalPrice.toLocaleString('en') + " gp";
+        // sheetData.totalQuantity = totalQuantity;
         sheetData.priceModifier = priceModifier;
         sheetData.stackModifier = stackModifier;
         sheetData.sections = currencyCalculator.prepareItems(this.actor.itemTypes);
@@ -250,9 +255,6 @@ class MerchantSheetNPC extends ActorSheet {
 
         html.find('.merchant-settings').change(ev => this._merchantSettingChange(ev));
         html.find('.update-inventory').click(ev => this._merchantInventoryUpdate(ev));
-
-        // Split Coins
-        html.find('.split-coins').removeAttr('disabled').click(ev => this._distributeCoins(ev));
 
         // Buy Item
         html.find('.item-buy').click(ev => this._buyItem(ev));
@@ -674,7 +676,7 @@ class MerchantSheetNPC extends ActorSheet {
         const item = this.actor.getEmbeddedDocument("Item", itemId);
 
         var html = "<p>Enter the price for the item.</p>";
-        html += '<p><input name="price-value" id="price-value" value="' + item.data.price + '" class="field"></p>';
+        html += '<p><input name="price-value" id="price-value" value="' + currencyCalculator.getPriceFromItem(item) + '" class="field"></p>';
         let d = new Dialog({
             title: "Item Price Modifier",
             content: html,
@@ -683,10 +685,7 @@ class MerchantSheetNPC extends ActorSheet {
                     icon: '<i class="fas fa-check"></i>',
                     label: "Update",
                     callback: () => {
-                        this.actor.updateOwnedItem({
-                            _id: itemId,
-                            "data.price": document.getElementById("price-value").value
-                        })
+                        item.update({[currencyCalculator.getPriceItemKey()]: document.getElementById("price-value").value});
                     }
                 },
                 two: {
@@ -726,7 +725,6 @@ class MerchantSheetNPC extends ActorSheet {
                     icon: '<i class="fas fa-check"></i>',
                     label: "Update",
                     callback: () => {
-                        console.log(document.getElementById("quantity-infinity").checked)
                         if (document.getElementById("quantity-infinity").checked) {
                             this.actor.updateOwnedItem({_id: itemId, "data.quantity": Number.MAX_VALUE})
                         } else {
@@ -786,102 +784,6 @@ class MerchantSheetNPC extends ActorSheet {
     }
 
 
-    _hackydistributeCoins(containerActor) {
-        //This is identical as the distributeCoins function defined in the init hook which for some reason can't be called from the above _distributeCoins method of the MerchantSheetNPC5E class. I couldn't be bothered to figure out why a socket can't be called as the GM... so this is a hack but it works.
-        let actorData = containerActor.data
-        let observers = [];
-        let players = game.users.players;
-
-        //console.log("Merchant sheet | actorData", actorData);
-        // Calculate observers
-        // for (let player of players) {
-        //     let playerPermission = MerchantSheetNPCHelper.getMerchantPermissionForPlayer(actorData, player);
-        //     if (player != "default" && playerPermission >= 2) {
-        //         //console.log("Merchant sheet | player", player);
-        //         let actor = game.actors.get(player.data.character);
-        //         //console.log("Merchant sheet | actor", actor);
-        //         if (actor !== null && (player.data.role === 1 || player.data.role === 2)) observers.push(actor);
-        //     }
-        // }
-
-        //console.log("Merchant sheet | observers", observers);
-        if (observers.length === 0) return;
-
-        // Calculate split of currency
-        let currencySplit = duplicate(actorData.data.currency);
-        //console.log("Merchant sheet | Currency data", currencySplit);
-
-        // keep track of the remainder
-        let currencyRemainder = {};
-
-        for (let c in currencySplit) {
-            if (observers.length) {
-                // calculate remainder
-                currencyRemainder[c] = (currencySplit[c].value % observers.length);
-                //console.log("Remainder: " + currencyRemainder[c]);
-
-                currencySplit[c].value = Math.floor(currencySplit[c].value / observers.length);
-            }
-            else currencySplit[c].value = 0;
-        }
-
-        // add currency to actors existing coins
-        let msg = [];
-        for (let u of observers) {
-            //console.log("Merchant sheet | u of observers", u);
-            if (u === null) continue;
-
-            msg = [];
-            let currency = u.data.data.currency,
-                newCurrency = duplicate(u.data.data.currency);
-
-            //console.log("Merchant sheet | Current Currency", currency);
-
-            for (let c in currency) {
-                // add msg for chat description
-                if (currencySplit[c].value) {
-                    //console.log("Merchant sheet | New currency for " + c, currencySplit[c]);
-                    msg.push(` ${currencySplit[c].value} ${c} coins`)
-                }
-                if (currencySplit[c].value != null) {
-                    // Add currency to permitted actor
-                    newCurrency[c] = parseInt(currency[c] || 0) + currencySplit[c].value;
-                    u.update({
-                        'data.currency': newCurrency
-                    });
-                }
-            }
-
-            // Remove currency from loot actor.
-            let lootCurrency = containerActor.data.data.currency,
-                zeroCurrency = {};
-
-            for (let c in lootCurrency) {
-                zeroCurrency[c] = {
-                    'type': currencySplit[c].type,
-                    'label': currencySplit[c].type,
-                    'value': currencyRemainder[c]
-                }
-                containerActor.update({
-                    "data.currency": zeroCurrency
-                });
-            }
-
-            // Create chat message for coins received
-            if (msg.length != 0) {
-                let message = `${u.data.name} receives: `;
-                message += msg.join(",");
-                ChatMessage.create({
-                    user: game.user._id,
-                    speaker: {
-                        actor: containerActor,
-                        alias: containerActor.name
-                    },
-                    content: message
-                });
-            }
-        }
-    }
 
     /* -------------------------------------------- */
 
@@ -1068,6 +970,16 @@ class MerchantSheetNPC extends ActorSheet {
         console.log(playerData)
         console.log(merchant)
         return merchant
+    }
+
+    async _onDropItemCreate(itemData) {
+        return currencyCalculator.onDropItemCreate(itemData,this);
+
+    }
+
+    async callSuperOnDropItemCreate(itemData) {
+        // Create the owned item as normal
+        return super._onDropItemCreate(itemData);
     }
 
 }
@@ -1304,7 +1216,7 @@ Hooks.once("init", () => {
         if (!sellerModifier) sellerModifier = 1.0;
         if (!sellerStack && quantity > sellerStack) quantity = sellerStack;
 
-        let itemCostInGold = Math.round(sellItem.data.data.price * sellerModifier * 100) / 100;
+        let itemCostInGold = Math.round(currencyCalculator.getPriceFromItem(sellItem) * sellerModifier * 100) / 100;
 
         itemCostInGold *= quantity;
         let currency = currencyCalculator.actorCurrency(buyer);

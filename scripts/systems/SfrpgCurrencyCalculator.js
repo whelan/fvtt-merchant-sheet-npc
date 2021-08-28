@@ -121,4 +121,13 @@ export default class SfrpgCurrencyCalculator extends CurrencyCalculator {
             return a.name.localeCompare(b.name);
         };
     }
+
+    getPriceFromItem(item) {
+        return item.data.data.price;
+    }
+
+    getPriceItemKey() {
+        return "data.price";
+    }
+
 }
