@@ -1,3 +1,9 @@
+## Version 1.2.3
+* Forgot to merge in the PR.
+
+## Version 1.2.2
+* Fixed module.json
+
 ## Version 1.2.1
 
 * Possible to drag spells to dnd5e sheet now, it will create a spell scroll (#18)
