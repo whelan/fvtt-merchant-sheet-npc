@@ -143,7 +143,7 @@ class MerchantSheetNPC extends ActorSheet {
         });
 
         Handlebars.registerHelper('merchantsheetprice', function (basePrice, modifier) {
-            if (!modifier) {
+            if (modifier === 'undefined') {
                 this.actor.setFlag("merchantsheetnpc", "priceModifier", 1.0);
                 modifier = 1.0;
             }
@@ -596,7 +596,7 @@ class MerchantSheetNPC extends ActorSheet {
         //console.log(this.actor.isToken);
 
         let priceModifier = await this.actor.getFlag("merchantsheetnpc", "priceModifier");
-        if (!priceModifier) priceModifier = 1.0;
+        if (priceModifier === 'undefined') priceModifier = 1.0;
 
         priceModifier = Math.round(priceModifier * 100);
 
@@ -612,7 +612,14 @@ class MerchantSheetNPC extends ActorSheet {
                 one: {
                     icon: '<i class="fas fa-check"></i>',
                     label: "Update",
-                    callback: () => this.actor.setFlag("merchantsheetnpc", "priceModifier", document.getElementById("price-modifier-percent").value / 100)
+                    callback: () => {
+                        let priceModifier = document.getElementById("price-modifier-percent").value;
+                        if (priceModifier === 0) {
+                            this.actor.setFlag("merchantsheetnpc", "priceModifier", 0)
+                        } else {
+                            this.actor.setFlag("merchantsheetnpc", "priceModifier", document.getElementById("price-modifier-percent").value / 100)
+                        }
+                    }
                 },
                 two: {
                     icon: '<i class="fas fa-times"></i>',
@@ -634,7 +641,9 @@ class MerchantSheetNPC extends ActorSheet {
         event.preventDefault();
 
         let buyModifier = await this.actor.getFlag("merchantsheetnpc", "buyModifier");
-        if (!buyModifier) buyModifier = 0.5;
+        if (buyModifier === 'undefined') {
+            buyModifier = 0.5;
+        }
 
         buyModifier = Math.round(buyModifier * 100);
 
@@ -650,7 +659,15 @@ class MerchantSheetNPC extends ActorSheet {
                 one: {
                     icon: '<i class="fas fa-check"></i>',
                     label: "Update",
-                    callback: () => this.actor.setFlag("merchantsheetnpc", "buyModifier", document.getElementById("price-modifier-percent").value / 100)
+                    callback: () => {
+                        let priceModifier = document.getElementById("price-modifier-percent").value;
+                        if (priceModifier === 0) {
+                            this.actor.setFlag("merchantsheetnpc", "buyModifier", 0)
+                        } else {
+                            this.actor.setFlag("merchantsheetnpc", "buyModifier", priceModifier / 100)
+                        }
+
+                    }
                 },
                 two: {
                     icon: '<i class="fas fa-times"></i>',
