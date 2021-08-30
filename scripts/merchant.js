@@ -262,6 +262,7 @@ class MerchantSheetNPC extends ActorSheet {
         html.find('.item-delete').click(ev => this._deleteItem(ev));
         html.find('.change-item-quantity').click(ev => this._changeQuantity(ev));
         html.find('.change-item-price').click(ev => this._changePrice(ev));
+        html.find('.merchant-item .item-name').click(event => this._onItemSummary(event));
 
 
         // Roll Table
@@ -842,6 +843,23 @@ class MerchantSheetNPC extends ActorSheet {
     }
 
     /* -------------------------------------------- */
+
+    _onItemSummary(event) {
+        event.preventDefault();
+        let li = $(event.currentTarget).parents(".merchant-item"),
+            item = this.actor.items.get(li.data("item-id")),
+            chatData = item.getChatData({secrets: this.actor.isOwner});
+        // Toggle summary
+        if ( li.hasClass("expanded") ) {
+            let summary = li.children(".merchant-item-summary");
+            summary.slideUp(200, () => summary.remove());
+        } else {
+            let div = $(`<div class="merchant-item-summary">${chatData.description.value}</div>`);
+            li.append(div.hide());
+            div.slideDown(200);
+        }
+        li.toggleClass("expanded");
+    }
 
     /**
      * Handle cycling bulk permissions
