@@ -1,3 +1,7 @@
+## Version 1.3.0
+* Possible to expand description of an item (#22)
+* Both modifiers can now be set to zero. (#36)
+
 ## Version 1.2.3
 * Forgot to merge in the PR.
 
