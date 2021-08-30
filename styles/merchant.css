@@ -258,6 +258,15 @@ input#quantity:focus {
 	margin-right: 5px;
 }
 
+.merchant-item-summary {
+	flex: 0 0 100%;
+	font-size: 12px;
+	line-height: 16px;
+	padding: 0.25em 0.5em;
+	color: @colorDark;
+	border-top: 1px solid @colorFaint;
+}
+
 .merchant-sheet-npc li.item.flexrow.inventory-header {
     padding: 8px 8px 0 0;
 }
