@@ -934,9 +934,9 @@ class MerchantSheetNPC extends ActorSheet {
      */
     _getPermissionDescription(level) {
         const description = {
-            0: "None (cannot access sheet)",
-            2: "Observer (access to sheet but can only purchase items if merchant sheet type)",
-            999: "Change all permissions"
+            0: game.i18n.localize("MERCHANTNPC.permission-none-help"),
+            2: game.i18n.localize("MERCHANTNPC.permission-observer-help"),
+            999: game.i18n.localize("MERCHANTNPC.permission-all-help")
         };
         return description[level];
     }

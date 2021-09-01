@@ -1,0 +1,21 @@
+{
+
+  "MERCHANTNPC.permission-info": "Ensure players have selected a character via the Player Configuration (right-click player in bottom left) menu.",
+  "MERCHANTNPC.permissions": "permissions",
+  "MERCHANTNPC.item-create": "Add",
+  "MERCHANTNPC.item-create-help": "Add item from pack",
+  "MERCHANTNPC.gm-section": "GM Settings",
+  "MERCHANTNPC.price-modifier": "Buy from Merchant modifier",
+  "MERCHANTNPC.buy-modifier": "Sell to Merchant modifier",
+  "MERCHANTNPC.stack-modifier": "Stack Modifier",
+  "MERCHANTNPC.item-delete": "Remove item",
+  "MERCHANTNPC.item-buy": "Buy item",
+  "MERCHANTNPC.stack-buy": "Buy stack",
+  "MERCHANTNPC.change-item-quantity-help": "Change the quantity of the item",
+  "MERCHANTNPC.change-price-help": "Change the base price of the item",
+  "MERCHANTNPC.permission-observer-help": "Observer (access to sheet but can only purchase items if merchant sheet type)",
+  "MERCHANTNPC.permission-none-help": "None (cannot access sheet)",
+  "MERCHANTNPC.permission-all-help": "Change all permissions",
+
+
+}
