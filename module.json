@@ -13,6 +13,11 @@
 			"lang": "en",
 			"name": "English",
 			"path": "lang/en.json"
+		},
+		{
+			"lang": "da",
+			"name": "Danish",
+			"path": "lang/da.json"
 		}
 	],
 	"socket": true,

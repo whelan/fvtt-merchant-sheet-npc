@@ -1,0 +1,21 @@
+{
+
+  "MERCHANTNPC.permission-info": "Vær sikker på at spillerne har valgt en karakter under spiller configuration (Højre klik på spilleren i menuen, nederest til venstre)",
+  "MERCHANTNPC.permissions": "Tilladelser",
+  "MERCHANTNPC.item-create": "Tilføj",
+  "MERCHANTNPC.item-create-help": "Tilføj genstand fra kompendium",
+  "MERCHANTNPC.gm-section": "GM opsætning",
+  "MERCHANTNPC.price-modifier": "Køb fra butikken sats",
+  "MERCHANTNPC.buy-modifier": "Sælg til butikken sats",
+  "MERCHANTNPC.stack-modifier": "bundt størrelse",
+  "MERCHANTNPC.item-delete": "Fjern genstand",
+  "MERCHANTNPC.item-buy": "Køb genstand",
+  "MERCHANTNPC.stack-buy": "Køb bundt",
+  "MERCHANTNPC.change-item-quantity-help": "Ændrer antal genstande i butikken",
+  "MERCHANTNPC.change-price-help": "Ændrer basis prisen for genstanden",
+  "MERCHANTNPC.permission-observer-help": "Observatør (Har adgang til at se, købe og sælge genstande, hvis det er sat til merchant NPC ark)",
+  "MERCHANTNPC.permission-none-help": "Ingen (Kan ikke tilgå dette ark)",
+  "MERCHANTNPC.permission-all-help": "Ændrer alle tilladelser"
+
+
+}

@@ -15,7 +15,7 @@
   "MERCHANTNPC.change-price-help": "Change the base price of the item",
   "MERCHANTNPC.permission-observer-help": "Observer (access to sheet but can only purchase items if merchant sheet type)",
   "MERCHANTNPC.permission-none-help": "None (cannot access sheet)",
-  "MERCHANTNPC.permission-all-help": "Change all permissions",
+  "MERCHANTNPC.permission-all-help": "Change all permissions"
 
 
 }
