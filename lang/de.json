@@ -1,5 +1,5 @@
 {
-  "MERCHANTNPC.permission-info": "Stellen Sie sicher, dass die Spieler einen Charakter über das Menü Spielerkonfiguration (Rechtsklick auf den Spieler unten links) ausgewählt haben.",
+  "MERCHANTNPC.permission-info": "Die Spieler müssen einen Charakter über das Spielerkonfigurations-Menü (Rechtsklick auf den Spieler unten links) ausgewählt haben.",
   "MERCHANTNPC.permissions": "Berechtigungen",
   "MERCHANTNPC.item-create": "Hinzufügen",
   "MERCHANTNPC.item-create-help": "Artikel aus Paket hinzufügen",
