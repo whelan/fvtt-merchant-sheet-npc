@@ -15,7 +15,8 @@
   "MERCHANTNPC.change-price-help": "Ændrer basis prisen for genstanden",
   "MERCHANTNPC.permission-observer-help": "Observatør (Har adgang til at se, købe og sælge genstande, hvis det er sat til merchant NPC ark)",
   "MERCHANTNPC.permission-none-help": "Ingen (Kan ikke tilgå dette ark)",
-  "MERCHANTNPC.permission-all-help": "Ændrer alle tilladelser"
+  "MERCHANTNPC.permission-all-help": "Ændrer alle tilladelser",
+  "MERCHANTNPC.buyText": "{buyer} køber {quantity} x {itemName} for i alt {chatPrice}."
 
 
 }

@@ -1248,7 +1248,9 @@ Hooks.once("init", () => {
 
         let sellerModifier = seller.getFlag("merchantsheetnpc", "priceModifier");
         let sellerStack = seller.getFlag("merchantsheetnpc", "stackModifier");
-        if (!sellerModifier) sellerModifier = 1.0;
+        if (sellerModifier === 'undefined') {
+            sellerModifier = 1.0;
+        }
         if (!sellerStack && quantity > sellerStack) quantity = sellerStack;
 
         let itemCostInGold = Math.round(currencyCalculator.getPriceFromItem(sellItem) * sellerModifier * 100) / 100;
@@ -1274,7 +1276,7 @@ Hooks.once("init", () => {
         for (let m of moved) {
             chatMessage(
                 seller, buyer,
-                `${buyer.name} purchases ${quantity} x ${m.item.name} for ${chatPrice}.`,
+                game.i18n.format('MERCHANTNPC.buyText', {buyer: buyer.name, quantity: quantity, itemName: m.item.name, chatPrice: chatPrice}),
                 m.item);
         }
     }
