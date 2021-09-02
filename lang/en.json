@@ -1,7 +1,7 @@
 {
 
   "MERCHANTNPC.permission-info": "Ensure players have selected a character via the Player Configuration (right-click player in bottom left) menu.",
-  "MERCHANTNPC.permissions": "permissions",
+  "MERCHANTNPC.permissions": "Permissions",
   "MERCHANTNPC.item-create": "Add",
   "MERCHANTNPC.item-create-help": "Add item from pack",
   "MERCHANTNPC.gm-section": "GM Settings",
