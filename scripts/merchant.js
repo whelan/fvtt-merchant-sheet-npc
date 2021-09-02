@@ -582,7 +582,7 @@ class MerchantSheetNPC extends ActorSheet {
 
         var html = "<p>"+game.i18n.localize('MERCHANTNPC.price-slider')+" <i class='fa fa-question-circle' title='"+game.i18n.localize('MERCHANTNPC.price-slider-help')+"'></i></p>";
         html += '<p><input name="price-modifier-percent" id="price-modifier-percent" type="range" min="0" max="200" value="' + priceModifier + '" class="slider"></p>';
-        html += '<p><label>Percentage:</label> <input type=number min="0" max="200" value="' + priceModifier + '" id="price-modifier-percent-display"></p>';
+        html += '<p><label>'+game.i18n.localize('MERCHANTNPC.percentage')+':</label> <input type=number min="0" max="200" value="' + priceModifier + '" id="price-modifier-percent-display"></p>';
         html += '<script>var pmSlider = document.getElementById("price-modifier-percent"); var pmDisplay = document.getElementById("price-modifier-percent-display"); pmDisplay.value = pmSlider.value; pmSlider.oninput = function() { pmDisplay.value = this.value; }; pmDisplay.oninput = function() { pmSlider.value = this.value; };</script>';
 
         let d = new Dialog({
@@ -629,11 +629,11 @@ class MerchantSheetNPC extends ActorSheet {
 
         var html = "<p>"+game.i18n.localize('MERCHANTNPC.sell-price-slider')+" <i class='fa fa-question-circle' title='"+game.i18n.localize('MERCHANTNPC.price-slider-help')+"'></i></p>";
         html += '<p><input name="price-modifier-percent" id="price-modifier-percent" type="range" min="0" max="200" value="' + buyModifier + '" class="slider"></p>';
-        html += '<p><label>Percentage:</label> <input type=number min="0" max="200" value="' + buyModifier + '" id="price-modifier-percent-display"></p>';
+        html += '<p><label>'+game.i18n.localize('MERCHANTNPC.percentage')+':</label> <input type=number min="0" max="200" value="' + buyModifier + '" id="price-modifier-percent-display"></p>';
         html += '<script>var pmSlider = document.getElementById("price-modifier-percent"); var pmDisplay = document.getElementById("price-modifier-percent-display"); pmDisplay.value = pmSlider.value; pmSlider.oninput = function() { pmDisplay.value = this.value; }; pmDisplay.oninput = function() { pmSlider.value = this.value; };</script>';
 
         let d = new Dialog({
-            title: "Sell to merchant price Modifier",
+            title: game.i18n.localize('MERCHANTNPC.sellToMerchantDialog-title'),
             content: html,
             buttons: {
                 one: {
@@ -672,10 +672,10 @@ class MerchantSheetNPC extends ActorSheet {
 
         const item = this.actor.getEmbeddedDocument("Item", itemId);
 
-        var html = "<p>Enter the price for the item.</p>";
+        var html = "<p>"+game.i18n.localize('MERCHANTNPC.priceDialog-text')+"</p>";
         html += '<p><input name="price-value" id="price-value" value="' + currencyCalculator.getPriceFromItem(item) + '" class="field"></p>';
         let d = new Dialog({
-            title: "Item Price Modifier",
+            title: game.i18n.localize('MERCHANTNPC.priceDialog-title'),
             content: html,
             buttons: {
                 one: {
@@ -709,13 +709,13 @@ class MerchantSheetNPC extends ActorSheet {
 
         const item = this.actor.getEmbeddedDocument("Item", itemId);
 
-        var html = "<p>Enter the quantity for the item.</p>";
+        var html = "<p>"+game.i18n.localize('MERCHANTNPC.quantityDialog-text')+"</p>";
         html += '<p><input name="quantity-value" id="quantity-value" value="' + item.data.data.quantity + '" class="field"></p>';
-        html += '<p><label>Infinity:</label> <input type=checkbox '
+        html += '<p><label>'+game.i18n.localize('MERCHANTNPC.infinity')+':</label> <input type=checkbox '
         if (item.data.data.quantity === Number.MAX_VALUE) { html += ' checked '}
         html += ' id="quantity-infinity"></p>';
         let d = new Dialog({
-            title: "Quantity Modifier",
+            title: game.i18n.localize('MERCHANTNPC.quantityDialog-title'),
             content: html,
             buttons: {
                 one: {
@@ -756,11 +756,11 @@ class MerchantSheetNPC extends ActorSheet {
 
         var html = "<p>"+game.i18n.localize('MERCHANTNPC.stack-slider')+" <i class='fa fa-question-circle' title='"+game.i18n.localize('MERCHANTNPC.stack-slider-help')+"'></i></p>";
         html += '<p><input name="stack-modifier" id="stack-modifier" type="range" min="1" max="100" value="' + stackModifier + '" class="slider"></p>';
-        html += '<p><label>Stack amount:</label> <input type=number min="1" max="100" value="' + stackModifier + '" id="stack-modifier-display"></p>';
+        html += '<p><label>'+game.i18n.localize("MERCHANTNPC.stack-amount")+':</label> <input type=number min="1" max="100" value="' + stackModifier + '" id="stack-modifier-display"></p>';
         html += '<script>var pmSlider = document.getElementById("stack-modifier"); var pmDisplay = document.getElementById("stack-modifier-display"); pmDisplay.value = pmSlider.value; pmSlider.oninput = function() { pmDisplay.value = this.value; }; pmDisplay.oninput = function() { pmSlider.value = this.value; };</script>';
 
         let d = new Dialog({
-            title: "Stack Modifier",
+            title: game.i18n.localize('MERCHANTNPC.stack-modifier'),
             content: html,
             buttons: {
                 one: {
@@ -934,15 +934,11 @@ class MerchantSheetNPC extends ActorSheet {
         let players = game.users.players;
         let commonPlayersPermission = -1;
 
-        console.log("Merchant sheet _prepareGMSettings | actorData.permission", actorData.permission);
-        console.log("Merchant sheet _prepareGMSettings | actorData.permission", actorData.data.permission);
 
         for (let player of players) {
-            console.log("Merchant sheet | Checking user " + player.data.name, player);
 
         //     // get the name of the primary actor for a player
             const actor = game.actors.get(player.data.character);
-            console.log("Merchant sheet | Checking actor", actor);
         //
             if (actor) {
 
@@ -962,7 +958,6 @@ class MerchantSheetNPC extends ActorSheet {
                 }
 
                 //Set icons and permission texts for html
-                console.log("Merchant sheet | merchantPermission", player.merchantPermission);
                 if (commonPlayersPermission < 0) {
                     commonPlayersPermission = player.merchantPermission;
                 } else if (commonPlayersPermission !== player.merchantPermission) {
@@ -981,8 +976,6 @@ class MerchantSheetNPC extends ActorSheet {
         merchant.playersPermission = commonPlayersPermission;
         merchant.playersPermissionIcon = this._getPermissionIcon(commonPlayersPermission);
         merchant.playersPermissionDescription = this._getPermissionDescription(commonPlayersPermission);
-        console.log(playerData)
-        console.log(merchant)
         return merchant
     }
 
@@ -1007,14 +1000,11 @@ Actors.registerSheet("core", MerchantSheetNPC, {
 async function sellItem(target, dragSource, sourceActor, quantity, totalItemsPrice) {
     let sellerFunds = currencyCalculator.actorCurrency(sourceActor);
     currencyCalculator.addAmountForActor(sourceActor,sellerFunds,totalItemsPrice)
-    console.log(sourceActor)
-    console.log(dragSource)
     if (dragSource.data.data.quantity <= quantity) {
         sourceActor.deleteEmbeddedDocuments("Item",[dragSource.data._id]);
     } else {
         let destItem = await sourceActor.data.items.find(i => i.name == dragSource.data.name);
         const update = { _id: destItem.id, "data.quantity": Number(destItem.data.data.quantity) - quantity};
-        console.log(update)
         dragSource.data.data.quantity = Number(destItem.data.data.quantity) - quantity;
         // destItem.data.data.quantity = ;
         await sourceActor.updateEmbeddedDocuments("Item", [update]);
@@ -1045,14 +1035,14 @@ Hooks.on('dropActorSheetData',(target,sheet,dragSource,user)=>{
 
 
 
-            var html = "<p>Would you like to sell "+dragSource.data.name+" each worth "+currencyCalculator.priceInText(buyModifier * dragSource.data.data.price)+"</p>";
+            var html = "<p>"+game.i18n.format('MERCHANTNPC.sell-items-player',{name: dragSource.data.name, price: currencyCalculator.priceInText(buyModifier * dragSource.data.data.price)})+"</p>";
             html += '<p><input name="quantity-modifier" id="quantity-modifier" type="range" min="0" max="'+dragSource.data.data.quantity+'" value="1" class="slider"></p>';
-            html += '<p><label>Quantity:</label> <input type=number min="0" max="'+dragSource.data.data.quantity+'" value="1" id="quantity-modifier-display"></p> <input type="hidden" id="quantity-modifier-price" value = "'+(buyModifier * dragSource.data.data.price)+'"/>';
+            html += '<p><label>'+game.i18n.localize("MERCHANTNPC.quantity")+':</label> <input type=number min="0" max="'+dragSource.data.data.quantity+'" value="1" id="quantity-modifier-display"></p> <input type="hidden" id="quantity-modifier-price" value = "'+(buyModifier * dragSource.data.data.price)+'"/>';
             html += '<script>var pmSlider = document.getElementById("quantity-modifier"); var pmDisplay = document.getElementById("quantity-modifier-display"); var total = document.getElementById("quantity-modifier-total"); var price = document.getElementById("quantity-modifier-price"); pmDisplay.value = pmSlider.value; pmSlider.oninput = function() { pmDisplay.value = this.value;  total.value =this.value * price.value; }; pmDisplay.oninput = function() { pmSlider.value = this.value; };</script>';
             html += '<p>Total<input type="text"  value="'+(buyModifier * dragSource.data.data.price)+'" id = "quantity-modifier-total"/> </p>' ;
 
             let d = new Dialog({
-                title: "Sell item",
+                title: game.i18n.localize("MERCHANTNPC.sell-item"),
                 content: html,
                 buttons: {
                     one: {
@@ -1216,7 +1206,7 @@ Hooks.once("init", () => {
 
         // On negative quantity we show an error
         if (quantity < 0) {
-            errorMessageToActor(buyer, `Can not buy negative amounts of items.`);
+            errorMessageToActor(buyer, game.i18n.localize("MERCHANTNPC.error-negativeAmountItems"));
             return;
         }
 
@@ -1240,7 +1230,7 @@ Hooks.once("init", () => {
         let buyerFunds = duplicate(currency);
 
         if (currencyCalculator.buyerHaveNotEnoughFunds(itemCostInGold,buyerFunds)) {
-            errorMessageToActor(buyer, `Not enough funds to purchase item.`);
+            errorMessageToActor(buyer, game.i18n.localize("MERCHANTNPC.error-noFunds"));
             return;
         }
 
@@ -1270,8 +1260,8 @@ Hooks.once("init", () => {
                     transaction(seller.actor, buyer, data.itemId, data.quantity);
                 }
                 else if (!seller) {
-                    errorMessageToActor(buyer, "GM not available, the GM must on the same scene to purchase an item.")
-                    ui.notifications.error("Player attempted to purchase an item on a different scene.");
+                    errorMessageToActor(buyer, game.i18n.localize("MERCHANTNPC.noGM"))
+                    ui.notifications.error(game.i18n.localize("MERCHANTNPC.playerOtherScene"));
                 }
             }
         }

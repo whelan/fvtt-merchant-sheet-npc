@@ -2,7 +2,7 @@
 	"name": "merchantsheetnpc",
 	"title": "Merchant Sheet NPC",
 	"description": "This module adds an additional NPC sheet which can be used for shopkeepers.",
-	"version": "1.3.1",
+	"version": "1.4.0",
 	"minimumCoreVersion": "0.8.5",
 	"compatibleCoreVersion": "0.8.9",
 	"author": "Lars Nørregaard (Whelan)",
@@ -18,6 +18,11 @@
 			"lang": "da",
 			"name": "Danish",
 			"path": "lang/da.json"
+		},
+		{
+			"lang": "de",
+			"name": "German",
+			"path": "lang/de.json"
 		}
 	],
 	"socket": true,
