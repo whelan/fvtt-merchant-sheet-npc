@@ -12,7 +12,7 @@
   "MERCHANTNPC.stack-buy": "Stapel kaufen",
   "MERCHANTNPC.change-item-quantity-help": "Menge ändern",
   "MERCHANTNPC.change-price-help": "Grundpreis des Gegenstands ändern",
-  "MERCHANTNPC.permission-observer-help": "Beobachter (Ermöglicht Zugriff aufs den Händler. Gegenstände können nur gekauft werden, wenn das Merchant-Sheet für den NSC ausgewählt ist)",
+  "MERCHANTNPC.permission-observer-help": "Beobachter (Ermöglicht Zugriff auf den Händler. Gegenstände können allerdings nur ge- oder verkauft werden, wenn das Merchant-Sheet für den NSC ausgewählt ist)",
   "MERCHANTNPC.permission-none-help": "Nichts (kann nicht auf den Händler zugreifen)",
   "MERCHANTNPC.permission-all-help": "Alle Berechtigungen ändern",
   "MERCHANTNPC.buyText": "{buyer} hat {quantity} x {itemName} für {chatPrice} gekauft.",
