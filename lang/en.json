@@ -16,5 +16,19 @@
   "MERCHANTNPC.permission-observer-help": "Observer (access to sheet but can only purchase items if merchant sheet type)",
   "MERCHANTNPC.permission-none-help": "None (cannot access sheet)",
   "MERCHANTNPC.permission-all-help": "Change all permissions",
-  "MERCHANTNPC.buyText": "{buyer} purchases {quantity} x {itemName} for {chatPrice}."
+  "MERCHANTNPC.buyText": "{buyer} purchases {quantity} x {itemName} for {chatPrice}.",
+  "MERCHANTNPC.buyMerchantDialog-title": "Buy from merchant price modifier",
+  "MERCHANTNPC.sell-price-slider": "Use this slider to increase or decrease the price of selling items to this inventory.",
+  "MERCHANTNPC.price-slider": "Use this slider to increase or decrease the price of all items in this inventory.",
+  "MERCHANTNPC.price-slider-help": "This uses a percentage factor where 100% is the current price, 0% is 0, and 200% is double the price.",
+  "MERCHANTNPC.stack-slider": "Use this slider to increase or decrease the number of items in a stack to be sold at a time",
+  "MERCHANTNPC.stack-slider-help": "This defines how much a stack buy is, where 20 means 20 times the item, 1 is one item, and 100 is 100 times the item.",
+  "MERCHANTNPC.error-quantityInvalid": "Item quantity invalid",
+  "MERCHANTNPC.error-changeSettings": "Error changing stettings for {targetKey}.",
+  "MERCHANTNPC.error-nogGM": "No active GM on your scene, they must be online and on the same scene to purchase an item.",
+  "MERCHANTNPC.error-noToken": "You must purchase items from a token.",
+  "MERCHANTNPC.error-noCharacter": "No active character for user.",
+  "MERCHANTNPC.update": "Update",
+  "MERCHANTNPC.sell": "Sell",
+  "MERCHANTNPC.cancel": "Cancel"
 }

@@ -25,15 +25,12 @@ class MerchantSheetNPCHelper
     static getMerchantPermissionForPlayer(actorData, player) {
         let defaultPermission = actorData.permission.default;
         if (player.data._id in actorData.permission) {
-            console.log("Merchant sheet | assigning " + actorData.permission[player.data._id] + " permission to hidden field");
             return actorData.permission[player.data._id];
         }
         else if (typeof defaultPermission !== "undefined") {
-            console.log("Merchant sheet | default permissions", actorData.permission.default);
             return defaultPermission;
         }
         else {
-            console.log("Merchant sheet | No access", player.data._id);
             return 0;
         }
     }
@@ -72,8 +69,7 @@ class QuantityDialog extends Dialog {
                     var quantity = document.getElementById('quantity').value
 
                     if (isNaN(quantity)) {
-                        console.log("Merchant sheet | Item quantity invalid");
-                        return ui.notifications.error(`Item quantity invalid.`);
+                        return ui.notifications.error(game.i18n.localize("MERCHANTNPC.error-quantityInvalid"))
                     }
 
                     callback(quantity);
@@ -116,8 +112,7 @@ class SellerQuantityDialog extends Dialog {
                     var quantity = document.getElementById('quantity').value
 
                     if (isNaN(quantity)) {
-                        console.log("Merchant sheet | Item quantity invalid");
-                        return ui.notifications.error(`Item quantity invalid.`);
+                        return ui.notifications.error(game.i18n.localize("MERCHANTNPC.error-quantityInvalid"))
                     }
 
                     callback(quantity);
@@ -197,34 +192,19 @@ class MerchantSheetNPC extends ActorSheet {
 
         // Prepare isGM attribute in sheet Data
 
-        //console.log("game.user: ", game.user);
         if (game.user.isGM) sheetData.isGM = true;
         else sheetData.isGM = false;
-        //console.log("sheetData.isGM: ", sheetData.isGM);
 
 
         let priceModifier = 1.0;
         let moduleName = "merchantsheetnpc";
         priceModifier = await this.actor.getFlag(moduleName, "priceModifier");
-        // priceModifier = await this.actor.getFlag(moduleName, "priceModifier");
 
         let stackModifier = 20;
         stackModifier = await this.actor.getFlag(moduleName, "stackModifier");
-        // stackModifier = await this.actor.getFlag(moduleName, "stackModifier");
-        // await this.actor.setFlag(moduleName,"merchant",merchant)
         let totalWeight = 0;
-        // this.actor.data.items.forEach((item)=>totalWeight += Math.round((item.data.data.quantity * item.data.data.weight * 100) / 100));
-        //
-        // let totalPrice = 0;
-        // this.actor.data.items.forEach((item)=>totalPrice += Math.round((item.data.data.quantity * item.data.data.price * priceModifier * 100) / 100));
-        //
-        // let totalQuantity = 0;
-        // this.actor.data.items.forEach((item)=>totalQuantity += Math.round((item.data.data.quantity * 100) / 100));
 
         sheetData.totalItems = this.actor.data.items.length;
-        // sheetData.totalWeight = totalWeight.toLocaleString('en');
-        // sheetData.totalPrice = totalPrice.toLocaleString('en') + " gp";
-        // sheetData.totalQuantity = totalQuantity;
         sheetData.priceModifier = priceModifier;
         sheetData.stackModifier = stackModifier;
         sheetData.sections = currencyCalculator.prepareItems(this.actor.itemTypes);
@@ -288,7 +268,7 @@ class MerchantSheetNPC extends ActorSheet {
 
         if (expectedKeys.indexOf(targetKey) === -1) {
             console.log(`Merchant sheet | Error changing stettings for "${targetKey}".`);
-            return ui.notifications.error(`Error changing stettings for "${targetKey}".`);
+            return ui.notifications.error(game.i18n.format("MERCHANTNPC.error-changeSettings", {target: targetKey}))
         }
 
         if (targetKey == "clearInventory" || targetKey == "itemOnlyOnce") {
@@ -537,15 +517,14 @@ class MerchantSheetNPC extends ActorSheet {
         });
 
         if (!targetGm) {
-            return ui.notifications.error("No active GM on your scene, they must be online and on the same scene to purchase an item.");
+            return ui.notifications.error(game.i18n.localize("MERCHANTNPC.error-noGM"));
         }
 
         if (this.token === null) {
-            return ui.notifications.error(`You must purchase items from a token.`);
+            return ui.notifications.error(game.i18n.localize("MERCHANTNPC.error-noToken"));
         }
         if (!game.user.actorId) {
-            console.log("Merchant sheet | No active character for user");
-            return ui.notifications.error(`No active character for user.`);
+            return ui.notifications.error(game.i18n.localize("MERCHANTNPC.error-noCharacter"));
         }
 
         let itemId = $(event.currentTarget).parents(".merchant-item").attr("data-item-id");
@@ -601,18 +580,18 @@ class MerchantSheetNPC extends ActorSheet {
 
         priceModifier = Math.round(priceModifier * 100);
 
-        var html = "<p>Use this slider to increase or decrease the price of all items in this inventory. <i class='fa fa-question-circle' title='This uses a percentage factor where 100% is the current price, 0% is 0, and 200% is double the price.'></i></p>";
+        var html = "<p>"+game.i18n.localize('MERCHANTNPC.price-slider')+" <i class='fa fa-question-circle' title='"+game.i18n.localize('MERCHANTNPC.price-slider-help')+"'></i></p>";
         html += '<p><input name="price-modifier-percent" id="price-modifier-percent" type="range" min="0" max="200" value="' + priceModifier + '" class="slider"></p>';
         html += '<p><label>Percentage:</label> <input type=number min="0" max="200" value="' + priceModifier + '" id="price-modifier-percent-display"></p>';
         html += '<script>var pmSlider = document.getElementById("price-modifier-percent"); var pmDisplay = document.getElementById("price-modifier-percent-display"); pmDisplay.value = pmSlider.value; pmSlider.oninput = function() { pmDisplay.value = this.value; }; pmDisplay.oninput = function() { pmSlider.value = this.value; };</script>';
 
         let d = new Dialog({
-            title: "Price Modifier",
+            title: game.i18n.localize('MERCHANTNPC.buyMerchantDialog-title'),
             content: html,
             buttons: {
                 one: {
                     icon: '<i class="fas fa-check"></i>',
-                    label: "Update",
+                    label: game.i18n.localize('MERCHANTNPC.update'),
                     callback: () => {
                         let priceModifier = document.getElementById("price-modifier-percent").value;
                         if (priceModifier === 0) {
@@ -624,7 +603,7 @@ class MerchantSheetNPC extends ActorSheet {
                 },
                 two: {
                     icon: '<i class="fas fa-times"></i>',
-                    label: "Cancel",
+                    label: game.i18n.localize('MERCHANTNPC.cancel'),
                     callback: () => console.log("Merchant sheet | Price Modifier Cancelled")
                 }
             },
@@ -648,18 +627,18 @@ class MerchantSheetNPC extends ActorSheet {
 
         buyModifier = Math.round(buyModifier * 100);
 
-        var html = "<p>Use this slider to increase or decrease the price of buying items to this inventory. <i class='fa fa-question-circle' title='This uses a percentage factor where 100% is the current price, 0% is 0, and 200% is double the price.'></i></p>";
+        var html = "<p>"+game.i18n.localize('MERCHANTNPC.sell-price-slider')+" <i class='fa fa-question-circle' title='"+game.i18n.localize('MERCHANTNPC.price-slider-help')+"'></i></p>";
         html += '<p><input name="price-modifier-percent" id="price-modifier-percent" type="range" min="0" max="200" value="' + buyModifier + '" class="slider"></p>';
         html += '<p><label>Percentage:</label> <input type=number min="0" max="200" value="' + buyModifier + '" id="price-modifier-percent-display"></p>';
         html += '<script>var pmSlider = document.getElementById("price-modifier-percent"); var pmDisplay = document.getElementById("price-modifier-percent-display"); pmDisplay.value = pmSlider.value; pmSlider.oninput = function() { pmDisplay.value = this.value; }; pmDisplay.oninput = function() { pmSlider.value = this.value; };</script>';
 
         let d = new Dialog({
-            title: "Price Modifier",
+            title: "Sell to merchant price Modifier",
             content: html,
             buttons: {
                 one: {
                     icon: '<i class="fas fa-check"></i>',
-                    label: "Update",
+                    label: game.i18n.localize('MERCHANTNPC.update'),
                     callback: () => {
                         let priceModifier = document.getElementById("price-modifier-percent").value;
                         if (priceModifier === 0) {
@@ -672,7 +651,7 @@ class MerchantSheetNPC extends ActorSheet {
                 },
                 two: {
                     icon: '<i class="fas fa-times"></i>',
-                    label: "Cancel",
+                    label: game.i18n.localize('MERCHANTNPC.cancel'),
                     callback: () => console.log("Merchant sheet | Buy Modifier Cancelled")
                 }
             },
@@ -701,14 +680,14 @@ class MerchantSheetNPC extends ActorSheet {
             buttons: {
                 one: {
                     icon: '<i class="fas fa-check"></i>',
-                    label: "Update",
+                    label: game.i18n.localize('MERCHANTNPC.update'),
                     callback: () => {
                         item.update({[currencyCalculator.getPriceItemKey()]: document.getElementById("price-value").value});
                     }
                 },
                 two: {
                     icon: '<i class="fas fa-times"></i>',
-                    label: "Cancel",
+                    label: game.i18n.localize('MERCHANTNPC.cancel'),
                     callback: () => console.log("Merchant sheet | Change price Cancelled")
                 }
             },
@@ -741,7 +720,7 @@ class MerchantSheetNPC extends ActorSheet {
             buttons: {
                 one: {
                     icon: '<i class="fas fa-check"></i>',
-                    label: "Update",
+                    label: game.i18n.localize('MERCHANTNPC.update'),
                     callback: () => {
                         if (document.getElementById("quantity-infinity").checked) {
                             this.actor.updateOwnedItem({_id: itemId, "data.quantity": Number.MAX_VALUE})
@@ -755,7 +734,7 @@ class MerchantSheetNPC extends ActorSheet {
                 },
                 two: {
                     icon: '<i class="fas fa-times"></i>',
-                    label: "Cancel",
+                    label: game.i18n.localize('MERCHANTNPC.cancel'),
                     callback: () => console.log("Merchant sheet | Change quantity Cancelled")
                 }
             },
@@ -775,7 +754,7 @@ class MerchantSheetNPC extends ActorSheet {
         let stackModifier = await this.actor.getFlag("merchantsheetnpc", "stackModifier");
         if (!stackModifier) stackModifier = 20;
 
-        var html = "<p>Use this slider to increase or decrease the price of all items in this inventory. <i class='fa fa-question-circle' title='This defines how much a stack buy is, where 20 means 20 times the item, 1 is one item, and 100 is 100 times the item.'></i></p>";
+        var html = "<p>"+game.i18n.localize('MERCHANTNPC.stack-slider')+" <i class='fa fa-question-circle' title='"+game.i18n.localize('MERCHANTNPC.stack-slider-help')+"'></i></p>";
         html += '<p><input name="stack-modifier" id="stack-modifier" type="range" min="1" max="100" value="' + stackModifier + '" class="slider"></p>';
         html += '<p><label>Stack amount:</label> <input type=number min="1" max="100" value="' + stackModifier + '" id="stack-modifier-display"></p>';
         html += '<script>var pmSlider = document.getElementById("stack-modifier"); var pmDisplay = document.getElementById("stack-modifier-display"); pmDisplay.value = pmSlider.value; pmSlider.oninput = function() { pmDisplay.value = this.value; }; pmDisplay.oninput = function() { pmSlider.value = this.value; };</script>';
@@ -786,12 +765,12 @@ class MerchantSheetNPC extends ActorSheet {
             buttons: {
                 one: {
                     icon: '<i class="fas fa-check"></i>',
-                    label: "Update",
+                    label: game.i18n.localize('MERCHANTNPC.update'),
                     callback: () => this.actor.setFlag("merchantsheetnpc", "stackModifier",  document.getElementById("stack-modifier").value / 1)
                 },
                 two: {
                     icon: '<i class="fas fa-times"></i>',
-                    label: "Cancel",
+                    label: game.i18n.localize('MERCHANTNPC.cancel'),
                     callback: () => console.log("Merchant sheet | Stack Modifier Cancelled")
                 }
             },
@@ -1078,12 +1057,12 @@ Hooks.on('dropActorSheetData',(target,sheet,dragSource,user)=>{
                 buttons: {
                     one: {
                         icon: '<i class="fas fa-check"></i>',
-                        label: "Sell",
+                        label: game.i18n.localize('MERCHANTNPC.sell'),
                         callback: () => sellItem(target,dragSource,sourceActor, document.getElementById("quantity-modifier").value,document.getElementById("quantity-modifier-total").value)
                     },
                     two: {
                         icon: '<i class="fas fa-times"></i>',
-                        label: "Cancel",
+                        label: game.i18n.localize('MERCHANTNPC.cancel'),
                         callback: () => console.log("Merchant sheet | Price Modifier Cancelled")
                     }
                 },
