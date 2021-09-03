@@ -980,6 +980,7 @@ class MerchantSheetNPC extends ActorSheet {
     }
 
     async _onDropItemCreate(itemData) {
+        console.log(itemData);
         return currencyCalculator.onDropItemCreate(itemData,this);
 
     }
@@ -1039,7 +1040,7 @@ Hooks.on('dropActorSheetData',(target,sheet,dragSource,user)=>{
             html += '<p><input name="quantity-modifier" id="quantity-modifier" type="range" min="0" max="'+dragSource.data.data.quantity+'" value="1" class="slider"></p>';
             html += '<p><label>'+game.i18n.localize("MERCHANTNPC.quantity")+':</label> <input type=number min="0" max="'+dragSource.data.data.quantity+'" value="1" id="quantity-modifier-display"></p> <input type="hidden" id="quantity-modifier-price" value = "'+(buyModifier * dragSource.data.data.price)+'"/>';
             html += '<script>var pmSlider = document.getElementById("quantity-modifier"); var pmDisplay = document.getElementById("quantity-modifier-display"); var total = document.getElementById("quantity-modifier-total"); var price = document.getElementById("quantity-modifier-price"); pmDisplay.value = pmSlider.value; pmSlider.oninput = function() { pmDisplay.value = this.value;  total.value =this.value * price.value; }; pmDisplay.oninput = function() { pmSlider.value = this.value; };</script>';
-            html += '<p>Total<input type="text"  value="'+(buyModifier * dragSource.data.data.price)+'" id = "quantity-modifier-total"/> </p>' ;
+            html += '<p>'+game.i18n.localize("MERCHANTNPC.total")+'<input readonly type="text"  value="'+(buyModifier * dragSource.data.data.price)+'" id = "quantity-modifier-total"/> </p>' ;
 
             let d = new Dialog({
                 title: game.i18n.localize("MERCHANTNPC.sell-item"),

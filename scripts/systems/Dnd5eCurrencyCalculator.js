@@ -228,32 +228,32 @@ export default class Dnd5eCurrencyCalculator extends CurrencyCalculator {
         // Actions
         const features = {
             weapons: {
-                label: "Weapons",
+                label: game.i18n.localize("MERCHANTNPC.weapons"),
                 items: [],
                 type: "weapon"
             },
             equipment: {
-                label: "Equipment",
+                label: game.i18n.localize("MERCHANTNPC.equipment"),
                 items: [],
                 type: "equipment"
             },
             consumables: {
-                label: "Consumables",
+                label: game.i18n.localize("MERCHANTNPC.consumables"),
                 items: [],
                 type: "consumable"
             },
             tools: {
-                label: "Tools",
+                label: game.i18n.localize("MERCHANTNPC.tools"),
                 items: [],
                 type: "tool"
             },
             containers: {
-                label: "Containers",
+                label: game.i18n.localize("MERCHANTNPC.containers"),
                 items: [],
                 type: "container"
             },
             loot: {
-                label: "Loot",
+                label: game.i18n.localize("MERCHANTNPC.loot"),
                 items: [],
                 type: "loot"
             },

@@ -16,22 +16,22 @@ export default class SwadeCurrencyCalculator extends CurrencyCalculator {
         // Actions
         const features = {
             weapons: {
-                label: "Weapons",
+                label: game.i18n.localize("MERCHANTNPC.weapons"),
                 items: [],
                 type: "weapon"
             },
             armor: {
-                label: "Armor",
+                label: game.i18n.localize("MERCHANTNPC.armor"),
                 items: [],
                 type: "armor"
             },
             shields: {
-                label: "Shields",
+                label: game.i18n.localize("MERCHANTNPC.shields"),
                 items: [],
                 type: "shield"
             },
             gear: {
-                label: "Gear",
+                label: game.i18n.localize("MERCHANTNPC.gear"),
                 items: [],
                 type: "gear"
             }
