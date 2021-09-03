@@ -43,6 +43,7 @@
   "MERCHANTNPC.cancel": "Cancel",
   "MERCHANTNPC.infinity": "Infinity",
   "MERCHANTNPC.quantity": "Quantity",
+  "MERCHANTNPC.total": "Total",
   "MERCHANTNPC.stack-amount": "Stack amount",
   "MERCHANTNPC.sell-items-player": "Would you like to sell {name} each worth {price}"
 }
