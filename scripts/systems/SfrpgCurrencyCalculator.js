@@ -17,77 +17,77 @@ export default class SfrpgCurrencyCalculator extends CurrencyCalculator {
         // // Actions
         const features = {
             ammunition: {
-                label: "Ammunition",
+                label: game.i18n.localize("MERCHANTNPC.ammunition"),
                 items: items.ammunition,
                 type: "ammunition"
             },
             augmentation: {
-                label: "Augmentation",
+                label: game.i18n.localize("MERCHANTNPC.augmentation"),
                 items: items.augmentation,
                 type: "augmentation"
             },
             consumable: {
-                label: "Consumable",
+                label: game.i18n.localize("MERCHANTNPC.consumable"),
                 items: items.consumable,
                 type: "consumable"
             },
             container: {
-                label: "Container",
+                label: game.i18n.localize("MERCHANTNPC.container"),
                 items: items.container,
                 type: "container"
             },
             equipment: {
-                label: "Equipment",
+                label: game.i18n.localize("MERCHANTNPC.equipment"),
                 items: items.equipment,
                 type: "equipment"
             },
             fusion: {
-                label: "Fusion",
+                label: game.i18n.localize("MERCHANTNPC.fusion"),
                 items: items.fusion,
                 type: "fusion"
             },
             goods: {
-                label: "Foods",
+                label: game.i18n.localize("MERCHANTNPC.goods"),
                 items: items.goods,
                 type: "goods"
             },
             hybrid: {
-                label: "Hybrid",
+                label: game.i18n.localize("MERCHANTNPC.hybrid"),
                 items: items.hybrid,
                 type: "hybrid"
             },
             magic: {
-                label: "Magic",
+                label: game.i18n.localize("MERCHANTNPC.magic"),
                 items: items.magic,
                 type: "magic"
             },
             shield: {
-                label: "Shield",
+                label: game.i18n.localize("MERCHANTNPC.shield"),
                 items: items.shield,
                 type: "shield"
             },
             spell: {
-                label: "Spell",
+                label: game.i18n.localize("MERCHANTNPC.spell"),
                 items: items.spell,
                 type: "spell"
             },
             technological: {
-                label: "Technological",
+                label: game.i18n.localize("MERCHANTNPC.technological"),
                 items: items.technological,
                 type: "technological"
             },
             upgrade: {
-                label: "Upgrade",
+                label: game.i18n.localize("MERCHANTNPC.upgrade"),
                 items: items.upgrade,
                 type: "Upgrade"
             },
             weapon: {
-                label: "Weapon",
+                label: game.i18n.localize("MERCHANTNPC.weapon"),
                 items: items.weapon,
                 type: "weapon"
             },
             weaponAccessory: {
-                label: "Weapon accessory",
+                label: game.i18n.localize("MERCHANTNPC.weaponAccessory"),
                 items: items.weaponAccessory,
                 type: "weaponAccessory"
             },
