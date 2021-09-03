@@ -44,7 +44,7 @@ class QuantityDialog extends Dialog {
 
         let applyChanges = false;
         super({
-            title: "Quantity",
+            title: game.i18n.localize("MERCHANTNPC.quantity"),
             content: `
             <form>
                 <div class="form-group">
@@ -55,12 +55,12 @@ class QuantityDialog extends Dialog {
             buttons: {
                 yes: {
                     icon: "<i class='fas fa-check'></i>",
-                    label: options.acceptLabel ? options.acceptLabel : "Accept",
+                    label: options.acceptLabel ? options.acceptLabel : game.i18n.localize("MERCHANTNPC.item-buy"),
                     callback: () => applyChanges = true
                 },
                 no: {
                     icon: "<i class='fas fa-times'></i>",
-                    label: "Cancel"
+                    label: game.i18n.localize("MERCHANTNPC.cancel")
                 },
             },
             default: "yes",
@@ -87,7 +87,7 @@ class SellerQuantityDialog extends Dialog {
 
         let applyChanges = false;
         super({
-            title: "Quantity",
+            title: game.i18n.localize("MERCHANTNPC.quantity"),
             content: `
             <form>
                 <div class="form-group">
@@ -98,12 +98,12 @@ class SellerQuantityDialog extends Dialog {
             buttons: {
                 yes: {
                     icon: "<i class='fas fa-check'></i>",
-                    label: options.acceptLabel ? options.acceptLabel : "Accept",
+                    label: options.acceptLabel ? options.acceptLabel : game.i18n.localize("MERCHANTNPC.sell"),
                     callback: () => applyChanges = true
                 },
                 no: {
                     icon: "<i class='fas fa-times'></i>",
-                    label: "Cancel"
+                    label: game.i18n.localize("MERCHANTNPC.cancel")
                 },
             },
             default: "yes",

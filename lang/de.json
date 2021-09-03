@@ -67,5 +67,7 @@
   "MERCHANTNPC.technological": "Technologisch",
   "MERCHANTNPC.upgrade": "Veredelung",
   "MERCHANTNPC.weapon": "Waffe",
-  "MERCHANTNPC.weaponAccessory": "Waffenzubehör"
+  "MERCHANTNPC.weaponAccessory": "Waffenzubehör",
+  "MERCHANTNPC.weight": "Gewicht",
+  "MERCHANTNPC.price": "Preis"
 }

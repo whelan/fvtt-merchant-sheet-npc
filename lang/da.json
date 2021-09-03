@@ -67,6 +67,8 @@
   "MERCHANTNPC.technological": "Teknologisk",
   "MERCHANTNPC.upgrade": "Opgradering",
   "MERCHANTNPC.weapon": "Våben",
-  "MERCHANTNPC.weaponAccessory": "Våben tilbehør"
+  "MERCHANTNPC.weaponAccessory": "Våben tilbehør",
+  "MERCHANTNPC.weight": "Vægt",
+  "MERCHANTNPC.price": "Pris"
 
 }

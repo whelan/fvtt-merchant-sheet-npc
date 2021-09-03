@@ -68,5 +68,7 @@
   "MERCHANTNPC.technological": "Technological",
   "MERCHANTNPC.upgrade": "Upgrade",
   "MERCHANTNPC.weapon": "Weapon",
-  "MERCHANTNPC.weaponAccessory": "Weapon accessory"
+  "MERCHANTNPC.weaponAccessory": "Weapon accessory",
+  "MERCHANTNPC.weight": "Weight",
+  "MERCHANTNPC.price": "Price"
 }

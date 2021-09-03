@@ -100,14 +100,14 @@
 
                     </div>
                     <div class="item-weight">
-                        <i class="fas fa-weight-hanging" title="Weight"></i> {{merchantsheetweight
+                        <i class="fas fa-weight-hanging" title="{{localize 'MERCHANTNPC.weight'}}"></i> {{merchantsheetweight
                         item.data.data.weight}}{{merchantsheetstackweight item.data.data.weight item.data.data.quantity}}
                     </div>
                     <div class="item-price">
                         {{#if ../../isGM}}
                         <a class="item-control change-item-price" title="{{localize 'MERCHANTNPC.change-price-help'}}">
                         {{/if}}
-                        <i class="fas fa-coins" title="Price"></i> {{ merchantsheetprice item.data.data.price ../../priceModifier }}
+                        <i class="fas fa-coins" title="{{localize 'MERCHANTNPC.price'}}"></i> {{ merchantsheetprice item.data.data.price ../../priceModifier }}
                         {{#if isGM}}
                         </a>
                         {{/if}}
