@@ -1,3 +1,10 @@
+## Version 1.4.1
+* Added missing translations
+* Fixed width of columns and buttons misaligned
+
+## Version 1.4.0
+* Added danish and german translations
+
 ## Version 1.3.0
 * Possible to expand description of an item (#22)
 * Both modifiers can now be set to zero. (#36)
