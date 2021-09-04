@@ -7,7 +7,7 @@
             <input name="name" type="text" value="{{actor.name}}" placeholder="Character Name"/>
         </h1>
         {{#if isGM}}
-        <div class="charbutton">
+        <div class="button-container">
             <div class="charbutton">
                 <button type="button" class="price-modifier" type="price-modifier" name="price-modifier" value=""><i class="fa fa-balance-scale"></i>{{localize "MERCHANTNPC.price-modifier"}}</button>
             </div>
@@ -86,30 +86,36 @@
                     <div class="item-name">{{item.name}}</div>
                     <div class="item-quantity">
                         {{#if ../../isGM}}
-                        <a class="item-control change-item-quantity" title="{{localize 'MERCHANTNPC.change-item-quantity-help'}}">
-                        {{/if}}
+                            <a class="item-control change-item-quantity" title="{{localize 'MERCHANTNPC.change-item-quantity-help'}}">
+                                <i class="fas fa-box"></i>
+                                {{#if (itemInfinity item.data.data.quantity)}}
+                                <i class="fas fa-infinity"></i>
+                                {{else}}
+                                {{item.data.data.quantity}}
+                                {{/if}}
+                            </a>
+                        {{else}}
                             <i class="fas fa-box"></i>
                             {{#if (itemInfinity item.data.data.quantity)}}
                                 <i class="fas fa-infinity"></i>
                             {{else}}
                                 {{item.data.data.quantity}}
                             {{/if}}
-                        {{#if isGM}}
-                        </a>
+
                         {{/if}}
 
                     </div>
                     <div class="item-weight">
-                        <i class="fas fa-weight-hanging" title="Weight"></i> {{merchantsheetweight
+                        <i class="fas fa-weight-hanging" title="{{localize 'MERCHANTNPC.weight'}}"></i> {{merchantsheetweight
                         item.data.data.weight}}{{merchantsheetstackweight item.data.data.weight item.data.data.quantity}}
                     </div>
                     <div class="item-price">
                         {{#if ../../isGM}}
-                        <a class="item-control change-item-price" title="{{localize 'MERCHANTNPC.change-price-help'}}">
-                        {{/if}}
-                        <i class="fas fa-coins" title="Price"></i> {{ merchantsheetprice item.data.data.price ../../priceModifier }}
-                        {{#if isGM}}
-                        </a>
+                            <a class="item-control change-item-price" title="{{localize 'MERCHANTNPC.change-price-help'}}">
+                            <i class="fas fa-coins" title="{{localize 'MERCHANTNPC.price'}}"></i> {{ merchantsheetprice item.data.data.price ../../priceModifier }}
+                            </a>
+                        {{else}}
+                            <i class="fas fa-coins" title="{{localize 'MERCHANTNPC.price'}}"></i> {{ merchantsheetprice item.data.data.price ../../priceModifier }}
                         {{/if}}
                     </div>
 

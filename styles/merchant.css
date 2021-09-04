@@ -176,7 +176,6 @@ section.sheet-content.content {
 	flex-direction: row;
 	flex-wrap: wrap;
 	justify-content: flex-start;
-	justify-content: flex-end;
 }
 
 .merchant-sheet-npc.sheet .sheet-header .charbutton {
@@ -185,16 +184,14 @@ section.sheet-content.content {
 	text-align: right;
 }
 
-button.price-modifier {
-	width: auto;
-	padding: 1px 10px;
-	margin-right: 5px;
+.merchant-sheet-npc.sheet .sheet-header .button-container {
+	flex: 0 0 200px;
+	display: flex;
+	flex-flow: wrap;
+	justify-content: flex-start;
+	align-content: stretch;
 }
-button.stack-modifier {
-	width: auto;
-	padding: 1px 10px;
-	margin-right: 5px;
-}
+
 
 .merchant-sheet-npc.sheet .sheet-navigation {
 	margin-bottom: 15px;
@@ -247,6 +244,11 @@ input#quantity:focus {
 	padding: 0 2px; // to align with the header border
 	border-bottom: 1px solid;
 }
+
+.item-name {
+	flex-grow: 4;
+}
+
 
 .merchant-item-image {
 	flex: 0 0 30px;
