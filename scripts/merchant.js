@@ -1025,7 +1025,7 @@ Hooks.on('dropActorSheetData',(target,sheet,dragSource,user)=>{
         if(target.data._id ==  dragSource.actorId) return;  // ignore dropping on self
         let sourceActor = game.actors.get(dragSource.actorId);
         console.log("Merchant sheet | drop item");
-        if(sourceActor) {
+        if(sourceActor && target.sheet.template === 'modules/merchantsheetnpc/template/npc-sheet.html') {
             // if both source and target have the same type then allow deleting original item.
             // this is a safety check because some game systems may allow dropping on targets
             // that don't actually allow the GM or player to see the inventory, making the item
