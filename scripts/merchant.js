@@ -1012,11 +1012,40 @@ async function sellItem(target, dragSource, sourceActor, quantity, totalItemsPri
     }
 }
 
+Hooks.on('updateActor', (actor, data) => {
+    if (actor.getFlag("core", "sheetClass") === 'core.MerchantSheetNPC') {
+        initModifiers(actor);
+    }
+});
+
+Hooks.on('createActor', (actor, data) => {
+    if (actor.sheet.template === 'modules/merchantsheetnpc/template/npc-sheet.html') {
+        initModifiers(actor);
+    }
+});
+
+
+
+function initModifiers(actor) {
+    let priceModifier = actor.getFlag("merchantsheetnpc", "priceModifier");
+    let sellModifier = actor.getFlag("merchantsheetnpc", "buyModifier");
+    let sellerStack = actor.getFlag("merchantsheetnpc", "stackModifier");
+    if (priceModifier === undefined) {
+        actor.setFlag("merchantsheetnpc", "priceModifier", 1.0);
+    }
+    if (sellModifier === undefined) {
+        actor.setFlag("merchantsheetnpc", "priceModifier", 0.5);
+    }
+    if (sellerStack === undefined) {
+        actor.setFlag("merchantsheetnpc", "stackModifier", 20);
+    }
+    actor.render();
+}
+
 Hooks.on('dropActorSheetData',(target,sheet,dragSource,user)=>{
     function checkCompatable(a,b){
         if(a==b) return false;
     }
-
     if(dragSource.type=="Item" && dragSource.actorId) {
         if(!target.data._id) {
             console.warn("Merchant sheet | target has no data._id?",target);
