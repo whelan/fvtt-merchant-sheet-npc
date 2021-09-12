@@ -1,3 +1,6 @@
+## Version 1.4.3
+* Fixed Modifiers initialization problems (#50)
+
 ## Version 1.4.2
 * Fixed drag drop show sell dialog for non merchants
 
