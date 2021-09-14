@@ -1,3 +1,6 @@
+## Version 1.4.4
+* Fixed Bug with initializing of "sell to merchant modifier" which set the "buy from merchant modifier" to 50%.
+
 ## Version 1.4.3
 * Fixed Modifiers initialization problems (#50)
 

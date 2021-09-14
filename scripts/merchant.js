@@ -1034,7 +1034,7 @@ function initModifiers(actor) {
         actor.setFlag("merchantsheetnpc", "priceModifier", 1.0);
     }
     if (sellModifier === undefined) {
-        actor.setFlag("merchantsheetnpc", "priceModifier", 0.5);
+        actor.setFlag("merchantsheetnpc", "buyModifier", 0.5);
     }
     if (sellerStack === undefined) {
         actor.setFlag("merchantsheetnpc", "stackModifier", 20);
