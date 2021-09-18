@@ -579,15 +579,13 @@ class MerchantSheetNPC extends ActorSheet {
         if (priceModifier === 'undefined') priceModifier = 1.0;
 
         priceModifier = Math.round(priceModifier * 100);
-
-        var html = "<p>"+game.i18n.localize('MERCHANTNPC.price-slider')+" <i class='fa fa-question-circle' title='"+game.i18n.localize('MERCHANTNPC.price-slider-help')+"'></i></p>";
-        html += '<p><input name="price-modifier-percent" id="price-modifier-percent" type="range" min="0" max="200" value="' + priceModifier + '" class="slider"></p>';
-        html += '<p><label>'+game.i18n.localize('MERCHANTNPC.percentage')+':</label> <input type=number min="0" max="200" value="' + priceModifier + '" id="price-modifier-percent-display"></p>';
-        html += '<script>var pmSlider = document.getElementById("price-modifier-percent"); var pmDisplay = document.getElementById("price-modifier-percent-display"); pmDisplay.value = pmSlider.value; pmSlider.oninput = function() { pmDisplay.value = this.value; }; pmDisplay.oninput = function() { pmSlider.value = this.value; };</script>';
+        const template_file = "modules/merchantsheetnpc/template/buy_from_merchant.html";
+        const template_data = { priceModifier: priceModifier};
+        const rendered_html = await renderTemplate(template_file, template_data);
 
         let d = new Dialog({
             title: game.i18n.localize('MERCHANTNPC.buyMerchantDialog-title'),
-            content: html,
+            content: rendered_html,
             buttons: {
                 one: {
                     icon: '<i class="fas fa-check"></i>',
@@ -627,14 +625,13 @@ class MerchantSheetNPC extends ActorSheet {
 
         buyModifier = Math.round(buyModifier * 100);
 
-        var html = "<p>"+game.i18n.localize('MERCHANTNPC.sell-price-slider')+" <i class='fa fa-question-circle' title='"+game.i18n.localize('MERCHANTNPC.price-slider-help')+"'></i></p>";
-        html += '<p><input name="price-modifier-percent" id="price-modifier-percent" type="range" min="0" max="200" value="' + buyModifier + '" class="slider"></p>';
-        html += '<p><label>'+game.i18n.localize('MERCHANTNPC.percentage')+':</label> <input type=number min="0" max="200" value="' + buyModifier + '" id="price-modifier-percent-display"></p>';
-        html += '<script>var pmSlider = document.getElementById("price-modifier-percent"); var pmDisplay = document.getElementById("price-modifier-percent-display"); pmDisplay.value = pmSlider.value; pmSlider.oninput = function() { pmDisplay.value = this.value; }; pmDisplay.oninput = function() { pmSlider.value = this.value; };</script>';
+        const template_file = "modules/merchantsheetnpc/template/sell_to_merchant.html";
+        const template_data = { buyModifier: buyModifier};
+        const rendered_html = await renderTemplate(template_file, template_data);
 
         let d = new Dialog({
             title: game.i18n.localize('MERCHANTNPC.sellToMerchantDialog-title'),
-            content: html,
+            content: rendered_html,
             buttons: {
                 one: {
                     icon: '<i class="fas fa-check"></i>',
@@ -671,12 +668,13 @@ class MerchantSheetNPC extends ActorSheet {
         let itemId = $(event.currentTarget).parents(".merchant-item").attr("data-item-id");
 
         const item = this.actor.getEmbeddedDocument("Item", itemId);
+        const template_file = "modules/merchantsheetnpc/template/change_price.html";
+        const template_data = { price: currencyCalculator.getPriceFromItem(item)};
+        const rendered_html = await renderTemplate(template_file, template_data);
 
-        var html = "<p>"+game.i18n.localize('MERCHANTNPC.priceDialog-text')+"</p>";
-        html += '<p><input name="price-value" id="price-value" value="' + currencyCalculator.getPriceFromItem(item) + '" class="field"></p>';
         let d = new Dialog({
             title: game.i18n.localize('MERCHANTNPC.priceDialog-title'),
-            content: html,
+            content: rendered_html,
             buttons: {
                 one: {
                     icon: '<i class="fas fa-check"></i>',
@@ -708,15 +706,14 @@ class MerchantSheetNPC extends ActorSheet {
         let itemId = $(event.currentTarget).parents(".merchant-item").attr("data-item-id");
 
         const item = this.actor.getEmbeddedDocument("Item", itemId);
-
-        var html = "<p>"+game.i18n.localize('MERCHANTNPC.quantityDialog-text')+"</p>";
-        html += '<p><input name="quantity-value" id="quantity-value" value="' + item.data.data.quantity + '" class="field"></p>';
-        html += '<p><label>'+game.i18n.localize('MERCHANTNPC.infinity')+':</label> <input type=checkbox '
-        if (item.data.data.quantity === Number.MAX_VALUE) { html += ' checked '}
-        html += ' id="quantity-infinity"></p>';
+        const template_file = "modules/merchantsheetnpc/template/change_quantity.html";
+        const template_data = { quantity: item.data.data.quantity,
+            infinity: (item.data.data.quantity === Number.MAX_VALUE?'checked':'')
+        };
+        const rendered_html = await renderTemplate(template_file, template_data);
         let d = new Dialog({
             title: game.i18n.localize('MERCHANTNPC.quantityDialog-title'),
-            content: html,
+            content: rendered_html,
             buttons: {
                 one: {
                     icon: '<i class="fas fa-check"></i>',
@@ -754,14 +751,13 @@ class MerchantSheetNPC extends ActorSheet {
         let stackModifier = await this.actor.getFlag("merchantsheetnpc", "stackModifier");
         if (!stackModifier) stackModifier = 20;
 
-        var html = "<p>"+game.i18n.localize('MERCHANTNPC.stack-slider')+" <i class='fa fa-question-circle' title='"+game.i18n.localize('MERCHANTNPC.stack-slider-help')+"'></i></p>";
-        html += '<p><input name="stack-modifier" id="stack-modifier" type="range" min="1" max="100" value="' + stackModifier + '" class="slider"></p>';
-        html += '<p><label>'+game.i18n.localize("MERCHANTNPC.stack-amount")+':</label> <input type=number min="1" max="100" value="' + stackModifier + '" id="stack-modifier-display"></p>';
-        html += '<script>var pmSlider = document.getElementById("stack-modifier"); var pmDisplay = document.getElementById("stack-modifier-display"); pmDisplay.value = pmSlider.value; pmSlider.oninput = function() { pmDisplay.value = this.value; }; pmDisplay.oninput = function() { pmSlider.value = this.value; };</script>';
+        const template_file = "modules/merchantsheetnpc/template/stack_modifier.html";
+        const template_data = { stackModifier: stackModifier};
+        const rendered_html = await renderTemplate(template_file, template_data);
 
         let d = new Dialog({
             title: game.i18n.localize('MERCHANTNPC.stack-modifier'),
-            content: html,
+            content: rendered_html,
             buttons: {
                 one: {
                     icon: '<i class="fas fa-check"></i>',
@@ -1062,7 +1058,6 @@ Hooks.on('dropActorSheetData',(target,sheet,dragSource,user)=>{
             console.log(dragSource)
             let buyModifier = target.getFlag("merchantsheetnpc", "buyModifier")
             if (!buyModifier) buyModifier = 0.5;
-
 
 
             var html = "<p>"+game.i18n.format('MERCHANTNPC.sell-items-player',{name: dragSource.data.name, price: currencyCalculator.priceInText(buyModifier * dragSource.data.data.price)})+"</p>";
