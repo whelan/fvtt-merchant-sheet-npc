@@ -232,6 +232,7 @@ class MerchantSheetNPC extends ActorSheet {
         html.find('.price-modifier').click(ev => this._priceModifier(ev));
         html.find('.buy-modifier').click(ev => this._buyModifier(ev));
         html.find('.stack-modifier').click(ev => this._stackModifier(ev));
+        html.find('.csv-import').click(ev => this._csvImport(ev));
 
         html.find('.merchant-settings').change(ev => this._merchantSettingChange(ev));
         html.find('.update-inventory').click(ev => this._merchantInventoryUpdate(ev));
@@ -777,6 +778,93 @@ class MerchantSheetNPC extends ActorSheet {
     }
 
 
+    /**
+     * Handle csv-import
+     * @private
+     */
+    async _csvImport(event) {
+        event.preventDefault();
+
+        const template_file = "modules/merchantsheetnpc/template/csv-import.html";
+        const template_data = {};
+        const rendered_html = await renderTemplate(template_file, template_data);
+
+
+        let d = new Dialog({
+            title: game.i18n.localize('MERCHANTNPC.csv-import'),
+            content: rendered_html,
+            buttons: {
+                one: {
+                    icon: '<i class="fas fa-check"></i>',
+                    label: game.i18n.localize('MERCHANTNPC.update'),
+                    callback: () => this.createItemsFromCSV(this.actor, document.getElementById("csv").value)
+                },
+                two: {
+                    icon: '<i class="fas fa-times"></i>',
+                    label: game.i18n.localize('MERCHANTNPC.cancel'),
+                    callback: () => console.log("Merchant sheet | Stack Modifier Cancelled")
+                }
+            },
+            default: "two",
+            close: () => console.log("Merchant sheet | Stack Modifier Closed")
+        });
+        d.render(true);
+    }
+
+    async createItemsFromCSV(actor, csvInput) {
+        let csvObject = this.cSVtoArray(csvInput);
+        let split = csvInput.split('\n');
+        let map = split.map(function mapCSV(text) {
+            let p = '', row = [''], ret = [row], i = 0, r = 0, s = !0, l;
+            for (l of text) {
+                if ('"' === l) {
+                    if (s && l === p) row[i] += l;
+                    s = !s;
+                } else if (',' === l && s) l = row[++i] = '';
+                else if ('\n' === l && s) {
+                    if ('\r' === p) row[i] = row[i].slice(0, -1);
+                    row = ret[++r] = [l = '']; i = 0;
+                } else row[i] += l;
+                p = l;
+            }
+            return ret;
+        });
+
+        console.log(game.settings.get("merchantsheetnpc", "itemCompendium"))
+        let itemPack = await game.packs.filter(s => s.metadata.name === game.settings.get("merchantsheetnpc", "itemCompendium"));
+        console.log(itemPack)
+        for (let csvItem of map) {
+            let item = await itemPack[0].index.filter(i => i.name === csvItem[0])
+            if (item) {
+                actor.createEmbeddedDocuments("Item", item);
+            }
+        }
+
+        console.log(map);
+        return undefined;
+    }
+
+    cSVtoArray(text) {
+        let ret = [''], i = 0, p = '', s = true;
+        for (let l in text) {
+            l = text[l];
+            if ('"' === l) {
+                s = !s;
+                if ('"' === p) {
+                    ret[i] += '"';
+                    l = '-';
+                } else if ('' === p)
+                    l = '-';
+            } else if (s && ',' === l)
+                l = ret[++i] = '';
+            else
+                ret[i] += l;
+            p = l;
+        }
+        return ret;
+    }
+
+
 
     /* -------------------------------------------- */
 
@@ -1090,6 +1178,27 @@ Hooks.on('dropActorSheetData',(target,sheet,dragSource,user)=>{
     }
 });
 
+function getCompendiumnsChoices() {
+    let myobject = {"none": "None"};
+    game.packs.map(function mapCompendiums(key,index) {
+        if (key.metadata.entity === 'Item') {
+            myobject[key.metadata.name] = key.metadata.label
+        }
+    });
+    return myobject;
+}
+Hooks.once("ready", () => {
+    game.settings.register("merchantsheetnpc", "itemCompendium", {
+        name: game.i18n.format("MERCHANTNPC.pickItemCompendium"),
+        hint: game.i18n.format("MERCHANTNPC.pickItemCompendium_hint"),
+        scope: "world",
+        config: true,
+        type: String,
+        choices: getCompendiumnsChoices(),
+        default: "none",
+    })
+});
+
 Hooks.once("init", () => {
     systemCurrencyCalculator().then(() => console.log("Merchant Sheet | System calculator is loaded"));
 
@@ -1124,6 +1233,7 @@ Hooks.once("init", () => {
         default: true,
         type: Boolean
     });
+
 
     function chatMessage(speaker, owner, message, item) {
         if (game.settings.get("merchantsheetnpc", "buyChat")) {
