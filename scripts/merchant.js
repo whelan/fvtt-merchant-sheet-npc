@@ -812,9 +812,8 @@ class MerchantSheetNPC extends ActorSheet {
     }
 
     async createItemsFromCSV(actor, csvInput) {
-        let csvObject = this.cSVtoArray(csvInput);
-        let split = csvInput.split('\n');
-        let map = split.map(function mapCSV(text) {
+        let split = '"Adamantine Plate","Armor","Combat","Uncommon","2010"\n"Portable Hole","Wondrous","Noncombat","Rare","8000"\n'.split('\n');
+        let csvItems = split.map(function mapCSV(text) {
             let p = '', row = [''], ret = [row], i = 0, r = 0, s = !0, l;
             for (l of text) {
                 if ('"' === l) {
@@ -831,37 +830,66 @@ class MerchantSheetNPC extends ActorSheet {
         });
 
         console.log(game.settings.get("merchantsheetnpc", "itemCompendium"))
-        let itemPack = await game.packs.filter(s => s.metadata.name === game.settings.get("merchantsheetnpc", "itemCompendium"));
+        let itemPack = (await game.packs.filter(s => s.metadata.name === game.settings.get("merchantsheetnpc", "itemCompendium")))[0];
         console.log(itemPack)
-        for (let csvItem of map) {
-            let item = await itemPack[0].index.filter(i => i.name === csvItem[0])
-            if (item) {
-                actor.createEmbeddedDocuments("Item", item);
+
+        for (let csvItem of csvItems) {
+            console.log("Merchant sheet | item to parse ",csvItem);
+            if (csvItem[0].length > 0) {
+                let item = csvItem[0];
+                let name = item[0];
+                let price = item[4];
+                console.log("Merchant sheet | find item: ", name)
+                let items = await itemPack.index.filter(i => i.name === name)
+                let storeItems = [];
+                for (let item of items) {
+                    let loaded = await itemPack.getEntry(item._id);
+                    if (price > 0 && (loaded.data.price === undefined || loaded.data.price === 0)) {
+                        loaded.update({[currencyCalculator.getPriceItemKey()]: price});
+                    }
+                    storeItems.push(loaded);
+                }
+                console.log(storeItems)
+                let existingItem = actor.items.find(it => it.data.name == name);
+
+                if (existingItem === undefined) {
+                    actor.createEmbeddedDocuments("Item", storeItems);
+                }
+                else {
+                    console.log(`Merchant sheet | Item ${existingItem.name} exists.`);
+                    let newQty = Number(existingItem.data.data.quantity) + Number(1);
+                    await existingItem.update({ "data.quantity": newQty});
+                }
+            } else {
+                console.log("Merchant sheet | find item length: ", csvItem.length)
             }
         }
-
-        console.log(map);
+        await this.collapseInventory(actor)
         return undefined;
     }
 
-    cSVtoArray(text) {
-        let ret = [''], i = 0, p = '', s = true;
-        for (let l in text) {
-            l = text[l];
-            if ('"' === l) {
-                s = !s;
-                if ('"' === p) {
-                    ret[i] += '"';
-                    l = '-';
-                } else if ('' === p)
-                    l = '-';
-            } else if (s && ',' === l)
-                l = ret[++i] = '';
-            else
-                ret[i] += l;
-            p = l;
+    async collapseInventory(actor) {
+        var groupBy = function(xs, key) {
+            return xs.reduce(function(rv, x) {
+                (rv[x[key]] = rv[x[key]] || []).push(x);
+                return rv;
+            }, {});
+        };
+        let itemGroupList = groupBy(actor.items, 'name');
+        console.log(itemGroupList)
+        let itemsToBeDeleted = [];
+        for (const [key, value] of Object.entries(itemGroupList)) {
+            var itemToUpdateQuantity = value[0];
+            for(let extraItem of value) {
+                if (itemToUpdateQuantity !== extraItem) {
+                    let newQty = Number(itemToUpdateQuantity.data.data.quantity) + Number(extraItem.data.data.quantity);
+                    await itemToUpdateQuantity.update({ "data.quantity": newQty});
+                    itemsToBeDeleted.push(extraItem.id);
+                }
+            }
+            console.log(`${key}: `,value.length);
         }
-        return ret;
+        await actor.deleteEmbeddedDocuments("Item", itemsToBeDeleted);
     }
 
 

@@ -61,7 +61,7 @@ export default class Dnd5eCurrencyCalculator extends CurrencyCalculator {
     }
 
     updateActorWithNewFunds(buyer, buyerFunds) {
-        console.log("Merchant hseet | buyer and funds", buyer,buyerFunds)
+        console.log("Merchant sheet | buyer and funds", buyer,buyerFunds)
         buyer.update({ "data.currency": buyerFunds });
     }
 
