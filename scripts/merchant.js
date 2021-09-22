@@ -516,9 +516,12 @@ class MerchantSheetNPC extends ActorSheet {
                 targetGm = u;
             }
         });
-
-        if (!targetGm) {
+        let allowNoTargetGM = game.settings.get("merchantsheetnpc", "allowNoGM")
+        let gmId = null;
+        if (!allowNoTargetGM && !targetGm) {
             return ui.notifications.error(game.i18n.localize("MERCHANTNPC.error-noGM"));
+        } else if (!allowNoTargetGM) {
+            gmId = targetGm.data.id;
         }
 
         if (this.token === null) {
@@ -538,7 +541,7 @@ class MerchantSheetNPC extends ActorSheet {
             tokenId: this.token.id,
             itemId: itemId,
             quantity: 1,
-            processorId: targetGm.id
+            processorId: gmId
         };
         console.log(stackModifier)
         console.log(item.data.data.quantity)
@@ -549,15 +552,23 @@ class MerchantSheetNPC extends ActorSheet {
             } else {
                 packet.quantity = stackModifier;
             }
-            console.log("MerchantSheet", "Sending buy request to " + targetGm.name, packet);
-            game.socket.emit(MerchantSheetNPC.SOCKET, packet);
+            if (allowNoTargetGM) {
+                buyTransactionFromPlayer(packet)
+            } else {
+                console.log("MerchantSheet", "Sending buy request to " + targetGm.name, packet);
+                game.socket.emit(MerchantSheetNPC.SOCKET, packet);
+            }
             return;
         }
 
         let d = new QuantityDialog((quantity) => {
                 packet.quantity = quantity;
-                console.log("MerchantSheet", "Sending buy request to " + targetGm.name, packet);
-                game.socket.emit(MerchantSheetNPC.SOCKET, packet);
+                if (allowNoTargetGM) {
+                    buyTransactionFromPlayer(packet)
+                } else {
+                    console.log("MerchantSheet", "Sending buy request to " + targetGm.name, packet);
+                    game.socket.emit(MerchantSheetNPC.SOCKET, packet);
+                }
             },
             {
                 acceptLabel: "Purchase"
@@ -1313,6 +1324,100 @@ Hooks.once("ready", () => {
     })
 });
 
+function chatMessage(speaker, owner, message, item) {
+    if (game.settings.get("merchantsheetnpc", "buyChat")) {
+        message = `
+            <div class="chat-card item-card" data-actor-id="${owner.id}" data-item-id="${item.id}">
+                <header class="card-header flexrow">
+                    <div class= "merchant-item-image" style="background-image: url(${item.img})"></div>
+                    <h3 class="item-name">${item.name}</h3>
+                </header>
+
+                <div class="message-content">
+                    <p>` + message + `</p>
+                </div>
+            </div>
+            `;
+        ChatMessage.create({
+            user: game.user.id,
+            speaker: {
+                actor: speaker,
+                alias: speaker.name
+            },
+            content: message
+        });
+    }
+}
+
+
+async function transaction(seller, buyer, itemId, quantity) {
+    console.log(`Buying item: ${seller}, ${buyer}, ${itemId}, ${quantity}`);
+
+    let sellItem = seller.getEmbeddedDocument("Item", itemId);
+    // If the buyer attempts to buy more then what's in stock, buy all the stock.
+    if (sellItem.data.data.quantity < quantity) {
+        quantity = sellItem.data.data.quantity;
+    }
+
+    // On negative quantity we show an error
+    if (quantity < 0) {
+        errorMessageToActor(buyer, game.i18n.localize("MERCHANTNPC.error-negativeAmountItems"));
+        return;
+    }
+
+    // On 0 quantity skip everything to avoid error down the line
+    if (quantity == 0) {
+        return;
+    }
+
+    let sellerModifier = seller.getFlag("merchantsheetnpc", "priceModifier");
+    let sellerStack = seller.getFlag("merchantsheetnpc", "stackModifier");
+    if (sellerModifier === 'undefined') {
+        sellerModifier = 1.0;
+    }
+    if (!sellerStack && quantity > sellerStack) quantity = sellerStack;
+
+    let itemCostInGold = Math.round(currencyCalculator.getPriceFromItem(sellItem) * sellerModifier * 100) / 100;
+
+    itemCostInGold *= quantity;
+    let currency = currencyCalculator.actorCurrency(buyer);
+
+    let buyerFunds = duplicate(currency);
+
+    if (currencyCalculator.buyerHaveNotEnoughFunds(itemCostInGold,buyerFunds)) {
+        errorMessageToActor(buyer, game.i18n.localize("MERCHANTNPC.error-noFunds"));
+        return;
+    }
+
+    currencyCalculator.subtractAmountFromActor(buyer,buyerFunds,itemCostInGold);
+
+    // Update buyer's funds
+
+    let moved = await moveItems(seller, buyer, [{ itemId, quantity }]);
+
+    let chatPrice = currencyCalculator.priceInText(itemCostInGold);
+    for (let m of moved) {
+        chatMessage(
+            seller, buyer,
+            game.i18n.format('MERCHANTNPC.buyText', {buyer: buyer.name, quantity: quantity, itemName: m.item.name, chatPrice: chatPrice}),
+            m.item);
+    }
+}
+
+
+function buyTransactionFromPlayer(data) {
+    if (data.type === "buy") {
+        let buyer = game.actors.get(data.buyerId);
+        let seller = canvas.tokens.get(data.tokenId);
+
+        if (buyer && seller && seller.actor) {
+            transaction(seller.actor, buyer, data.itemId, data.quantity);
+        } else if (!seller) {
+            ui.notifications.error(game.i18n.localize("MERCHANTNPC.playerOtherScene"));
+        }
+    }
+}
+
 Hooks.once("init", () => {
     systemCurrencyCalculator().then(() => console.log("Merchant Sheet | System calculator is loaded"));
 
@@ -1348,31 +1453,17 @@ Hooks.once("init", () => {
         type: Boolean
     });
 
+    game.settings.register("merchantsheetnpc", "allowNoGM", {
+        name: "Allow transactions without GM",
+        hint: "If enabled, transactions can happen even without the GM is active.",
+        scope: "world",
+        config: true,
+        default: false,
+        type: Boolean
+    });
 
-    function chatMessage(speaker, owner, message, item) {
-        if (game.settings.get("merchantsheetnpc", "buyChat")) {
-            message = `
-            <div class="chat-card item-card" data-actor-id="${owner.id}" data-item-id="${item.id}">
-                <header class="card-header flexrow">
-                    <div class= "merchant-item-image" style="background-image: url(${item.img})"></div>
-                    <h3 class="item-name">${item.name}</h3>
-                </header>
 
-                <div class="message-content">
-                    <p>` + message + `</p>
-                </div>
-            </div>
-            `;
-            ChatMessage.create({
-                user: game.user.id,
-                speaker: {
-                    actor: speaker,
-                    alias: speaker.name
-                },
-                content: message
-            });
-        }
-    }
+
 
 
     function errorMessageToActor(target, message) {
@@ -1383,81 +1474,17 @@ Hooks.once("init", () => {
         });
     }
 
-    async function transaction(seller, buyer, itemId, quantity) {
-        console.log(`Buying item: ${seller}, ${buyer}, ${itemId}, ${quantity}`);
-
-        let sellItem = seller.getEmbeddedDocument("Item", itemId);
-        // If the buyer attempts to buy more then what's in stock, buy all the stock.
-        if (sellItem.data.data.quantity < quantity) {
-            quantity = sellItem.data.data.quantity;
-        }
-
-        // On negative quantity we show an error
-        if (quantity < 0) {
-            errorMessageToActor(buyer, game.i18n.localize("MERCHANTNPC.error-negativeAmountItems"));
-            return;
-        }
-
-        // On 0 quantity skip everything to avoid error down the line
-        if (quantity == 0) {
-            return;
-        }
-
-        let sellerModifier = seller.getFlag("merchantsheetnpc", "priceModifier");
-        let sellerStack = seller.getFlag("merchantsheetnpc", "stackModifier");
-        if (sellerModifier === 'undefined') {
-            sellerModifier = 1.0;
-        }
-        if (!sellerStack && quantity > sellerStack) quantity = sellerStack;
-
-        let itemCostInGold = Math.round(currencyCalculator.getPriceFromItem(sellItem) * sellerModifier * 100) / 100;
-
-        itemCostInGold *= quantity;
-        let currency = currencyCalculator.actorCurrency(buyer);
-
-        let buyerFunds = duplicate(currency);
-
-        if (currencyCalculator.buyerHaveNotEnoughFunds(itemCostInGold,buyerFunds)) {
-            errorMessageToActor(buyer, game.i18n.localize("MERCHANTNPC.error-noFunds"));
-            return;
-        }
-
-        currencyCalculator.subtractAmountFromActor(buyer,buyerFunds,itemCostInGold);
-
-        // Update buyer's funds
-
-        let moved = await moveItems(seller, buyer, [{ itemId, quantity }]);
-
-        let chatPrice = currencyCalculator.priceInText(itemCostInGold);
-
-        for (let m of moved) {
-            chatMessage(
-                seller, buyer,
-                game.i18n.format('MERCHANTNPC.buyText', {buyer: buyer.name, quantity: quantity, itemName: m.item.name, chatPrice: chatPrice}),
-                m.item);
-        }
-    }
 
     game.socket.on(MerchantSheetNPC.SOCKET, data => {
         if (game.user.isGM && data.processorId === game.user.id) {
-            if (data.type === "buy") {
-                let buyer = game.actors.get(data.buyerId);
-                let seller = canvas.tokens.get(data.tokenId);
-
-                if (buyer && seller && seller.actor) {
-                    transaction(seller.actor, buyer, data.itemId, data.quantity);
-                }
-                else if (!seller) {
-                    errorMessageToActor(buyer, game.i18n.localize("MERCHANTNPC.noGM"))
-                    ui.notifications.error(game.i18n.localize("MERCHANTNPC.playerOtherScene"));
-                }
-            }
+            buyTransactionFromPlayer(data);
         }
         if (data.type === "error" && data.targetId === game.user.actorId) {
             console.log("Merchant sheet | Transaction Error: ", data.message);
             return ui.notifications.error(data.message);
         }
     });
+
 
 
 });
