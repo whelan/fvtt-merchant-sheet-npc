@@ -812,7 +812,7 @@ class MerchantSheetNPC extends ActorSheet {
     }
 
     async createItemsFromCSV(actor, csvInput) {
-        let split = '"Adamantine Plate","Armor","Combat","Uncommon","2010"\n"Portable Hole","Wondrous","Noncombat","Rare","8000"\n'.split('\n');
+        let split = csvInput.split('\n');
         let csvItems = split.map(function mapCSV(text) {
             let p = '', row = [''], ret = [row], i = 0, r = 0, s = !0, l;
             for (l of text) {
@@ -843,14 +843,14 @@ class MerchantSheetNPC extends ActorSheet {
                 let items = await itemPack.index.filter(i => i.name === name)
                 let storeItems = [];
                 for (let item of items) {
-                    let loaded = await itemPack.getEntry(item._id);
+                    let loaded = await itemPack.getDocument(item._id);
                     if (price > 0 && (loaded.data.price === undefined || loaded.data.price === 0)) {
                         loaded.update({[currencyCalculator.getPriceItemKey()]: price});
                     }
                     storeItems.push(loaded);
                 }
                 console.log(storeItems)
-                let existingItem = actor.items.find(it => it.data.name == name);
+                let existingItem = await actor.items.find(it => it.data.name == name);
 
                 if (existingItem === undefined) {
                     actor.createEmbeddedDocuments("Item", storeItems);
@@ -864,33 +864,10 @@ class MerchantSheetNPC extends ActorSheet {
                 console.log("Merchant sheet | find item length: ", csvItem.length)
             }
         }
-        await this.collapseInventory(actor)
+        await collapseInventory(actor)
         return undefined;
     }
 
-    async collapseInventory(actor) {
-        var groupBy = function(xs, key) {
-            return xs.reduce(function(rv, x) {
-                (rv[x[key]] = rv[x[key]] || []).push(x);
-                return rv;
-            }, {});
-        };
-        let itemGroupList = groupBy(actor.items, 'name');
-        console.log(itemGroupList)
-        let itemsToBeDeleted = [];
-        for (const [key, value] of Object.entries(itemGroupList)) {
-            var itemToUpdateQuantity = value[0];
-            for(let extraItem of value) {
-                if (itemToUpdateQuantity !== extraItem) {
-                    let newQty = Number(itemToUpdateQuantity.data.data.quantity) + Number(extraItem.data.data.quantity);
-                    await itemToUpdateQuantity.update({ "data.quantity": newQty});
-                    itemsToBeDeleted.push(extraItem.id);
-                }
-            }
-            console.log(`${key}: `,value.length);
-        }
-        await actor.deleteEmbeddedDocuments("Item", itemsToBeDeleted);
-    }
 
 
 
@@ -1113,15 +1090,15 @@ Actors.registerSheet("core", MerchantSheetNPC, {
 async function sellItem(target, dragSource, sourceActor, quantity, totalItemsPrice) {
     let sellerFunds = currencyCalculator.actorCurrency(sourceActor);
     currencyCalculator.addAmountForActor(sourceActor,sellerFunds,totalItemsPrice)
-    if (dragSource.data.data.quantity <= quantity) {
-        sourceActor.deleteEmbeddedDocuments("Item",[dragSource.data._id]);
-    } else {
-        let destItem = await sourceActor.data.items.find(i => i.name == dragSource.data.name);
-        const update = { _id: destItem.id, "data.quantity": Number(destItem.data.data.quantity) - quantity};
-        dragSource.data.data.quantity = Number(destItem.data.data.quantity) - quantity;
-        // destItem.data.data.quantity = ;
-        await sourceActor.updateEmbeddedDocuments("Item", [update]);
-    }
+    // if (dragSource.data.data.quantity <= quantity) {
+    //     sourceActor.deleteEmbeddedDocuments("Item",[dragSource.data._id]);
+    // } else {
+    //     let destItem = await sourceActor.data.items.find(i => i.name == dragSource.data.name);
+    //     const update = { _id: destItem.id, "data.quantity": Number(destItem.data.data.quantity) - quantity};
+    //     dragSource.data.data.quantity = Number(destItem.data.data.quantity) - quantity;
+    //     // destItem.data.data.quantity = ;
+    //     await sourceActor.updateEmbeddedDocuments("Item", [update]);
+    // }
 }
 
 Hooks.on('updateActor', (actor, data) => {
@@ -1136,6 +1113,29 @@ Hooks.on('createActor', (actor, data) => {
     }
 });
 
+async function collapseInventory(actor) {
+    var groupBy = function(xs, key) {
+        return xs.reduce(function(rv, x) {
+            (rv[x[key]] = rv[x[key]] || []).push(x);
+            return rv;
+        }, {});
+    };
+    let itemGroupList = groupBy(actor.items, 'name');
+    console.log(itemGroupList)
+    let itemsToBeDeleted = [];
+    for (const [key, value] of Object.entries(itemGroupList)) {
+        var itemToUpdateQuantity = value[0];
+        for(let extraItem of value) {
+            if (itemToUpdateQuantity !== extraItem) {
+                let newQty = Number(itemToUpdateQuantity.data.data.quantity) + Number(extraItem.data.data.quantity);
+                await itemToUpdateQuantity.update({ "data.quantity": newQty});
+                itemsToBeDeleted.push(extraItem.id);
+            }
+        }
+        console.log(`${key}: `,value.length);
+    }
+    await actor.deleteEmbeddedDocuments("Item", itemsToBeDeleted);
+}
 
 
 function initModifiers(actor) {
@@ -1154,6 +1154,86 @@ function initModifiers(actor) {
     actor.render();
 }
 
+async function addItemToActor(dragSource, target, quantity) {
+    console.log(target.items)
+    console.log(target.items)
+    let existingItem = await target.items.find(it => it.data.name == dragSource.data.name);
+
+    if (existingItem === undefined) {
+        target.createEmbeddedDocuments("Item", [dragSource]);
+    }
+    else {
+        console.log(`Merchant sheet | Item ${existingItem.name} exists.`);
+        let newQty = Number(existingItem.data.data.quantity) + Number(quantity);
+        existingItem.update({ "data.quantity": newQty});
+    }
+
+    collapseInventory(target);
+
+}
+
+async function moveItems(source, destination, items) {
+    const updates = [];
+    const deletes = [];
+    const additions = [];
+    const destUpdates = [];
+    const results = [];
+    for (let i of items) {
+        let itemId = i.itemId;
+        let quantity = Number(i.quantity);
+        let item = source.getEmbeddedDocument("Item", itemId);
+
+        // Move all items if we select more than the quantity.
+        if (item.data.data.quantity < quantity) {
+            quantity = Number(item.data.data.quantity);
+        }
+
+        let newItem = duplicate(item);
+        const update = { _id: itemId, "data.quantity": item.data.data.quantity >= (Number.MAX_VALUE-10000) ? Number.MAX_VALUE : item.data.data.quantity - quantity };
+
+        if (update["data.quantity"] === 0) {
+            deletes.push(itemId);
+        }
+        else {
+            updates.push(update);
+        }
+
+        newItem.data.quantity = quantity;
+        results.push({
+            item: newItem,
+            quantity: quantity
+        });
+        let destItem = destination.data.items.find(i => i.name == newItem.name);
+        if (destItem === undefined) {
+            additions.push(newItem);
+        } else {
+            //console.log("Existing Item");
+            destItem.data.data.quantity = Number(destItem.data.data.quantity) + Number(newItem.data.quantity);
+            const destUpdate = { _id: destItem._id, "data.quantity": destItem.data.data.quantity };
+            destUpdates.push(destUpdate);
+        }
+    }
+
+    if (deletes.length > 0) {
+        await source.deleteEmbeddedDocuments("Item", deletes);
+    }
+
+    if (updates.length > 0) {
+        await source.updateEmbeddedDocuments("Item", updates);
+    }
+
+    if (additions.length > 0) {
+        await destination.createEmbeddedDocuments("Item", additions);
+    }
+
+    if (destUpdates.length > 0) {
+        await destination.updateEmbeddedDocuments("Item", destUpdates);
+    }
+
+    return results;
+}
+
+
 Hooks.on('dropActorSheetData',(target,sheet,dragSource,user)=>{
     function checkCompatable(a,b){
         if(a==b) return false;
@@ -1166,12 +1246,13 @@ Hooks.on('dropActorSheetData',(target,sheet,dragSource,user)=>{
         if(target.data._id ==  dragSource.actorId) return;  // ignore dropping on self
         let sourceActor = game.actors.get(dragSource.actorId);
         console.log("Merchant sheet | drop item");
+        console.log(dragSource)
         if(sourceActor && target.sheet.template === 'modules/merchantsheetnpc/template/npc-sheet.html') {
             // if both source and target have the same type then allow deleting original item.
             // this is a safety check because some game systems may allow dropping on targets
             // that don't actually allow the GM or player to see the inventory, making the item
             // inaccessible.
-            console.log(dragSource)
+            console.log(target)
             let buyModifier = target.getFlag("merchantsheetnpc", "buyModifier")
             if (!buyModifier) buyModifier = 0.5;
 
@@ -1189,7 +1270,13 @@ Hooks.on('dropActorSheetData',(target,sheet,dragSource,user)=>{
                     one: {
                         icon: '<i class="fas fa-check"></i>',
                         label: game.i18n.localize('MERCHANTNPC.sell'),
-                        callback: () => sellItem(target,dragSource,sourceActor, document.getElementById("quantity-modifier").value,document.getElementById("quantity-modifier-total").value)
+                        callback: () => {
+                            let quantity = document.getElementById("quantity-modifier").value;
+                            let itemId = dragSource.data._id
+                            // addItemToActor(dragSource,target,quantity);
+                            moveItems(sourceActor, target, [{ itemId, quantity }]);
+                            sellItem(target, dragSource, sourceActor, quantity, document.getElementById("quantity-modifier-total").value)
+                        }
                     },
                     two: {
                         icon: '<i class="fas fa-times"></i>',
@@ -1201,7 +1288,6 @@ Hooks.on('dropActorSheetData',(target,sheet,dragSource,user)=>{
                 close: () => console.log("Merchant sheet | Price Modifier Closed")
             });
             d.render(true);
-
         }
     }
 });
@@ -1295,67 +1381,6 @@ Hooks.once("init", () => {
             targetId: target.id,
             message: message
         });
-    }
-
-    async function moveItems(source, destination, items) {
-        const updates = [];
-        const deletes = [];
-        const additions = [];
-        const destUpdates = [];
-        const results = [];
-        for (let i of items) {
-            let itemId = i.itemId;
-            let quantity = Number(i.quantity);
-            let item = source.getEmbeddedDocument("Item", itemId);
-
-            // Move all items if we select more than the quantity.
-            if (item.data.data.quantity < quantity) {
-                quantity = Number(item.data.data.quantity);
-            }
-
-            let newItem = duplicate(item);
-            const update = { _id: itemId, "data.quantity": item.data.data.quantity >= (Number.MAX_VALUE-10000) ? Number.MAX_VALUE : item.data.data.quantity - quantity };
-
-            if (update["data.quantity"] === 0) {
-                deletes.push(itemId);
-            }
-            else {
-                updates.push(update);
-            }
-
-            newItem.data.quantity = quantity;
-            results.push({
-                item: newItem,
-                quantity: quantity
-            });
-            let destItem = destination.data.items.find(i => i.name == newItem.name);
-            if (destItem === undefined) {
-                additions.push(newItem);
-            } else {
-                //console.log("Existing Item");
-                destItem.data.data.quantity = Number(destItem.data.data.quantity) + Number(newItem.data.quantity);
-                const destUpdate = { _id: destItem._id, "data.quantity": destItem.data.data.quantity };
-                destUpdates.push(destUpdate);
-            }
-        }
-
-        if (deletes.length > 0) {
-            await source.deleteEmbeddedDocuments("Item", deletes);
-        }
-
-        if (updates.length > 0) {
-            await source.updateEmbeddedDocuments("Item", updates);
-        }
-
-        if (additions.length > 0) {
-            await destination.createEmbeddedDocuments("Item", additions);
-        }
-
-        if (destUpdates.length > 0) {
-            await destination.updateEmbeddedDocuments("Item", destUpdates);
-        }
-
-        return results;
     }
 
     async function transaction(seller, buyer, itemId, quantity) {
