@@ -1,3 +1,6 @@
+## Version 1.5.0
+* Added support for CSV import and add from compendiums. Select item/spell compendiums to use in settings
+
 ## Version 1.4.4
 * Fixed Bug with initializing of "sell to merchant modifier" which set the "buy from merchant modifier" to 50%.
 

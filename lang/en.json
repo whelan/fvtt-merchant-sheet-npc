@@ -70,5 +70,15 @@
   "MERCHANTNPC.weapon": "Weapon",
   "MERCHANTNPC.weaponAccessory": "Weapon accessory",
   "MERCHANTNPC.weight": "Weight",
-  "MERCHANTNPC.price": "Price"
+  "MERCHANTNPC.price": "Price",
+  "MERCHANTNPC.csv-import": "Import from CSV",
+  "MERCHANTNPC.csv-import-info": "Import by adding the information below. And press update when you are ready to import the CSV input",
+  "MERCHANTNPC.csv-import-help": "CSV import understands files that are defined with \" around the field example \"Dagger\" and , as seperator and one item per row",
+  "MERCHANTNPC.csv-name-field": "Which column is the name of item in",
+  "MERCHANTNPC.csv-price-field": "Which column is the price of item in",
+  "MERCHANTNPC.csv-scroll-name-field": "What is the name of scrolls in CSV import",
+  "MERCHANTNPC.csv-spell-compendium-field": "Which compendium is the spell compendium",
+  "MERCHANTNPC.csv-input": "Paste the CSV content here",
+  "MERCHANTNPC.pickItemCompendium": "Which compendium should items to generate come from",
+  "MERCHANTNPC.pickItemCompendium_hint": "This will be used for CSV import to take the item from that and find the item from the compendium. At a later stage Randomizer will be added"
 }

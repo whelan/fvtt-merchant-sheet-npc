@@ -123,6 +123,13 @@ class SellerQuantityDialog extends Dialog {
     }
 }
 
+async function findSpellPack(pack) {
+    if (pack !== 'none') {
+        return (await game.packs.filter(s => s.metadata.name === pack))[0]
+    }
+    return undefined;
+}
+
 class MerchantSheetNPC extends ActorSheet {
 
     static SOCKET = "module.merchantsheetnpc";
@@ -232,6 +239,7 @@ class MerchantSheetNPC extends ActorSheet {
         html.find('.price-modifier').click(ev => this._priceModifier(ev));
         html.find('.buy-modifier').click(ev => this._buyModifier(ev));
         html.find('.stack-modifier').click(ev => this._stackModifier(ev));
+        html.find('.csv-import').click(ev => this._csvImport(ev));
 
         html.find('.merchant-settings').change(ev => this._merchantSettingChange(ev));
         html.find('.update-inventory').click(ev => this._merchantInventoryUpdate(ev));
@@ -515,9 +523,12 @@ class MerchantSheetNPC extends ActorSheet {
                 targetGm = u;
             }
         });
-
-        if (!targetGm) {
+        let allowNoTargetGM = game.settings.get("merchantsheetnpc", "allowNoGM")
+        let gmId = null;
+        if (!allowNoTargetGM && !targetGm) {
             return ui.notifications.error(game.i18n.localize("MERCHANTNPC.error-noGM"));
+        } else if (!allowNoTargetGM) {
+            gmId = targetGm.data.id;
         }
 
         if (this.token === null) {
@@ -537,7 +548,7 @@ class MerchantSheetNPC extends ActorSheet {
             tokenId: this.token.id,
             itemId: itemId,
             quantity: 1,
-            processorId: targetGm.id
+            processorId: gmId
         };
         console.log(stackModifier)
         console.log(item.data.data.quantity)
@@ -548,15 +559,23 @@ class MerchantSheetNPC extends ActorSheet {
             } else {
                 packet.quantity = stackModifier;
             }
-            console.log("MerchantSheet", "Sending buy request to " + targetGm.name, packet);
-            game.socket.emit(MerchantSheetNPC.SOCKET, packet);
+            if (allowNoTargetGM) {
+                buyTransactionFromPlayer(packet)
+            } else {
+                console.log("MerchantSheet", "Sending buy request to " + targetGm.name, packet);
+                game.socket.emit(MerchantSheetNPC.SOCKET, packet);
+            }
             return;
         }
 
         let d = new QuantityDialog((quantity) => {
                 packet.quantity = quantity;
-                console.log("MerchantSheet", "Sending buy request to " + targetGm.name, packet);
-                game.socket.emit(MerchantSheetNPC.SOCKET, packet);
+                if (allowNoTargetGM) {
+                    buyTransactionFromPlayer(packet)
+                } else {
+                    console.log("MerchantSheet", "Sending buy request to " + targetGm.name, packet);
+                    game.socket.emit(MerchantSheetNPC.SOCKET, packet);
+                }
             },
             {
                 acceptLabel: "Purchase"
@@ -579,15 +598,13 @@ class MerchantSheetNPC extends ActorSheet {
         if (priceModifier === 'undefined') priceModifier = 1.0;
 
         priceModifier = Math.round(priceModifier * 100);
-
-        var html = "<p>"+game.i18n.localize('MERCHANTNPC.price-slider')+" <i class='fa fa-question-circle' title='"+game.i18n.localize('MERCHANTNPC.price-slider-help')+"'></i></p>";
-        html += '<p><input name="price-modifier-percent" id="price-modifier-percent" type="range" min="0" max="200" value="' + priceModifier + '" class="slider"></p>';
-        html += '<p><label>'+game.i18n.localize('MERCHANTNPC.percentage')+':</label> <input type=number min="0" max="200" value="' + priceModifier + '" id="price-modifier-percent-display"></p>';
-        html += '<script>var pmSlider = document.getElementById("price-modifier-percent"); var pmDisplay = document.getElementById("price-modifier-percent-display"); pmDisplay.value = pmSlider.value; pmSlider.oninput = function() { pmDisplay.value = this.value; }; pmDisplay.oninput = function() { pmSlider.value = this.value; };</script>';
+        const template_file = "modules/merchantsheetnpc/template/buy_from_merchant.html";
+        const template_data = { priceModifier: priceModifier};
+        const rendered_html = await renderTemplate(template_file, template_data);
 
         let d = new Dialog({
             title: game.i18n.localize('MERCHANTNPC.buyMerchantDialog-title'),
-            content: html,
+            content: rendered_html,
             buttons: {
                 one: {
                     icon: '<i class="fas fa-check"></i>',
@@ -627,14 +644,13 @@ class MerchantSheetNPC extends ActorSheet {
 
         buyModifier = Math.round(buyModifier * 100);
 
-        var html = "<p>"+game.i18n.localize('MERCHANTNPC.sell-price-slider')+" <i class='fa fa-question-circle' title='"+game.i18n.localize('MERCHANTNPC.price-slider-help')+"'></i></p>";
-        html += '<p><input name="price-modifier-percent" id="price-modifier-percent" type="range" min="0" max="200" value="' + buyModifier + '" class="slider"></p>';
-        html += '<p><label>'+game.i18n.localize('MERCHANTNPC.percentage')+':</label> <input type=number min="0" max="200" value="' + buyModifier + '" id="price-modifier-percent-display"></p>';
-        html += '<script>var pmSlider = document.getElementById("price-modifier-percent"); var pmDisplay = document.getElementById("price-modifier-percent-display"); pmDisplay.value = pmSlider.value; pmSlider.oninput = function() { pmDisplay.value = this.value; }; pmDisplay.oninput = function() { pmSlider.value = this.value; };</script>';
+        const template_file = "modules/merchantsheetnpc/template/sell_to_merchant.html";
+        const template_data = { buyModifier: buyModifier};
+        const rendered_html = await renderTemplate(template_file, template_data);
 
         let d = new Dialog({
             title: game.i18n.localize('MERCHANTNPC.sellToMerchantDialog-title'),
-            content: html,
+            content: rendered_html,
             buttons: {
                 one: {
                     icon: '<i class="fas fa-check"></i>',
@@ -671,12 +687,13 @@ class MerchantSheetNPC extends ActorSheet {
         let itemId = $(event.currentTarget).parents(".merchant-item").attr("data-item-id");
 
         const item = this.actor.getEmbeddedDocument("Item", itemId);
+        const template_file = "modules/merchantsheetnpc/template/change_price.html";
+        const template_data = { price: currencyCalculator.getPriceFromItem(item)};
+        const rendered_html = await renderTemplate(template_file, template_data);
 
-        var html = "<p>"+game.i18n.localize('MERCHANTNPC.priceDialog-text')+"</p>";
-        html += '<p><input name="price-value" id="price-value" value="' + currencyCalculator.getPriceFromItem(item) + '" class="field"></p>';
         let d = new Dialog({
             title: game.i18n.localize('MERCHANTNPC.priceDialog-title'),
-            content: html,
+            content: rendered_html,
             buttons: {
                 one: {
                     icon: '<i class="fas fa-check"></i>',
@@ -708,15 +725,14 @@ class MerchantSheetNPC extends ActorSheet {
         let itemId = $(event.currentTarget).parents(".merchant-item").attr("data-item-id");
 
         const item = this.actor.getEmbeddedDocument("Item", itemId);
-
-        var html = "<p>"+game.i18n.localize('MERCHANTNPC.quantityDialog-text')+"</p>";
-        html += '<p><input name="quantity-value" id="quantity-value" value="' + item.data.data.quantity + '" class="field"></p>';
-        html += '<p><label>'+game.i18n.localize('MERCHANTNPC.infinity')+':</label> <input type=checkbox '
-        if (item.data.data.quantity === Number.MAX_VALUE) { html += ' checked '}
-        html += ' id="quantity-infinity"></p>';
+        const template_file = "modules/merchantsheetnpc/template/change_quantity.html";
+        const template_data = { quantity: item.data.data.quantity,
+            infinity: (item.data.data.quantity === Number.MAX_VALUE?'checked':'')
+        };
+        const rendered_html = await renderTemplate(template_file, template_data);
         let d = new Dialog({
             title: game.i18n.localize('MERCHANTNPC.quantityDialog-title'),
-            content: html,
+            content: rendered_html,
             buttons: {
                 one: {
                     icon: '<i class="fas fa-check"></i>',
@@ -754,14 +770,13 @@ class MerchantSheetNPC extends ActorSheet {
         let stackModifier = await this.actor.getFlag("merchantsheetnpc", "stackModifier");
         if (!stackModifier) stackModifier = 20;
 
-        var html = "<p>"+game.i18n.localize('MERCHANTNPC.stack-slider')+" <i class='fa fa-question-circle' title='"+game.i18n.localize('MERCHANTNPC.stack-slider-help')+"'></i></p>";
-        html += '<p><input name="stack-modifier" id="stack-modifier" type="range" min="1" max="100" value="' + stackModifier + '" class="slider"></p>';
-        html += '<p><label>'+game.i18n.localize("MERCHANTNPC.stack-amount")+':</label> <input type=number min="1" max="100" value="' + stackModifier + '" id="stack-modifier-display"></p>';
-        html += '<script>var pmSlider = document.getElementById("stack-modifier"); var pmDisplay = document.getElementById("stack-modifier-display"); pmDisplay.value = pmSlider.value; pmSlider.oninput = function() { pmDisplay.value = this.value; }; pmDisplay.oninput = function() { pmSlider.value = this.value; };</script>';
+        const template_file = "modules/merchantsheetnpc/template/stack_modifier.html";
+        const template_data = { stackModifier: stackModifier};
+        const rendered_html = await renderTemplate(template_file, template_data);
 
         let d = new Dialog({
             title: game.i18n.localize('MERCHANTNPC.stack-modifier'),
-            content: html,
+            content: rendered_html,
             buttons: {
                 one: {
                     icon: '<i class="fas fa-check"></i>',
@@ -779,6 +794,126 @@ class MerchantSheetNPC extends ActorSheet {
         });
         d.render(true);
     }
+
+
+    /**
+     * Handle csv-import
+     * @private
+     */
+    async _csvImport(event) {
+        event.preventDefault();
+
+        const template_file = "modules/merchantsheetnpc/template/csv-import.html";
+        const template_data = {compendiums: getCompendiumnsChoices()};
+        const rendered_html = await renderTemplate(template_file, template_data);
+
+
+        let d = new Dialog({
+            title: game.i18n.localize('MERCHANTNPC.csv-import'),
+            content: rendered_html,
+            buttons: {
+                one: {
+                    icon: '<i class="fas fa-check"></i>',
+                    label: game.i18n.localize('MERCHANTNPC.update'),
+                    callback: () => {
+                        let csvInput = {
+                            pack: document.getElementById("csv-pack-name").value,
+                            scrollStart: document.getElementById("csv-scroll-name-value").value,
+                            priceCol: document.getElementById("csv-price-value").value,
+                            nameCol: document.getElementById("csv-name-value").value,
+                            input: document.getElementById("csv").value
+                        }
+                        this.createItemsFromCSV(this.actor, csvInput)
+
+                    }
+                },
+                two: {
+                    icon: '<i class="fas fa-times"></i>',
+                    label: game.i18n.localize('MERCHANTNPC.cancel'),
+                    callback: () => console.log("Merchant sheet | Stack Modifier Cancelled")
+                }
+            },
+            default: "two",
+            close: () => console.log("Merchant sheet | Stack Modifier Closed")
+        });
+        d.render(true);
+    }
+
+    async createItemsFromCSV(actor, csvInput) {
+        let split = csvInput.input.split('\n');
+        let csvItems = split.map(function mapCSV(text) {
+            let p = '', row = [''], ret = [row], i = 0, r = 0, s = !0, l;
+            for (l of text) {
+                if ('"' === l) {
+                    if (s && l === p) row[i] += l;
+                    s = !s;
+                } else if (',' === l && s) l = row[++i] = '';
+                else if ('\n' === l && s) {
+                    if ('\r' === p) row[i] = row[i].slice(0, -1);
+                    row = ret[++r] = [l = '']; i = 0;
+                } else row[i] += l;
+                p = l;
+            }
+            return ret;
+        });
+
+        let itemPack = (await game.packs.filter(s => s.metadata.name === game.settings.get("merchantsheetnpc", "itemCompendium")))[0];
+        let spellPack = await findSpellPack(csvInput.pack)
+        let nameCol = Number(csvInput.nameCol)-1
+        let priceCol = -1
+        if (csvInput.priceCol !== undefined) {
+            priceCol = Number(csvInput.priceCol) - 1
+        }
+        for (let csvItem of csvItems) {
+            if (csvItem[0].length > 0 && csvItem[0][0].length > 0) {
+                let item = csvItem[0];
+                let name = item[nameCol];
+                let price = 0
+                if (priceCol >= 0) {
+                    price = item[priceCol];
+                }
+                let storeItems = [];
+                if (name.startsWith(csvInput.scrollStart) && spellPack !== undefined) {
+                    let nameSub = name.substr(csvInput.scrollStart.length, name.length).trim()
+                    let spellItem = await spellPack.index.filter(i => i.name === nameSub)
+                    for (const spellItemElement of spellItem) {
+                        let itemData = await spellPack.getDocument(spellItemElement._id);
+                        let itemFound = await currencyCalculator.createScroll(itemData)
+                        if (itemFound !== undefined) {
+                            itemFound.data.name = itemFound.name;
+                            console.log("created item: ", itemFound)
+                            storeItems.push(itemFound.data)
+                        }
+                    }
+                } else {
+                    let items = await itemPack.index.filter(i => i.name === name)
+                    for (const itemToStore of items) {
+                        let loaded = await itemPack.getDocument(itemToStore._id);
+                        storeItems.push(duplicate(loaded))
+                    }
+
+                }
+                for (let itemToStore of storeItems) {
+                    if (price > 0 && (itemToStore.data.price === undefined || itemToStore.data.price === 0)) {
+                        itemToStore.update({[currencyCalculator.getPriceItemKey()]: price});
+                    }
+                }
+                let existingItem = await actor.items.find(it => it.data.name == name);
+                //
+                if (existingItem === undefined) {
+                    console.log("Create item on actor: ", storeItems)
+                    await actor.createEmbeddedDocuments("Item", storeItems);
+                }
+                else {
+                    let newQty = Number(existingItem.data.data.quantity) + Number(1);
+                    await existingItem.update({ "data.quantity": newQty});
+                }
+            }
+        }
+        await collapseInventory(actor)
+        return undefined;
+    }
+
 
 
 
@@ -1001,15 +1136,6 @@ Actors.registerSheet("core", MerchantSheetNPC, {
 async function sellItem(target, dragSource, sourceActor, quantity, totalItemsPrice) {
     let sellerFunds = currencyCalculator.actorCurrency(sourceActor);
     currencyCalculator.addAmountForActor(sourceActor,sellerFunds,totalItemsPrice)
-    if (dragSource.data.data.quantity <= quantity) {
-        sourceActor.deleteEmbeddedDocuments("Item",[dragSource.data._id]);
-    } else {
-        let destItem = await sourceActor.data.items.find(i => i.name == dragSource.data.name);
-        const update = { _id: destItem.id, "data.quantity": Number(destItem.data.data.quantity) - quantity};
-        dragSource.data.data.quantity = Number(destItem.data.data.quantity) - quantity;
-        // destItem.data.data.quantity = ;
-        await sourceActor.updateEmbeddedDocuments("Item", [update]);
-    }
 }
 
 Hooks.on('updateActor', (actor, data) => {
@@ -1024,6 +1150,27 @@ Hooks.on('createActor', (actor, data) => {
     }
 });
 
+async function collapseInventory(actor) {
+    var groupBy = function(xs, key) {
+        return xs.reduce(function(rv, x) {
+            (rv[x[key]] = rv[x[key]] || []).push(x);
+            return rv;
+        }, {});
+    };
+    let itemGroupList = groupBy(actor.items, 'name');
+    let itemsToBeDeleted = [];
+    for (const [key, value] of Object.entries(itemGroupList)) {
+        var itemToUpdateQuantity = value[0];
+        for(let extraItem of value) {
+            if (itemToUpdateQuantity !== extraItem) {
+                let newQty = Number(itemToUpdateQuantity.data.data.quantity) + Number(extraItem.data.data.quantity);
+                await itemToUpdateQuantity.update({ "data.quantity": newQty});
+                itemsToBeDeleted.push(extraItem.id);
+            }
+        }
+    }
+    await actor.deleteEmbeddedDocuments("Item", itemsToBeDeleted);
+}
 
 
 function initModifiers(actor) {
@@ -1042,6 +1189,86 @@ function initModifiers(actor) {
     actor.render();
 }
 
+async function addItemToActor(dragSource, target, quantity) {
+    console.log(target.items)
+    console.log(target.items)
+    let existingItem = await target.items.find(it => it.data.name == dragSource.data.name);
+
+    if (existingItem === undefined) {
+        target.createEmbeddedDocuments("Item", [dragSource]);
+    }
+    else {
+        console.log(`Merchant sheet | Item ${existingItem.name} exists.`);
+        let newQty = Number(existingItem.data.data.quantity) + Number(quantity);
+        existingItem.update({ "data.quantity": newQty});
+    }
+
+    collapseInventory(target);
+
+}
+
+async function moveItems(source, destination, items) {
+    const updates = [];
+    const deletes = [];
+    const additions = [];
+    const destUpdates = [];
+    const results = [];
+    for (let i of items) {
+        let itemId = i.itemId;
+        let quantity = Number(i.quantity);
+        let item = source.getEmbeddedDocument("Item", itemId);
+
+        // Move all items if we select more than the quantity.
+        if (item.data.data.quantity < quantity) {
+            quantity = Number(item.data.data.quantity);
+        }
+
+        let newItem = duplicate(item);
+        const update = { _id: itemId, "data.quantity": item.data.data.quantity >= (Number.MAX_VALUE-10000) ? Number.MAX_VALUE : item.data.data.quantity - quantity };
+
+        if (update["data.quantity"] === 0) {
+            deletes.push(itemId);
+        }
+        else {
+            updates.push(update);
+        }
+
+        newItem.data.quantity = quantity;
+        results.push({
+            item: newItem,
+            quantity: quantity
+        });
+        let destItem = destination.data.items.find(i => i.name == newItem.name);
+        if (destItem === undefined) {
+            additions.push(newItem);
+        } else {
+            //console.log("Existing Item");
+            destItem.data.data.quantity = Number(destItem.data.data.quantity) + Number(newItem.data.quantity);
+            const destUpdate = { _id: destItem._id, "data.quantity": destItem.data.data.quantity };
+            destUpdates.push(destUpdate);
+        }
+    }
+
+    if (deletes.length > 0) {
+        await source.deleteEmbeddedDocuments("Item", deletes);
+    }
+
+    if (updates.length > 0) {
+        await source.updateEmbeddedDocuments("Item", updates);
+    }
+
+    if (additions.length > 0) {
+        await destination.createEmbeddedDocuments("Item", additions);
+    }
+
+    if (destUpdates.length > 0) {
+        await destination.updateEmbeddedDocuments("Item", destUpdates);
+    }
+
+    return results;
+}
+
+
 Hooks.on('dropActorSheetData',(target,sheet,dragSource,user)=>{
     function checkCompatable(a,b){
         if(a==b) return false;
@@ -1054,15 +1281,15 @@ Hooks.on('dropActorSheetData',(target,sheet,dragSource,user)=>{
         if(target.data._id ==  dragSource.actorId) return;  // ignore dropping on self
         let sourceActor = game.actors.get(dragSource.actorId);
         console.log("Merchant sheet | drop item");
+        console.log(dragSource)
         if(sourceActor && target.sheet.template === 'modules/merchantsheetnpc/template/npc-sheet.html') {
             // if both source and target have the same type then allow deleting original item.
             // this is a safety check because some game systems may allow dropping on targets
             // that don't actually allow the GM or player to see the inventory, making the item
             // inaccessible.
-            console.log(dragSource)
+            console.log(target)
             let buyModifier = target.getFlag("merchantsheetnpc", "buyModifier")
             if (!buyModifier) buyModifier = 0.5;
-
 
 
             var html = "<p>"+game.i18n.format('MERCHANTNPC.sell-items-player',{name: dragSource.data.name, price: currencyCalculator.priceInText(buyModifier * dragSource.data.data.price)})+"</p>";
@@ -1078,7 +1305,13 @@ Hooks.on('dropActorSheetData',(target,sheet,dragSource,user)=>{
                     one: {
                         icon: '<i class="fas fa-check"></i>',
                         label: game.i18n.localize('MERCHANTNPC.sell'),
-                        callback: () => sellItem(target,dragSource,sourceActor, document.getElementById("quantity-modifier").value,document.getElementById("quantity-modifier-total").value)
+                        callback: () => {
+                            let quantity = document.getElementById("quantity-modifier").value;
+                            let itemId = dragSource.data._id
+                            // addItemToActor(dragSource,target,quantity);
+                            moveItems(sourceActor, target, [{ itemId, quantity }]);
+                            sellItem(target, dragSource, sourceActor, quantity, document.getElementById("quantity-modifier-total").value)
+                        }
                     },
                     two: {
                         icon: '<i class="fas fa-times"></i>',
@@ -1090,10 +1323,124 @@ Hooks.on('dropActorSheetData',(target,sheet,dragSource,user)=>{
                 close: () => console.log("Merchant sheet | Price Modifier Closed")
             });
             d.render(true);
-
         }
     }
 });
+
+function getCompendiumnsChoices() {
+    let myobject = {"none": "None"};
+    game.packs.map(function mapCompendiums(key,index) {
+        if (key.metadata.entity === 'Item') {
+            myobject[key.metadata.name] = key.metadata.label
+        }
+    });
+    return myobject;
+}
+Hooks.once("ready", () => {
+    game.settings.register("merchantsheetnpc", "itemCompendium", {
+        name: game.i18n.format("MERCHANTNPC.pickItemCompendium"),
+        hint: game.i18n.format("MERCHANTNPC.pickItemCompendium_hint"),
+        scope: "world",
+        config: true,
+        type: String,
+        choices: getCompendiumnsChoices(),
+        default: "none",
+    })
+});
+
+function chatMessage(speaker, owner, message, item) {
+    if (game.settings.get("merchantsheetnpc", "buyChat")) {
+        message = `
+            <div class="chat-card item-card" data-actor-id="${owner.id}" data-item-id="${item.id}">
+                <header class="card-header flexrow">
+                    <div class= "merchant-item-image" style="background-image: url(${item.img})"></div>
+                    <h3 class="item-name">${item.name}</h3>
+                </header>
+
+                <div class="message-content">
+                    <p>` + message + `</p>
+                </div>
+            </div>
+            `;
+        ChatMessage.create({
+            user: game.user.id,
+            speaker: {
+                actor: speaker,
+                alias: speaker.name
+            },
+            content: message
+        });
+    }
+}
+
+
+async function transaction(seller, buyer, itemId, quantity) {
+    console.log(`Buying item: ${seller}, ${buyer}, ${itemId}, ${quantity}`);
+
+    let sellItem = seller.getEmbeddedDocument("Item", itemId);
+    // If the buyer attempts to buy more then what's in stock, buy all the stock.
+    if (sellItem.data.data.quantity < quantity) {
+        quantity = sellItem.data.data.quantity;
+    }
+
+    // On negative quantity we show an error
+    if (quantity < 0) {
+        errorMessageToActor(buyer, game.i18n.localize("MERCHANTNPC.error-negativeAmountItems"));
+        return;
+    }
+
+    // On 0 quantity skip everything to avoid error down the line
+    if (quantity == 0) {
+        return;
+    }
+
+    let sellerModifier = seller.getFlag("merchantsheetnpc", "priceModifier");
+    let sellerStack = seller.getFlag("merchantsheetnpc", "stackModifier");
+    if (sellerModifier === 'undefined') {
+        sellerModifier = 1.0;
+    }
+    if (!sellerStack && quantity > sellerStack) quantity = sellerStack;
+
+    let itemCostInGold = Math.round(currencyCalculator.getPriceFromItem(sellItem) * sellerModifier * 100) / 100;
+
+    itemCostInGold *= quantity;
+    let currency = currencyCalculator.actorCurrency(buyer);
+
+    let buyerFunds = duplicate(currency);
+
+    if (currencyCalculator.buyerHaveNotEnoughFunds(itemCostInGold,buyerFunds)) {
+        errorMessageToActor(buyer, game.i18n.localize("MERCHANTNPC.error-noFunds"));
+        return;
+    }
+
+    currencyCalculator.subtractAmountFromActor(buyer,buyerFunds,itemCostInGold);
+
+    // Update buyer's funds
+
+    let moved = await moveItems(seller, buyer, [{ itemId, quantity }]);
+
+    let chatPrice = currencyCalculator.priceInText(itemCostInGold);
+    for (let m of moved) {
+        chatMessage(
+            seller, buyer,
+            game.i18n.format('MERCHANTNPC.buyText', {buyer: buyer.name, quantity: quantity, itemName: m.item.name, chatPrice: chatPrice}),
+            m.item);
+    }
+}
+
+
+function buyTransactionFromPlayer(data) {
+    if (data.type === "buy") {
+        let buyer = game.actors.get(data.buyerId);
+        let seller = canvas.tokens.get(data.tokenId);
+
+        if (buyer && seller && seller.actor) {
+            transaction(seller.actor, buyer, data.itemId, data.quantity);
+        } else if (!seller) {
+            ui.notifications.error(game.i18n.localize("MERCHANTNPC.playerOtherScene"));
+        }
+    }
+}
 
 Hooks.once("init", () => {
     systemCurrencyCalculator().then(() => console.log("Merchant Sheet | System calculator is loaded"));
@@ -1130,30 +1477,17 @@ Hooks.once("init", () => {
         type: Boolean
     });
 
-    function chatMessage(speaker, owner, message, item) {
-        if (game.settings.get("merchantsheetnpc", "buyChat")) {
-            message = `
-            <div class="chat-card item-card" data-actor-id="${owner.id}" data-item-id="${item.id}">
-                <header class="card-header flexrow">
-                    <div class= "merchant-item-image" style="background-image: url(${item.img})"></div>
-                    <h3 class="item-name">${item.name}</h3>
-                </header>
+    game.settings.register("merchantsheetnpc", "allowNoGM", {
+        name: "Allow transactions without GM",
+        hint: "If enabled, transactions can happen even without the GM is active.",
+        scope: "world",
+        config: true,
+        default: false,
+        type: Boolean
+    });
 
-                <div class="message-content">
-                    <p>` + message + `</p>
-                </div>
-            </div>
-            `;
-            ChatMessage.create({
-                user: game.user.id,
-                speaker: {
-                    actor: speaker,
-                    alias: speaker.name
-                },
-                content: message
-            });
-        }
-    }
+
+
 
 
     function errorMessageToActor(target, message) {
@@ -1164,142 +1498,17 @@ Hooks.once("init", () => {
         });
     }
 
-    async function moveItems(source, destination, items) {
-        const updates = [];
-        const deletes = [];
-        const additions = [];
-        const destUpdates = [];
-        const results = [];
-        for (let i of items) {
-            let itemId = i.itemId;
-            let quantity = Number(i.quantity);
-            let item = source.getEmbeddedDocument("Item", itemId);
-
-            // Move all items if we select more than the quantity.
-            if (item.data.data.quantity < quantity) {
-                quantity = Number(item.data.data.quantity);
-            }
-
-            let newItem = duplicate(item);
-            const update = { _id: itemId, "data.quantity": item.data.data.quantity >= (Number.MAX_VALUE-10000) ? Number.MAX_VALUE : item.data.data.quantity - quantity };
-
-            if (update["data.quantity"] === 0) {
-                deletes.push(itemId);
-            }
-            else {
-                updates.push(update);
-            }
-
-            newItem.data.quantity = quantity;
-            results.push({
-                item: newItem,
-                quantity: quantity
-            });
-            let destItem = destination.data.items.find(i => i.name == newItem.name);
-            if (destItem === undefined) {
-                additions.push(newItem);
-            } else {
-                //console.log("Existing Item");
-                destItem.data.data.quantity = Number(destItem.data.data.quantity) + Number(newItem.data.quantity);
-                const destUpdate = { _id: destItem._id, "data.quantity": destItem.data.data.quantity };
-                destUpdates.push(destUpdate);
-            }
-        }
-
-        if (deletes.length > 0) {
-            await source.deleteEmbeddedDocuments("Item", deletes);
-        }
-
-        if (updates.length > 0) {
-            await source.updateEmbeddedDocuments("Item", updates);
-        }
-
-        if (additions.length > 0) {
-            await destination.createEmbeddedDocuments("Item", additions);
-        }
-
-        if (destUpdates.length > 0) {
-            await destination.updateEmbeddedDocuments("Item", destUpdates);
-        }
-
-        return results;
-    }
-
-    async function transaction(seller, buyer, itemId, quantity) {
-        console.log(`Buying item: ${seller}, ${buyer}, ${itemId}, ${quantity}`);
-
-        let sellItem = seller.getEmbeddedDocument("Item", itemId);
-        // If the buyer attempts to buy more then what's in stock, buy all the stock.
-        if (sellItem.data.data.quantity < quantity) {
-            quantity = sellItem.data.data.quantity;
-        }
-
-        // On negative quantity we show an error
-        if (quantity < 0) {
-            errorMessageToActor(buyer, game.i18n.localize("MERCHANTNPC.error-negativeAmountItems"));
-            return;
-        }
-
-        // On 0 quantity skip everything to avoid error down the line
-        if (quantity == 0) {
-            return;
-        }
-
-        let sellerModifier = seller.getFlag("merchantsheetnpc", "priceModifier");
-        let sellerStack = seller.getFlag("merchantsheetnpc", "stackModifier");
-        if (sellerModifier === 'undefined') {
-            sellerModifier = 1.0;
-        }
-        if (!sellerStack && quantity > sellerStack) quantity = sellerStack;
-
-        let itemCostInGold = Math.round(currencyCalculator.getPriceFromItem(sellItem) * sellerModifier * 100) / 100;
-
-        itemCostInGold *= quantity;
-        let currency = currencyCalculator.actorCurrency(buyer);
-
-        let buyerFunds = duplicate(currency);
-
-        if (currencyCalculator.buyerHaveNotEnoughFunds(itemCostInGold,buyerFunds)) {
-            errorMessageToActor(buyer, game.i18n.localize("MERCHANTNPC.error-noFunds"));
-            return;
-        }
-
-        currencyCalculator.subtractAmountFromActor(buyer,buyerFunds,itemCostInGold);
-
-        // Update buyer's funds
-
-        let moved = await moveItems(seller, buyer, [{ itemId, quantity }]);
-
-        let chatPrice = currencyCalculator.priceInText(itemCostInGold);
-
-        for (let m of moved) {
-            chatMessage(
-                seller, buyer,
-                game.i18n.format('MERCHANTNPC.buyText', {buyer: buyer.name, quantity: quantity, itemName: m.item.name, chatPrice: chatPrice}),
-                m.item);
-        }
-    }
 
     game.socket.on(MerchantSheetNPC.SOCKET, data => {
         if (game.user.isGM && data.processorId === game.user.id) {
-            if (data.type === "buy") {
-                let buyer = game.actors.get(data.buyerId);
-                let seller = canvas.tokens.get(data.tokenId);
-
-                if (buyer && seller && seller.actor) {
-                    transaction(seller.actor, buyer, data.itemId, data.quantity);
-                }
-                else if (!seller) {
-                    errorMessageToActor(buyer, game.i18n.localize("MERCHANTNPC.noGM"))
-                    ui.notifications.error(game.i18n.localize("MERCHANTNPC.playerOtherScene"));
-                }
-            }
+            buyTransactionFromPlayer(data);
         }
         if (data.type === "error" && data.targetId === game.user.actorId) {
             console.log("Merchant sheet | Transaction Error: ", data.message);
             return ui.notifications.error(data.message);
         }
     });
+
 
 
 });
