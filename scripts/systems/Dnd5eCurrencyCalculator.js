@@ -17,7 +17,7 @@ export default class Dnd5eCurrencyCalculator extends CurrencyCalculator {
     async onDropItemCreate(itemData, caller) {
         // Create a Consumable spell scroll on the Inventory tab
         if ( (itemData.type === "spell")) {
-            const scroll = await Item5e.createScrollFromSpell(itemData);
+            const scroll = await this.createScroll(itemData);
             itemData = scroll.data;
         }
 
@@ -34,6 +34,10 @@ export default class Dnd5eCurrencyCalculator extends CurrencyCalculator {
         //     }
         // }
         return caller.callSuperOnDropItemCreate(itemData);
+    }
+
+    async createScroll(itemData) {
+        return await Item5e.createScrollFromSpell(itemData);
     }
 
     actorCurrency(actor) {

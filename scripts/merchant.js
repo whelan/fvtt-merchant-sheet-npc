@@ -123,6 +123,13 @@ class SellerQuantityDialog extends Dialog {
     }
 }
 
+async function findSpellPack(pack) {
+    if (pack !== 'none') {
+        return (await game.packs.filter(s => s.metadata.name === pack))[0]
+    }
+    return undefined;
+}
+
 class MerchantSheetNPC extends ActorSheet {
 
     static SOCKET = "module.merchantsheetnpc";
@@ -797,7 +804,7 @@ class MerchantSheetNPC extends ActorSheet {
         event.preventDefault();
 
         const template_file = "modules/merchantsheetnpc/template/csv-import.html";
-        const template_data = {};
+        const template_data = {compendiums: getCompendiumnsChoices()};
         const rendered_html = await renderTemplate(template_file, template_data);
 
 
@@ -808,7 +815,17 @@ class MerchantSheetNPC extends ActorSheet {
                 one: {
                     icon: '<i class="fas fa-check"></i>',
                     label: game.i18n.localize('MERCHANTNPC.update'),
-                    callback: () => this.createItemsFromCSV(this.actor, document.getElementById("csv").value)
+                    callback: () => {
+                        let csvInput = {
+                            pack: document.getElementById("csv-pack-name").value,
+                            scrollStart: document.getElementById("csv-scroll-name-value").value,
+                            priceCol: document.getElementById("csv-price-value").value,
+                            nameCol: document.getElementById("csv-name-value").value,
+                            input: document.getElementById("csv").value
+                        }
+                        this.createItemsFromCSV(this.actor, csvInput)
+
+                    }
                 },
                 two: {
                     icon: '<i class="fas fa-times"></i>',
@@ -823,7 +840,7 @@ class MerchantSheetNPC extends ActorSheet {
     }
 
     async createItemsFromCSV(actor, csvInput) {
-        let split = csvInput.split('\n');
+        let split = csvInput.input.split('\n');
         let csvItems = split.map(function mapCSV(text) {
             let p = '', row = [''], ret = [row], i = 0, r = 0, s = !0, l;
             for (l of text) {
@@ -840,39 +857,57 @@ class MerchantSheetNPC extends ActorSheet {
             return ret;
         });
 
-        console.log(game.settings.get("merchantsheetnpc", "itemCompendium"))
         let itemPack = (await game.packs.filter(s => s.metadata.name === game.settings.get("merchantsheetnpc", "itemCompendium")))[0];
-        console.log(itemPack)
-
+        let spellPack = await findSpellPack(csvInput.pack)
+        let nameCol = Number(csvInput.nameCol)-1
+        let priceCol = -1
+        if (csvInput.priceCol !== undefined) {
+            priceCol = Number(csvInput.priceCol) - 1
+        }
         for (let csvItem of csvItems) {
-            console.log("Merchant sheet | item to parse ",csvItem);
-            if (csvItem[0].length > 0) {
+            if (csvItem[0].length > 0 && csvItem[0][0].length > 0) {
                 let item = csvItem[0];
-                let name = item[0];
-                let price = item[4];
-                console.log("Merchant sheet | find item: ", name)
-                let items = await itemPack.index.filter(i => i.name === name)
-                let storeItems = [];
-                for (let item of items) {
-                    let loaded = await itemPack.getDocument(item._id);
-                    if (price > 0 && (loaded.data.price === undefined || loaded.data.price === 0)) {
-                        loaded.update({[currencyCalculator.getPriceItemKey()]: price});
-                    }
-                    storeItems.push(loaded);
+                let name = item[nameCol];
+                let price = 0
+                if (priceCol >= 0) {
+                    price = item[priceCol];
                 }
-                console.log(storeItems)
-                let existingItem = await actor.items.find(it => it.data.name == name);
+                let storeItems = [];
+                if (name.startsWith(csvInput.scrollStart) && spellPack !== undefined) {
+                    let nameSub = name.substr(csvInput.scrollStart.length, name.length).trim()
+                    let spellItem = await spellPack.index.filter(i => i.name === nameSub)
+                    for (const spellItemElement of spellItem) {
+                        let itemData = await spellPack.getDocument(spellItemElement._id);
+                        let itemFound = await currencyCalculator.createScroll(itemData)
+                        if (itemFound !== undefined) {
+                            itemFound.data.name = itemFound.name;
+                            console.log("created item: ", itemFound)
+                            storeItems.push(itemFound.data)
+                        }
+                    }
+                } else {
+                    let items = await itemPack.index.filter(i => i.name === name)
+                    for (const itemToStore of items) {
+                        let loaded = await itemPack.getDocument(itemToStore._id);
+                        storeItems.push(duplicate(loaded))
+                    }
 
+                }
+                for (let itemToStore of storeItems) {
+                    if (price > 0 && (itemToStore.data.price === undefined || itemToStore.data.price === 0)) {
+                        itemToStore.update({[currencyCalculator.getPriceItemKey()]: price});
+                    }
+                }
+                let existingItem = await actor.items.find(it => it.data.name == name);
+                //
                 if (existingItem === undefined) {
-                    actor.createEmbeddedDocuments("Item", storeItems);
+                    console.log("Create item on actor: ", storeItems)
+                    await actor.createEmbeddedDocuments("Item", storeItems);
                 }
                 else {
-                    console.log(`Merchant sheet | Item ${existingItem.name} exists.`);
                     let newQty = Number(existingItem.data.data.quantity) + Number(1);
                     await existingItem.update({ "data.quantity": newQty});
                 }
-            } else {
-                console.log("Merchant sheet | find item length: ", csvItem.length)
             }
         }
         await collapseInventory(actor)
@@ -1101,15 +1136,6 @@ Actors.registerSheet("core", MerchantSheetNPC, {
 async function sellItem(target, dragSource, sourceActor, quantity, totalItemsPrice) {
     let sellerFunds = currencyCalculator.actorCurrency(sourceActor);
     currencyCalculator.addAmountForActor(sourceActor,sellerFunds,totalItemsPrice)
-    // if (dragSource.data.data.quantity <= quantity) {
-    //     sourceActor.deleteEmbeddedDocuments("Item",[dragSource.data._id]);
-    // } else {
-    //     let destItem = await sourceActor.data.items.find(i => i.name == dragSource.data.name);
-    //     const update = { _id: destItem.id, "data.quantity": Number(destItem.data.data.quantity) - quantity};
-    //     dragSource.data.data.quantity = Number(destItem.data.data.quantity) - quantity;
-    //     // destItem.data.data.quantity = ;
-    //     await sourceActor.updateEmbeddedDocuments("Item", [update]);
-    // }
 }
 
 Hooks.on('updateActor', (actor, data) => {
@@ -1132,7 +1158,6 @@ async function collapseInventory(actor) {
         }, {});
     };
     let itemGroupList = groupBy(actor.items, 'name');
-    console.log(itemGroupList)
     let itemsToBeDeleted = [];
     for (const [key, value] of Object.entries(itemGroupList)) {
         var itemToUpdateQuantity = value[0];
@@ -1143,7 +1168,6 @@ async function collapseInventory(actor) {
                 itemsToBeDeleted.push(extraItem.id);
             }
         }
-        console.log(`${key}: `,value.length);
     }
     await actor.deleteEmbeddedDocuments("Item", itemsToBeDeleted);
 }
