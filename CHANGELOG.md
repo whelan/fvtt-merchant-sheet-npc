@@ -1,3 +1,6 @@
+## Version 1.5.1
+* Fixed buy bugfixes for GM and NO GM options
+
 ## Version 1.5.0
 * Added support for CSV import and add from compendiums. Select item/spell compendiums to use in settings
 * No GM required when players interact option.

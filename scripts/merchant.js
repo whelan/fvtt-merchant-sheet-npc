@@ -12,6 +12,19 @@ async function systemCurrencyCalculator() {
     currencyCalculator.initSettings();
 }
 
+function errorMessageToActor(target, message) {
+    let allowNoTargetGM = game.settings.get("merchantsheetnpc", "allowNoGM")
+    if (allowNoTargetGM) {
+        ui.notifications.error(message);
+    } else {
+        game.socket.emit(MerchantSheetNPC.SOCKET, {
+            type: "error",
+            targetId: target.id,
+            message: message
+        });
+    }
+}
+
 
 
 class MerchantSheetNPCHelper
@@ -525,10 +538,14 @@ class MerchantSheetNPC extends ActorSheet {
         });
         let allowNoTargetGM = game.settings.get("merchantsheetnpc", "allowNoGM")
         let gmId = null;
+        console.log("MErchant sheet | targetGM ",targetGm)
+
         if (!allowNoTargetGM && !targetGm) {
+            console.log("MErchant sheet | no Valid GM",allowNoTargetGM)
             return ui.notifications.error(game.i18n.localize("MERCHANTNPC.error-noGM"));
         } else if (!allowNoTargetGM) {
-            gmId = targetGm.data.id;
+            console.log("MErchant sheet | gmId",targetGm.data._id)
+            gmId = targetGm.data._id;
         }
 
         if (this.token === null) {
@@ -1225,8 +1242,9 @@ async function moveItems(source, destination, items) {
 
         let newItem = duplicate(item);
         const update = { _id: itemId, "data.quantity": item.data.data.quantity >= (Number.MAX_VALUE-10000) ? Number.MAX_VALUE : item.data.data.quantity - quantity };
+        let allowNoTargetGM = game.settings.get("merchantsheetnpc", "allowNoGM")
 
-        if (update["data.quantity"] === 0) {
+        if (update["data.quantity"] === 0 && !allowNoTargetGM) {
             deletes.push(itemId);
         }
         else {
@@ -1244,12 +1262,16 @@ async function moveItems(source, destination, items) {
         } else {
             //console.log("Existing Item");
             destItem.data.data.quantity = Number(destItem.data.data.quantity) + Number(newItem.data.quantity);
+            if (destItem.data.data.quantity < 0) {
+                destItem.data.data.quantity = 0;
+            }
             const destUpdate = { _id: destItem._id, "data.quantity": destItem.data.data.quantity };
             destUpdates.push(destUpdate);
         }
     }
 
     if (deletes.length > 0) {
+
         await source.deleteEmbeddedDocuments("Item", deletes);
     }
 
@@ -1430,11 +1452,13 @@ async function transaction(seller, buyer, itemId, quantity) {
 
 
 function buyTransactionFromPlayer(data) {
+    console.log("Merchant sheet | buyTransaction ", data)
     if (data.type === "buy") {
         let buyer = game.actors.get(data.buyerId);
         let seller = canvas.tokens.get(data.tokenId);
 
         if (buyer && seller && seller.actor) {
+            console.log()
             transaction(seller.actor, buyer, data.itemId, data.quantity);
         } else if (!seller) {
             ui.notifications.error(game.i18n.localize("MERCHANTNPC.playerOtherScene"));
@@ -1486,21 +1510,11 @@ Hooks.once("init", () => {
         type: Boolean
     });
 
-
-
-
-
-    function errorMessageToActor(target, message) {
-        game.socket.emit(MerchantSheetNPC.SOCKET, {
-            type: "error",
-            targetId: target.id,
-            message: message
-        });
-    }
-
-
     game.socket.on(MerchantSheetNPC.SOCKET, data => {
+        console.log("Merchant sheet | processing socket request", game.user.isGM, data.processorId, game.user.id)
+
         if (game.user.isGM && data.processorId === game.user.id) {
+            console.log("Merchant Sheet | buy processing by GM ", data)
             buyTransactionFromPlayer(data);
         }
         if (data.type === "error" && data.targetId === game.user.actorId) {
