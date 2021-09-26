@@ -756,12 +756,12 @@ class MerchantSheetNPC extends ActorSheet {
                     label: game.i18n.localize('MERCHANTNPC.update'),
                     callback: () => {
                         if (document.getElementById("quantity-infinity").checked) {
-                            this.actor.updateOwnedItem({_id: itemId, "data.quantity": Number.MAX_VALUE})
+                            this.actor.updateEmbeddedDocuments("Item",[{_id: itemId, "data.quantity": Number.MAX_VALUE}])
                         } else {
-                            this.actor.updateOwnedItem({
+                            this.actor.updateEmbeddedDocuments("Item",[{
                                 _id: itemId,
                                 "data.quantity": document.getElementById("quantity-value").value
-                            })
+                            }])
                         }
                     }
                 },
@@ -864,7 +864,7 @@ class MerchantSheetNPC extends ActorSheet {
                 if ('"' === l) {
                     if (s && l === p) row[i] += l;
                     s = !s;
-                } else if (',' === l && s) l = row[++i] = '';
+                } else if ((',' === l || '|' === l) && s) l = row[++i] = '';
                 else if ('\n' === l && s) {
                     if ('\r' === p) row[i] = row[i].slice(0, -1);
                     row = ret[++r] = [l = '']; i = 0;
@@ -881,10 +881,11 @@ class MerchantSheetNPC extends ActorSheet {
         if (csvInput.priceCol !== undefined) {
             priceCol = Number(csvInput.priceCol) - 1
         }
+        console.log("Merchant sheet | csvItems", csvItems)
         for (let csvItem of csvItems) {
             if (csvItem[0].length > 0 && csvItem[0][0].length > 0) {
                 let item = csvItem[0];
-                let name = item[nameCol];
+                let name = item[nameCol].trim();
                 let price = 0
                 if (priceCol >= 0) {
                     price = item[priceCol];
