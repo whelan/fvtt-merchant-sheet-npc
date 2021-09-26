@@ -1,3 +1,7 @@
+## Version 1.5.2
+* Changed to non deprecated method for infinity quantity. Hope this will fix the problem with missing inventory. Could not reproduce #55
+* Added | as seperator for csv input. As some have tried with that. So now with or without " around values with | will work. 
+
 ## Version 1.5.1
 * Fixed buy bugfixes for GM and NO GM options
 
