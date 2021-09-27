@@ -69,5 +69,15 @@
   "MERCHANTNPC.weapon": "Waffe",
   "MERCHANTNPC.weaponAccessory": "Waffenzubehör",
   "MERCHANTNPC.weight": "Gewicht",
-  "MERCHANTNPC.price": "Preis"
+  "MERCHANTNPC.price": "Preis",
+  "MERCHANTNPC.csv-import": "Aus CSV importieren",
+  "MERCHANTNPC.csv-import-info": "Füge unten die notwendigen Informationen für den Import ein und drück auf Aktualisieren, wenn du beginnen möchtest",
+  "MERCHANTNPC.csv-import-help": "Es werden CSVs akzeptiert, die für Gegenstand eine neue Zeile benutzen. Innerhalb der Zeile müssen Felder für die Eigenschaften des Gegenstands jeweils mit \" umschlossen (z.B. \"Dolch\") und einem , separiert werden",
+  "MERCHANTNPC.csv-name-field": "In welcher Spalte steht der Name des Gegenstands",
+  "MERCHANTNPC.csv-price-field": "In welcher Spalte steht der Preis des Gegenstands",
+  "MERCHANTNPC.csv-scroll-name-field": "Wie heißen Schriftrollen in der CSV",
+  "MERCHANTNPC.csv-spell-compendium-field": "Welches Kompendium ist das Schriftrollen-Kompendium",
+  "MERCHANTNPC.csv-input": "Füge hier den Inhalt der CSV ein",
+  "MERCHANTNPC.pickItemCompendium": "Welches Kompendium soll für die Generierung von Gegenständen verwendet werden",
+  "MERCHANTNPC.pickItemCompendium_hint": "Der CSV-Import entnimmt die Gegenstände diesem Kompendium. Zu einem späteren Zeitpunkt wird auch eine zufällige Auswahl möglich sein."
 }
