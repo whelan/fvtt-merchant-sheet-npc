@@ -33,7 +33,7 @@
   "MERCHANTNPC.error-playerOtherScene": "Der Spieler hat versucht, einen Gegenstand in einer anderen Szene zu kaufen.",
   "MERCHANTNPC.error-noToken": "Gegenstände können nur von einem Token gekauft werden.",
   "MERCHANTNPC.error-noCharacter": "Es ist kein aktiver Charakter für den Spieler ausgewählt.",
-  "MERCHANTNPC.error-noFunds": "Nicht genügend Geld um den Gegensand zu kaufen.",
+  "MERCHANTNPC.error-noFunds": "Nicht genügend Geld um den Gegenstand zu kaufen.",
   "MERCHANTNPC.error-negativeAmountItems": "Man kann keine negative Menge eines Gegenstands kaufen.",
   "MERCHANTNPC.percentage": "Prozent",
   "MERCHANTNPC.update": "Aktualisieren",
