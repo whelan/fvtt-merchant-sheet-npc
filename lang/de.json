@@ -33,7 +33,7 @@
   "MERCHANTNPC.error-playerOtherScene": "Der Spieler hat versucht, einen Gegenstand in einer anderen Szene zu kaufen.",
   "MERCHANTNPC.error-noToken": "Gegenstände können nur von einem Token gekauft werden.",
   "MERCHANTNPC.error-noCharacter": "Es ist kein aktiver Charakter für den Spieler ausgewählt.",
-  "MERCHANTNPC.error-noFunds": "Nicht genügend Geld um den Gegensand zu kaufen.",
+  "MERCHANTNPC.error-noFunds": "Nicht genügend Geld um den Gegenstand zu kaufen.",
   "MERCHANTNPC.error-negativeAmountItems": "Man kann keine negative Menge eines Gegenstands kaufen.",
   "MERCHANTNPC.percentage": "Prozent",
   "MERCHANTNPC.update": "Aktualisieren",
@@ -69,5 +69,15 @@
   "MERCHANTNPC.weapon": "Waffe",
   "MERCHANTNPC.weaponAccessory": "Waffenzubehör",
   "MERCHANTNPC.weight": "Gewicht",
-  "MERCHANTNPC.price": "Preis"
+  "MERCHANTNPC.price": "Preis",
+  "MERCHANTNPC.csv-import": "Aus CSV importieren",
+  "MERCHANTNPC.csv-import-info": "Füg unten die notwendigen Informationen für den Import ein und drück auf Aktualisieren, wenn du fertig bist",
+  "MERCHANTNPC.csv-import-help": "Es werden nur CSVs akzeptiert, die für jeden Gegenstand eine neue Zeile benutzen. Innerhalb der Zeile müssen die Felder für die Eigenschaften des Gegenstands jeweils mit \" umschlossen und einem , separiert werden (z.B. \"Dolche\", \"150\")",
+  "MERCHANTNPC.csv-name-field": "In welcher Spalte steht der Name des Gegenstands",
+  "MERCHANTNPC.csv-price-field": "In welcher Spalte steht der Preis des Gegenstands",
+  "MERCHANTNPC.csv-scroll-name-field": "Wie heißen Schriftrollen in der CSV",
+  "MERCHANTNPC.csv-spell-compendium-field": "Welches Kompendium ist das Zauberspruch-Kompendium",
+  "MERCHANTNPC.csv-input": "Füg hier den Inhalt der CSV ein",
+  "MERCHANTNPC.pickItemCompendium": "Welches Kompendium soll für die Generierung von Gegenständen verwendet werden",
+  "MERCHANTNPC.pickItemCompendium_hint": "Der CSV-Import entnimmt die Gegenstände diesem Kompendium. Zu einem späteren Zeitpunkt wird auch eine zufällige Auswahl möglich sein."
 }
