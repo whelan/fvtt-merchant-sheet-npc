@@ -69,6 +69,17 @@
   "MERCHANTNPC.weapon": "Våben",
   "MERCHANTNPC.weaponAccessory": "Våben tilbehør",
   "MERCHANTNPC.weight": "Vægt",
-  "MERCHANTNPC.price": "Pris"
+  "MERCHANTNPC.price": "Pris",
+  "MERCHANTNPC.csv-import": "Importer fra CSV fil",
+  "MERCHANTNPC.csv-import-info": "Importer ved at indsætte csv input nedenfor, og klik på opdater når du er klar til at importer CSV",
+  "MERCHANTNPC.csv-import-help": "CSV kan forstå rækker der er defineret med \" rundt om hver værdi, et eksempel er \"Dagger\" og bruger , som adskiller kolonnerne",
+  "MERCHANTNPC.csv-name-field": "Hvilken kolonne er navnet på det der skal importeres",
+  "MERCHANTNPC.csv-price-field": "Hvilken kolonne er prisen på det der skal importeres",
+  "MERCHANTNPC.csv-scroll-name-field": "Hvad kaldes scrolls i CSV filen, Dette er for at kunne importere spells",
+  "MERCHANTNPC.csv-spell-compendium-field": "Hvilket kompendie indeholder spells som scrolls skal laves fra",
+  "MERCHANTNPC.csv-input": "Indsæt CSV her",
+  "MERCHANTNPC.pickItemCompendium": "Hvilket kompendie bruges til Items",
+  "MERCHANTNPC.pickItemCompendium_hint": "Dette vil blive brugt til CSV input for at finde et Item. Senere vil der blive bygget en tilfældighedsgenerator"
+
 
 }
