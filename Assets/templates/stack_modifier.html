@@ -1,0 +1,17 @@
+<p> {{localize "MERCHANTNPC.stack-slider"}} <i class='fa fa-question-circle'
+                                                    title='{{localize "stack-slider-help"}}'></i>
+</p>
+<p><input name="stack-modifier" id="stack-modifier" type="range" min="0" max="200"
+          value="{{stackModifier}}" class="slider"></p>
+<p><label>{{localize "MERCHANTNPC.stack-amount"}}:</label> <input type=number min="0" max="200"
+                                                                value="{{stackModifier}}"
+                                                                id="stack-modifier-display"></p>
+<script>var pmSlider = document.getElementById("stack-modifier");
+var pmDisplay = document.getElementById("stack-modifier-display");
+pmDisplay.value = pmSlider.value;
+pmSlider.oninput = function () {
+    pmDisplay.value = this.value;
+};
+pmDisplay.oninput = function () {
+    pmSlider.value = this.value;
+};</script>

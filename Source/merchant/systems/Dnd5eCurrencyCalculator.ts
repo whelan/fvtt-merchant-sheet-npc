@@ -1,50 +1,91 @@
-import CurrencyCalculator from "./CurrencyCalculator.js";
-import Item5e from "../../../../systems/dnd5e/module/item/entity.js";
+import CurrencyCalculator from "./CurrencyCalculator";
+// @ts-ignore
+// import Item5e from "../../../../systems/dnd5e/module/item/entity.js";
+import MerchantSheet from "../MerchantSheet";
+import MerchantSheetNPCHelper from "../MerchantSheetNPCHelper";
+import {PropertiesToSource} from "@league-of-foundry-developers/foundry-vtt-types/src/types/helperTypes";
+import {ItemData} from "@league-of-foundry-developers/foundry-vtt-types/src/foundry/common/data/data.mjs";
+import * as Console from "console";
+import Globals from "../../Globals";
 
-const conversionRates = {
-    "pp": 1,
-    "gp": CONFIG.DND5E.currencyConversion.gp.each,
-    "ep": CONFIG.DND5E.currencyConversion.ep.each,
-    "sp": CONFIG.DND5E.currencyConversion.sp.each,
-    "cp": CONFIG.DND5E.currencyConversion.cp.each
+let conversionRates = {"pp": 1,
+	"gp": 1,
+	"ep": 1,
+	"sp": 1,
+	"cp": 1
 };
+
 
 const compensationCurrency = {"pp": "gp", "gp": "ep", "ep": "sp", "sp": "cp"};
 
 
 export default class Dnd5eCurrencyCalculator extends CurrencyCalculator {
 
-    async onDropItemCreate(itemData, caller) {
+    async onDropItemCreate(itemData: PropertiesToSource<ItemData>, caller: MerchantSheet) {
         // Create a Consumable spell scroll on the Inventory tab
         if ( (itemData.type === "spell")) {
             const scroll = await this.createScroll(itemData);
             itemData = scroll.data;
         }
 
-        // Stack identical consumables
-        // if ( itemData.flags.core?.sourceId ) {
-        //     const similarItem = this.actor.items.find(i => {
-        //         const sourceId = i.getFlag("core", "sourceId");
-        //         return sourceId && (sourceId === itemData.flags.core?.sourceId) && (i.name === itemData.name);
-        //     });
-        //     if ( similarItem ) {
-        //         return similarItem.update({
-        //             'data.quantity': similarItem.data.data.quantity + Math.max(itemData.data.quantity, 1)
-        //         });
-        //     }
-        // }
         return caller.callSuperOnDropItemCreate(itemData);
     }
 
-    async createScroll(itemData) {
-        return await Item5e.createScrollFromSpell(itemData);
+	async createScrollFromSpell(spell: any) {
+
+		// Get spell data
+		const itemData =  spell.toObject();
+		const {actionType, description, source, activation, duration, target, range, damage, save, level} = itemData.data;
+
+		// Get scroll data
+		// @ts-ignore
+		const scrollUuid = `Compendium.${CONFIG.DND5E.sourcePacks.ITEMS}.${CONFIG.DND5E.spellScrollIds[level]}`;
+		const scrollItem = fromUuid(scrollUuid);
+		// @ts-ignore
+		const scrollData = scrollItem.data;
+		delete scrollData._id;
+
+		// Split the scroll description into an intro paragraph and the remaining details
+		const scrollDescription = scrollData.data.description.value;
+		const pdel = '</p>';
+		const scrollIntroEnd = scrollDescription.indexOf(pdel);
+		const scrollIntro = scrollDescription.slice(0, scrollIntroEnd + pdel.length);
+		const scrollDetails = scrollDescription.slice(scrollIntroEnd + pdel.length);
+
+		// Create a composite description from the scroll description and the spell details
+		const desc = `${scrollIntro}<hr/><h3>${itemData.name} (Level ${level})</h3><hr/>${description.value}<hr/><h3>Scroll Details</h3><hr/>${scrollDetails}`;
+
+		// Create the spell scroll data
+		const spellScrollData = foundry.utils.mergeObject(scrollData, {
+			name: `${(<Game>game).i18n.localize("DND5E.SpellScroll")}: ${itemData.name}`,
+			img: itemData.img,
+			data: {
+				"description.value": desc.trim(),
+				source,
+				actionType,
+				activation,
+				duration,
+				target,
+				range,
+				damage,
+				save,
+				level
+			}
+		});
+		// @ts-ignore
+		return new this(spellScrollData);
+	}
+
+	async createScroll(itemData: PropertiesToSource<ItemData>) {
+        return await this.createScrollFromSpell(itemData);
     }
 
-    actorCurrency(actor) {
-        return actor.data.data.currency;
+    actorCurrency(actor: Actor) {
+        // @ts-ignore
+		return actor.data.data.currency;
     }
 
-    buyerHaveNotEnoughFunds(itemCostInGold, buyerFunds) {
+    buyerHaveNotEnoughFunds(itemCostInGold:number, buyerFunds: any) {
 
         let itemCostInPlatinum = itemCostInGold / conversionRates["gp"]
         let buyerFundsAsPlatinum = this.convertToPlatinum(buyerFunds);
@@ -52,7 +93,7 @@ export default class Dnd5eCurrencyCalculator extends CurrencyCalculator {
         return itemCostInPlatinum > buyerFundsAsPlatinum;
     }
 
-    convertToPlatinum(buyerFunds) {
+    convertToPlatinum(buyerFunds: any) {
         let buyerFundsAsPlatinum = buyerFunds["pp"];
         buyerFundsAsPlatinum += buyerFunds["gp"] / conversionRates["gp"];
         buyerFundsAsPlatinum += buyerFunds["ep"] / conversionRates["gp"] / conversionRates["ep"];
@@ -64,20 +105,20 @@ export default class Dnd5eCurrencyCalculator extends CurrencyCalculator {
         return buyerFundsAsPlatinum;
     }
 
-    updateActorWithNewFunds(buyer, buyerFunds) {
+    updateActorWithNewFunds(buyer: Actor, buyerFunds: any) {
         console.log("Merchant sheet | buyer and funds", buyer,buyerFunds)
         buyer.update({ "data.currency": buyerFunds });
     }
 
 
-    subtractAmountFromActor(buyer, buyerFunds, itemCostInGold) {
+    subtractAmountFromActor(buyer: Actor, buyerFunds: any, itemCostInGold: number) {
 
         let itemCostInPlatinum = itemCostInGold / conversionRates["gp"]
         let buyerFundsAsPlatinum = this.convertToPlatinum(buyerFunds);
 
         console.log(`buyerFundsAsPlatinum : ${buyerFundsAsPlatinum}`);
 
-        let convertCurrency = game.settings.get("merchantsheetnpc", "convertCurrency");
+        let convertCurrency = (<Game>game).settings.get(Globals.ModuleName, "convertCurrency");
 
         if (convertCurrency) {
             buyerFundsAsPlatinum -= itemCostInPlatinum;
@@ -109,10 +150,12 @@ export default class Dnd5eCurrencyCalculator extends CurrencyCalculator {
                     continue;
                 }
 
-                let compCurrency = compensationCurrency[currency]
+                // @ts-ignore
+				let compCurrency = compensationCurrency[currency]
 
                 buyerFunds[currency] = 0;
-                buyerFunds[compCurrency] += amount * conversionRates[compCurrency]; // amount is a negative value so we add it
+                // @ts-ignore
+				buyerFunds[compCurrency] += amount * conversionRates[compCurrency]; // amount is a negative value so we add it
                 // console.log(`Substracted: ${amount * conversionRates[compCurrency]} ${compCurrency}`);
             }
         }
@@ -131,12 +174,14 @@ export default class Dnd5eCurrencyCalculator extends CurrencyCalculator {
             buyerFunds[currency] = newFund;
 
             // console.log(`New Buyer funds ${currency}: ${buyerFunds[currency]}`);
-            let compCurrency = compensationCurrency[currency]
+            // @ts-ignore
+			let compCurrency = compensationCurrency[currency]
 
             // We dont care about fractions of CP
             if (currency != "cp") {
                 // We calculate the amount of lower currency we get for the fraction of higher currency we have
-                let toAdd = Math.round((amount - newFund) * 1e5) / 1e5 * conversionRates[compCurrency]
+                // @ts-ignore
+				let toAdd = Math.round((amount - newFund) * 1e5) / 1e5 * conversionRates[compCurrency]
                 buyerFunds[compCurrency] += toAdd
                 // console.log(`Added ${toAdd} to ${compCurrency} it is now ${buyerFunds[compCurrency]}`);
             }
@@ -146,14 +191,14 @@ export default class Dnd5eCurrencyCalculator extends CurrencyCalculator {
         console.log(`Merchant sheet | Funds after purchase: ${buyerFunds}`);
     }
 
-    addAmountForActor(seller, sellerFunds, itemCostInGold) {
+    addAmountForActor(seller: Actor, sellerFunds: any, itemCostInGold: number) {
 
         let itemCostInPlatinum = itemCostInGold / conversionRates["gp"]
         let buyerFundsAsPlatinum = this.convertToPlatinum(sellerFunds);
 
         console.log(`buyerFundsAsPlatinum : ${buyerFundsAsPlatinum}`);
 
-        let convertCurrency = game.settings.get("merchantsheetnpc", "convertCurrency");
+        let convertCurrency = (<Game>game).settings.get(Globals.ModuleName, "convertCurrency");
 
         if (convertCurrency) {
             buyerFundsAsPlatinum += itemCostInPlatinum;
@@ -185,10 +230,12 @@ export default class Dnd5eCurrencyCalculator extends CurrencyCalculator {
                     continue;
                 }
 
-                let compCurrency = compensationCurrency[currency]
+                // @ts-ignore
+				let compCurrency = compensationCurrency[currency]
 
                 sellerFunds[currency] = 0;
-                sellerFunds[compCurrency] += amount * conversionRates[compCurrency]; // amount is a negative value so we add it
+                // @ts-ignore
+				sellerFunds[compCurrency] += amount * conversionRates[compCurrency]; // amount is a negative value so we add it
                 // console.log(`Substracted: ${amount * conversionRates[compCurrency]} ${compCurrency}`);
             }
         }
@@ -207,12 +254,14 @@ export default class Dnd5eCurrencyCalculator extends CurrencyCalculator {
             sellerFunds[currency] = newFund;
 
             // console.log(`New Buyer funds ${currency}: ${sellerFunds[currency]}`);
-            let compCurrency = compensationCurrency[currency]
+            // @ts-ignore
+			let compCurrency = compensationCurrency[currency]
 
             // We dont care about fractions of CP
             if (currency != "cp") {
                 // We calculate the amount of lower currency we get for the fraction of higher currency we have
-                let toAdd = Math.round((amount - newFund) * 1e5) / 1e5 * conversionRates[compCurrency]
+                // @ts-ignore
+				let toAdd = Math.round((amount - newFund) * 1e5) / 1e5 * conversionRates[compCurrency]
                 sellerFunds[compCurrency] += toAdd
                 // console.log(`Added ${toAdd} to ${compCurrency} it is now ${sellerFunds[compCurrency]}`);
             }
@@ -222,77 +271,79 @@ export default class Dnd5eCurrencyCalculator extends CurrencyCalculator {
         console.log(`Merchant Sheet | Funds after sell: ${sellerFunds}`);
     }
 
-    priceInText(itemCostInGold) {
+    priceInText(itemCostInGold: number): string {
         return itemCostInGold + " gp";
     }
 
-    prepareItems(items) {
+    public prepareItems(items: any) {
 
         console.log("Merchant Sheet | Prepare Features");
         // Actions
         const features = {
             weapons: {
-                label: game.i18n.localize("MERCHANTNPC.weapons"),
+                label: (<Game>game).i18n.localize("MERCHANTNPC.weapons"),
                 items: [],
                 type: "weapon"
             },
             equipment: {
-                label: game.i18n.localize("MERCHANTNPC.equipment"),
+                label: (<Game>game).i18n.localize("MERCHANTNPC.equipment"),
                 items: [],
                 type: "equipment"
             },
             consumables: {
-                label: game.i18n.localize("MERCHANTNPC.consumables"),
+                label: (<Game>game).i18n.localize("MERCHANTNPC.consumables"),
                 items: [],
                 type: "consumable"
             },
             tools: {
-                label: game.i18n.localize("MERCHANTNPC.tools"),
+                label: (<Game>game).i18n.localize("MERCHANTNPC.tools"),
                 items: [],
                 type: "tool"
             },
             containers: {
-                label: game.i18n.localize("MERCHANTNPC.containers"),
+                label: (<Game>game).i18n.localize("MERCHANTNPC.containers"),
                 items: [],
                 type: "container"
             },
             loot: {
-                label: game.i18n.localize("MERCHANTNPC.loot"),
+                label: (<Game>game).i18n.localize("MERCHANTNPC.loot"),
                 items: [],
                 type: "loot"
             },
 
         };
+		// @ts-ignore
         features.weapons.items = items.weapon
-        features.weapons.items.sort(function (a, b) {
-            return a.name.localeCompare(b.name);
-        });
+        features.weapons.items.sort(this.sort());
+		// @ts-ignore
         features.equipment.items = items.equipment
-        features.equipment.items.sort(function (a, b) {
-            return a.name.localeCompare(b.name);
-        });
-        features.consumables.items = items.consumable
-        features.consumables.items.sort(function (a, b) {
-            return a.name.localeCompare(b.name);
-        });
+        features.equipment.items.sort(this.sort());
+
+		// @ts-ignore
+		features.consumables.items = items.consumable
+        features.consumables.items.sort(this.sort());
+		// @ts-ignore
         features.tools.items = items.tool
-        features.tools.items.sort(function (a, b) {
-            return a.name.localeCompare(b.name);
-        });
-        features.containers.items = items.backpack
-        features.containers.items.sort(function (a, b) {
-            return a.name.localeCompare(b.name);
-        });
+        features.tools.items.sort(this.sort());
+
+		// @ts-ignore
+		features.containers.items = items.backpack
+        features.containers.items.sort(this.sort());
+		// @ts-ignore
         features.loot.items = items.loot
-        features.loot.items.sort(function (a, b) {
-            return a.name.localeCompare(b.name);
-        });
+        features.loot.items.sort(this.sort());
         return features;
     }
 
 
-    initSettings() {
-        game.settings.register("merchantsheetnpc", "convertCurrency", {
+	public sort() {
+		return function (a: ItemData, b: ItemData) {
+			return a.name.localeCompare(b.name);
+		};
+	}
+
+	public initSettings() {
+		(<Game>game).settings.register(Globals.ModuleName, "convertCurrency", {
             name: "Convert currency after purchases?",
             hint: "If enabled, all currency will be converted to the highest denomination possible after a purchase. If disabled, currency will subtracted simply.",
             scope: "world",
@@ -300,10 +351,23 @@ export default class Dnd5eCurrencyCalculator extends CurrencyCalculator {
             default: false,
             type: Boolean
         });
+		conversionRates = {"pp": 1,
+			// @ts-ignore
+			"gp": CONFIG.DND5E.currencyConversion.gp.each,
+			// @ts-ignore
+			"ep": CONFIG.DND5E.currencyConversion.ep.each,
+			// @ts-ignore
+			"sp": CONFIG.DND5E.currencyConversion.sp.each,
+			// @ts-ignore
+			"cp": CONFIG.DND5E.currencyConversion.cp.each
+	};
+
+	super.initSettings();
     }
 
-    getPriceFromItem(item) {
-        return item.data.data.price;
+    getPriceFromItem(item: Item) {
+        // @ts-ignore
+		return item.data.data.price;
     }
 
     getPriceItemKey() {

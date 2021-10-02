@@ -1,0 +1,17 @@
+<p> {{localize "MERCHANTNPC.price-slider"}} <i class='fa fa-question-circle'
+                                                    title='{{localize "price-slider-help"}}'></i>
+</p>
+<p><input name="price-modifier-percent" id="price-modifier-percent" type="range" min="0" max="200"
+          value="{{priceModifier}}" class="slider"></p>
+<p><label>{{localize "MERCHANTNPC.percentage"}}:</label> <input type=number min="0" max="200"
+                                                                value="{{priceModifier}}"
+                                                                id="price-modifier-percent-display"></p>
+<script>var pmSlider = document.getElementById("price-modifier-percent");
+var pmDisplay = document.getElementById("price-modifier-percent-display");
+pmDisplay.value = pmSlider.value;
+pmSlider.oninput = function () {
+    pmDisplay.value = this.value;
+};
+pmDisplay.oninput = function () {
+    pmSlider.value = this.value;
+};</script>
