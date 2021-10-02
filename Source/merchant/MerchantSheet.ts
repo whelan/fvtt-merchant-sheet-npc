@@ -275,8 +275,6 @@ class MerchantSheet extends ActorSheet {
 
 	async priceModifier(event: JQuery.ClickEvent) {
 		event.preventDefault();
-		//console.log("Merchant sheet | Price Modifier clicked");
-		//console.log(this.actor.isToken);
 
 		let priceModifier = await this.actor.getFlag(Globals.ModuleName, "priceModifier");
 		if (priceModifier === 'undefined') priceModifier = 1.0;
@@ -296,12 +294,12 @@ class MerchantSheet extends ActorSheet {
 					label: (<Game>game).i18n.localize('MERCHANTNPC.update'),
 					callback: () => {
 						// @ts-ignore
-						let priceModifier = document.getElementById("price-modifier-percent").value;
-						if (priceModifier === 0) {
+						let newPriceModifier = document.getElementById("price-modifier-percent").value;
+						if (newPriceModifier === 0) {
 							this.actor.setFlag(Globals.ModuleName, "priceModifier", 0)
 						} else {
 							// @ts-ignore
-							this.actor.setFlag(Globals.ModuleName, "priceModifier", document.getElementById("price-modifier-percent").value / 100)
+							this.actor.setFlag(Globals.ModuleName, "priceModifier", newPriceModifier / 100)
 						}
 					}
 				},
@@ -312,7 +310,7 @@ class MerchantSheet extends ActorSheet {
 				}
 			},
 			default: "two",
-			close: () => console.log("Merchant sheet | Price Modifier Closed")
+			close: () => Logger.Log("Price Modifier Closed")
 		});
 		d.render(true);
 	}
