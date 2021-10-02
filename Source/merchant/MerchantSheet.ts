@@ -169,8 +169,8 @@ class MerchantSheet extends ActorSheet {
 					commonPlayersPermission = 999;
 				}
 
-				player.icon = this.getPermissionIcon(player.merchantPermission);
-				player.merchantPermissionDescription = this.getPermissionDescription(player.merchantPermission);
+				player.icon = MerchantSheetNPCHelper.getPermissionIcon(player.merchantPermission);
+				player.merchantPermissionDescription = MerchantSheetNPCHelper.getPermissionDescription(player.merchantPermission);
 				playerData.push(player);
 			}
 		}
@@ -179,34 +179,94 @@ class MerchantSheet extends ActorSheet {
 			players: playerData,
 			observerCount: observers.length,
 			playersPermission: commonPlayersPermission,
-			playersPermissionIcon: this.getPermissionIcon(commonPlayersPermission),
-			playersPermissionDescription: this.getPermissionDescription(commonPlayersPermission)
+			playersPermissionIcon: MerchantSheetNPCHelper.getPermissionIcon(commonPlayersPermission),
+			playersPermissionDescription: MerchantSheetNPCHelper.getPermissionDescription(commonPlayersPermission)
 		}
 	}
 
-	private getPermissionIcon(merchantPermission: number): string {
-		const icons = {
-			0: '<i class="far fa-circle"></i>',
-			2: '<i class="fas fa-eye"></i>',
-			999: '<i class="fas fa-users"></i>'
-		};
-		// @ts-ignore
-		return icons[merchantPermission];
-	}
-
-	private getPermissionDescription(merchantPermission: number): string {
-		const description  = {
-			0: (<Game>game).i18n.localize("MERCHANTNPC.permission-none-help"),
-			2: (<Game>game).i18n.localize("MERCHANTNPC.permission-observer-help"),
-			999: (<Game>game).i18n.localize("MERCHANTNPC.permission-all-help")
-		};
-		// @ts-ignore
-		return description[merchantPermission];
-	}
 
 	async callSuperOnDropItemCreate(itemData: PropertiesToSource<ItemData>) {
 		// Create the owned item as normal
 		return super._onDropItemCreate(itemData);
+	}
+
+	activateListeners(html: JQuery) {
+		super.activateListeners(html);
+		// Toggle Permissions
+		html.find('.permission-proficiency').click(ev => this.onCyclePermissionProficiency(ev));
+		// html.find('.permission-proficiency-bulk').click(ev => this.onCyclePermissionProficiencyBulk(ev));
+		//
+		// // Price Modifier
+		// html.find('.price-modifier').click(ev => this._priceModifier(ev));
+		// html.find('.buy-modifier').click(ev => this._buyModifier(ev));
+		// html.find('.stack-modifier').click(ev => this._stackModifier(ev));
+		// html.find('.csv-import').click(ev => this._csvImport(ev));
+		//
+		// html.find('.merchant-settings').change(ev => this._merchantSettingChange(ev));
+		// html.find('.update-inventory').click(ev => this._merchantInventoryUpdate(ev));
+		//
+		// // Buy Item
+		// html.find('.item-buy').click(ev => this._buyItem(ev));
+		// html.find('.item-buystack').click(ev => this._buyItem(ev, 1));
+		// html.find('.item-delete').click(ev => this._deleteItem(ev));
+		// html.find('.change-item-quantity').click(ev => this._changeQuantity(ev));
+		// html.find('.change-item-price').click(ev => this._changePrice(ev));
+		// html.find('.merchant-item .item-name').click(event => this._onItemSummary(event));
+
+	}
+
+	private onCyclePermissionProficiency(event: JQuery.ClickEvent) {
+
+		event.preventDefault();
+
+		//console.log("Merchant sheet | this.actor.data.permission", this.actor.data.permission);
+
+
+		let actorData = this.actor;
+
+
+		let field = $(event.currentTarget).siblings('input[type="hidden"]');
+
+
+		let level = 0;
+		let fieldVal = field.val();
+		if (typeof fieldVal === 'string') {
+			level = parseFloat(fieldVal);
+		}
+
+		//console.log("Merchant sheet | current level " + level);
+
+		const levels = [0, 2]; //const levels = [0, 2, 3];
+
+		let idx = levels.indexOf(level),
+			newLevel = levels[(idx === levels.length - 1) ? 0 : idx + 1];
+
+		//console.log("Merchant sheet | new level " + newLevel);
+
+		let playerId = field[0].name;
+
+		//console.log("Merchant sheet | Current actor: " + playerId);
+
+		this._updatePermissions(actorData, playerId, newLevel, event);
+
+		// @ts-ignore
+		this._onSubmit(event);
+	}
+
+	private _updatePermissions(actorData: Actor, playerId: string, newLevel: number, event: JQuery.ClickEvent) {
+		// Read player permission on this actor and adjust to new level
+		console.log("Merchant sheet | _updatePermission ",actorData, playerId, newLevel, event)
+		let currentPermissions = duplicate(actorData.data.permission);
+		// @ts-ignore
+		currentPermissions[playerId] = newLevel;
+		// Save updated player permissions
+		console.log("Merchant sheet | _updatePermission ",currentPermissions, actorData.data.permission)
+		// @ts-ignore
+		const merchantPermissions: PermissionControl = new PermissionControl(actorData.data);
+		console.log("Merchant sheet | _updatePermission merchantPermissions",merchantPermissions)
+		// actorData.update(currentPermissions)
+		// @ts-ignore
+		merchantPermissions._updateObject(event, currentPermissions);
 	}
 
 }
