@@ -196,7 +196,7 @@ class MerchantSheet extends ActorSheet {
 		html.find('.permission-proficiency-bulk').click(ev => this.onCyclePermissionProficiencyBulk(ev));
 		//
 		// // Price Modifier
-		// html.find('.price-modifier').click(ev => this._priceModifier(ev));
+		html.find('.price-modifier').click(ev => this.priceModifier(ev));
 		// html.find('.buy-modifier').click(ev => this._buyModifier(ev));
 		// html.find('.stack-modifier').click(ev => this._stackModifier(ev));
 		// html.find('.csv-import').click(ev => this._csvImport(ev));
@@ -272,5 +272,50 @@ class MerchantSheet extends ActorSheet {
 		let idx = levels.indexOf(level);
 		return levels[(idx === levels.length - 1) ? 0 : idx + 1];
 	}
+
+	async priceModifier(event: JQuery.ClickEvent) {
+		event.preventDefault();
+		//console.log("Merchant sheet | Price Modifier clicked");
+		//console.log(this.actor.isToken);
+
+		let priceModifier = await this.actor.getFlag(Globals.ModuleName, "priceModifier");
+		if (priceModifier === 'undefined') priceModifier = 1.0;
+
+		// @ts-ignore
+		priceModifier = Math.round(priceModifier * 100);
+		const template_file = "modules/"+Globals.ModuleName+"/templates/buy_from_merchant.html";
+		const template_data = { priceModifier: priceModifier};
+		const rendered_html = await renderTemplate(template_file, template_data);
+
+		let d = new Dialog({
+			title: (<Game>game).i18n.localize('MERCHANTNPC.buyMerchantDialog-title'),
+			content: rendered_html,
+			buttons: {
+				one: {
+					icon: '<i class="fas fa-check"></i>',
+					label: (<Game>game).i18n.localize('MERCHANTNPC.update'),
+					callback: () => {
+						// @ts-ignore
+						let priceModifier = document.getElementById("price-modifier-percent").value;
+						if (priceModifier === 0) {
+							this.actor.setFlag(Globals.ModuleName, "priceModifier", 0)
+						} else {
+							// @ts-ignore
+							this.actor.setFlag(Globals.ModuleName, "priceModifier", document.getElementById("price-modifier-percent").value / 100)
+						}
+					}
+				},
+				two: {
+					icon: '<i class="fas fa-times"></i>',
+					label: (<Game>game).i18n.localize('MERCHANTNPC.cancel'),
+					callback: () => Logger.Log("Price Modifier Cancelled")
+				}
+			},
+			default: "two",
+			close: () => console.log("Merchant sheet | Price Modifier Closed")
+		});
+		d.render(true);
+	}
+
 }
 export default MerchantSheet;
