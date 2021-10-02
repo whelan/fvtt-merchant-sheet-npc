@@ -1,5 +1,4 @@
 import Globals from "../Globals";
-import * as Console from "console";
 import Logger from "../Utils/Logger";
 import MerchantSheetData from "./MerchantSheetData";
 import MerchantSheetNPCHelper from "./MerchantSheetNPCHelper";
@@ -223,17 +222,7 @@ class MerchantSheet extends ActorSheet {
 
 		let field = $(event.currentTarget).siblings('input[type="hidden"]');
 
-		let level = 0;
-		let fieldVal = field.val();
-		if (typeof fieldVal === 'string') {
-			level = parseFloat(fieldVal);
-		}
-
-		const levels = [0, 2]; //const levels = [0, 2, 3];
-
-		let idx = levels.indexOf(level),
-			newLevel = levels[(idx === levels.length - 1) ? 0 : idx + 1];
-
+		let newLevel = this.getNewLevel(field);
 
 		let playerId = field[0].name;
 
@@ -249,17 +238,7 @@ class MerchantSheet extends ActorSheet {
 		let actorData = this.actor.data;
 
 		let field = $(event.currentTarget).parent().siblings('input[type="hidden"]');
-
-		let level = 0;
-		let fieldVal = field.val();
-		if (typeof fieldVal === 'string') {
-			level = parseFloat(fieldVal);
-		}
-
-		const levels = [0, 2]; //const levels = [0, 2, 3];
-
-		let idx = levels.indexOf(level),
-			newLevel = levels[(idx === levels.length - 1) ? 0 : idx + 1];
+		let newLevel = this.getNewLevel(field);
 
 		let users = (<Game>game).users?.contents;
 
@@ -281,6 +260,17 @@ class MerchantSheet extends ActorSheet {
 	}
 
 
+	private getNewLevel(field: JQuery<HTMLElement>) {
+		let level = 0;
+		let fieldVal = field.val();
+		if (typeof fieldVal === 'string') {
+			level = parseFloat(fieldVal);
+		}
 
+		const levels = [0, 2]; //const levels = [0, 2, 3];
+
+		let idx = levels.indexOf(level);
+		return levels[(idx === levels.length - 1) ? 0 : idx + 1];
+	}
 }
 export default MerchantSheet;
