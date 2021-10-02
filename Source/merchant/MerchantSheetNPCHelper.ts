@@ -38,5 +38,21 @@ class MerchantSheetNPCHelper {
 		return description[merchantPermission];
 	}
 
+	static updatePermissions(actorData: Actor, playerId: string, newLevel: number, event: JQuery.ClickEvent) {
+		// Read player permission on this actor and adjust to new level
+		console.log("Merchant sheet | _updatePermission ",actorData, playerId, newLevel, event)
+		let currentPermissions = duplicate(actorData.data.permission);
+		// @ts-ignore
+		currentPermissions[playerId] = newLevel;
+		// Save updated player permissions
+		console.log("Merchant sheet | _updatePermission ",currentPermissions, actorData.data.permission)
+		// @ts-ignore
+		const merchantPermissions: PermissionControl = new PermissionControl(actorData.data);
+		console.log("Merchant sheet | _updatePermission merchantPermissions",merchantPermissions)
+		// @ts-ignore
+		merchantPermissions._updateObject(event, currentPermissions);
+	}
+
+
 }
 export default MerchantSheetNPCHelper;
