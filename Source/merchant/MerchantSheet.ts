@@ -10,24 +10,11 @@ import Dnd5eCurrencyCalculator from "./systems/Dnd5eCurrencyCalculator";
 
 let currencyCalculator: CurrencyCalculator;
 
-function systemCurrencyCalculator() {
-	if (currencyCalculator === null || currencyCalculator === undefined) {
-		let currencyModuleImport = (<Game>game).system.id.charAt(0).toUpperCase() + (<Game>game).system.id.slice(1) + "CurrencyCalculator";
-		if (currencyModuleImport === 'Dnd5eCurrencyCalculator') {
-			currencyCalculator = new Dnd5eCurrencyCalculator();
-			currencyCalculator.initSettings();
-		} else {
-			currencyCalculator = new CurrencyCalculator();
-			currencyCalculator.initSettings();
-		}
-	}
-}
-
 
 class MerchantSheet extends ActorSheet {
 
 	get template() {
-		systemCurrencyCalculator();
+		currencyCalculator = MerchantSheetNPCHelper.systemCurrencyCalculator();
 		let g = game as Game;
 		Handlebars.registerHelper('equals', function (arg1, arg2, options) {
 			// @ts-ignore
@@ -85,7 +72,7 @@ class MerchantSheet extends ActorSheet {
 	}
 
 	getData(options: any): any {
-		systemCurrencyCalculator();
+		currencyCalculator = MerchantSheetNPCHelper.systemCurrencyCalculator();
 
 		Logger.Log("getData")
 		let g = game as Game;
@@ -208,8 +195,8 @@ class MerchantSheet extends ActorSheet {
 		// html.find('.item-buy').click(ev => this._buyItem(ev));
 		// html.find('.item-buystack').click(ev => this._buyItem(ev, 1));
 		// html.find('.item-delete').click(ev => this._deleteItem(ev));
-		// html.find('.change-item-quantity').click(ev => this._changeQuantity(ev));
-		// html.find('.change-item-price').click(ev => this._changePrice(ev));
+		html.find('.change-item-quantity').click(ev => this.changeQuantity(ev));
+		html.find('.change-item-price').click(ev => MerchantSheetNPCHelper.changePrice(ev));
 		// html.find('.merchant-item .item-name').click(event => this._onItemSummary(event));
 
 	}
@@ -359,6 +346,57 @@ class MerchantSheet extends ActorSheet {
 		});
 		d.render(true);
 	}
+
+
+	async changeQuantity(event: JQuery.ClickEvent) {
+		event.preventDefault();
+		console.log("Merchant sheet | Change quantity");
+		let itemId = $(event.currentTarget).parents(".merchant-item").attr("data-item-id");
+
+		// @ts-ignore
+		const item: Item = this.actor.getEmbeddedDocument("Item", itemId);
+		const template_file = "modules/"+Globals.ModuleName+"/templates/change_quantity.html";
+		// @ts-ignore
+		const quantity = item.data.data.quantity;
+		const infinityActivated = (quantity === Number.MAX_VALUE?'checked':'');
+		// @ts-ignore
+		const template_data = { quantity: quantity,
+			infinity: infinityActivated
+		};
+		const rendered_html = await renderTemplate(template_file, template_data);
+		let d = new Dialog({
+			title: (<Game>game).i18n.localize('MERCHANTNPC.quantityDialog-title'),
+			content: rendered_html,
+			buttons: {
+				one: {
+					icon: '<i class="fas fa-check"></i>',
+					label: (<Game>game).i18n.localize('MERCHANTNPC.update'),
+					callback: () => {
+						// @ts-ignore
+						if (document.getElementById("quantity-infinity").checked) {
+							this.actor.updateEmbeddedDocuments("Item",[{_id: itemId, "data.quantity": Number.MAX_VALUE}])
+						} else {
+							// @ts-ignore
+							let newQuantity: number = document.getElementById("quantity-value").value;
+							this.actor.updateEmbeddedDocuments("Item",[{
+								_id: itemId,
+								"data.quantity": newQuantity
+							}])
+						}
+					}
+				},
+				two: {
+					icon: '<i class="fas fa-times"></i>',
+					label: (<Game>game).i18n.localize('MERCHANTNPC.cancel'),
+					callback: () => console.log("Merchant sheet | Change quantity Cancelled")
+				}
+			},
+			default: "two",
+			close: () => console.log("Merchant sheet | Change quantity Closed")
+		});
+		d.render(true);
+	}
+
 
 }
 export default MerchantSheet;
