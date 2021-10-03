@@ -196,8 +196,8 @@ class MerchantSheet extends ActorSheet {
 		html.find('.permission-proficiency-bulk').click(ev => this.onCyclePermissionProficiencyBulk(ev));
 		//
 		// // Price Modifier
-		html.find('.price-modifier').click(ev => this.priceModifier(ev));
-		// html.find('.buy-modifier').click(ev => this._buyModifier(ev));
+		html.find('.price-modifier').click(ev => this.buyFromMerchantModifier(ev));
+		html.find('.buy-modifier').click(ev => this.sellToMerchantModifier(ev));
 		// html.find('.stack-modifier').click(ev => this._stackModifier(ev));
 		// html.find('.csv-import').click(ev => this._csvImport(ev));
 		//
@@ -273,7 +273,7 @@ class MerchantSheet extends ActorSheet {
 		return levels[(idx === levels.length - 1) ? 0 : idx + 1];
 	}
 
-	async priceModifier(event: JQuery.ClickEvent) {
+	async buyFromMerchantModifier(event: JQuery.ClickEvent) {
 		event.preventDefault();
 
 		let priceModifier = await this.actor.getFlag(Globals.ModuleName, "priceModifier");
@@ -311,6 +311,51 @@ class MerchantSheet extends ActorSheet {
 			},
 			default: "two",
 			close: () => Logger.Log("Price Modifier Closed")
+		});
+		d.render(true);
+	}
+
+	async sellToMerchantModifier(event: JQuery.ClickEvent) {
+		event.preventDefault();
+
+		let buyModifier = await this.actor.getFlag("merchantsheetnpc", "buyModifier");
+		if (buyModifier === 'undefined') {
+			buyModifier = 0.5;
+		}
+
+		// @ts-ignore
+		buyModifier = Math.round(buyModifier * 100);
+
+		const template_file = "modules/"+Globals.ModuleName+"/templates/sell_to_merchant.html";
+		const template_data = { buyModifier: buyModifier};
+		const rendered_html = await renderTemplate(template_file, template_data);
+
+		let d = new Dialog({
+			title: (<Game>game).i18n.localize('MERCHANTNPC.sellToMerchantDialog-title'),
+			content: rendered_html,
+			buttons: {
+				one: {
+					icon: '<i class="fas fa-check"></i>',
+					label: (<Game>game).i18n.localize('MERCHANTNPC.update'),
+					callback: () => {
+						// @ts-ignore
+						let priceModifier = document.getElementById("price-modifier-percent").value;
+						if (priceModifier === 0) {
+							this.actor.setFlag(Globals.ModuleName, "buyModifier", 0)
+						} else {
+							this.actor.setFlag(Globals.ModuleName, "buyModifier", priceModifier / 100)
+						}
+
+					}
+				},
+				two: {
+					icon: '<i class="fas fa-times"></i>',
+					label: (<Game>game).i18n.localize('MERCHANTNPC.cancel'),
+					callback: () => console.log("Merchant sheet | Buy Modifier Cancelled")
+				}
+			},
+			default: "two",
+			close: () => console.log("Merchant sheet | Buy Modifier Closed")
 		});
 		d.render(true);
 	}
