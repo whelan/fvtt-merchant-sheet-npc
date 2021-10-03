@@ -185,8 +185,8 @@ class MerchantSheet extends ActorSheet {
 		// // Price Modifier
 		html.find('.price-modifier').click(ev => this.buyFromMerchantModifier(ev));
 		html.find('.buy-modifier').click(ev => this.sellToMerchantModifier(ev));
-		// html.find('.stack-modifier').click(ev => this._stackModifier(ev));
-		// html.find('.csv-import').click(ev => this._csvImport(ev));
+		html.find('.stack-modifier').click(ev => this.stackModifier(ev));
+		html.find('.csv-import').click(ev => this._csvImport(ev));
 		//
 		// html.find('.merchant-settings').change(ev => this._merchantSettingChange(ev));
 		// html.find('.update-inventory').click(ev => this._merchantInventoryUpdate(ev));
@@ -395,6 +395,214 @@ class MerchantSheet extends ActorSheet {
 			close: () => console.log("Merchant sheet | Change quantity Closed")
 		});
 		d.render(true);
+	}
+
+	async stackModifier(event: JQuery.ClickEvent) {
+		event.preventDefault();
+
+		let stackModifier = await this.actor.getFlag(Globals.ModuleName, "stackModifier");
+		if (!stackModifier) stackModifier = 20;
+
+		const template_file = "modules/"+Globals.ModuleName+"/templates/stack_modifier.html";
+		const template_data = { stackModifier: stackModifier};
+		const rendered_html = await renderTemplate(template_file, template_data);
+
+		// @ts-ignore
+		let stackModifierValue = document.getElementById("stack-modifier").value;
+		let d = new Dialog({
+			title: (<Game>game).i18n.localize('MERCHANTNPC.stack-modifier'),
+			content: rendered_html,
+			buttons: {
+				one: {
+					icon: '<i class="fas fa-check"></i>',
+					label: (<Game>game).i18n.localize('MERCHANTNPC.update'),
+					callback: () => this.actor.setFlag(Globals.ModuleName, "stackModifier",  stackModifierValue / 1)
+				},
+				two: {
+					icon: '<i class="fas fa-times"></i>',
+					label: (<Game>game).i18n.localize('MERCHANTNPC.cancel'),
+					callback: () => console.log("Merchant sheet | Stack Modifier Cancelled")
+				}
+			},
+			default: "two",
+			close: () => console.log("Merchant sheet | Stack Modifier Closed")
+		});
+		d.render(true);
+	}
+
+	private getCompendiumnsChoices()  {
+		let myobject = {"none": "None"};
+		// @ts-ignore
+		(<Game>game).packs.map(function mapCompendiums(key: CompendiumCollection<CompendiumCollection.Metadata>, index: any) {
+			if (key.metadata.entity === 'Item') {
+				// @ts-ignore
+				myobject[key.metadata.name] = key.metadata.label
+			}
+		});
+		return myobject;
+	}
+
+	async _csvImport(event: JQuery.ClickEvent) {
+		event.preventDefault();
+
+		const template_file = "modules/merchantsheetnpc/template/csv-import.html";
+		// @ts-ignore
+		const template_data = {compendiums: getCompendiumnsChoices()};
+		const rendered_html = await renderTemplate(template_file, template_data);
+
+
+		let d = new Dialog({
+			title: (<Game>game).i18n.localize('MERCHANTNPC.csv-import'),
+			content: rendered_html,
+			buttons: {
+				one: {
+					icon: '<i class="fas fa-check"></i>',
+					label: (<Game>game).i18n.localize('MERCHANTNPC.update'),
+					callback: () => {
+						// @ts-ignore
+						let pack = document.getElementById("csv-pack-name").value;
+						// @ts-ignore
+						let scrollStart = document.getElementById("csv-scroll-name-value").value;
+						// @ts-ignore
+						let priceCol = document.getElementById("csv-price-value").value;
+						// @ts-ignore
+						let nameCol = document.getElementById("csv-name-value").value;
+						// @ts-ignore
+						let input = document.getElementById("csv").value;
+						let csvInput = {
+							pack: pack,
+							scrollStart: scrollStart,
+							priceCol: priceCol,
+							nameCol: nameCol,
+							input: input
+						}
+						// @ts-ignore
+						this.createItemsFromCSV(this.actor, csvInput)
+
+					}
+				},
+				two: {
+					icon: '<i class="fas fa-times"></i>',
+					label: (<Game>game).i18n.localize('MERCHANTNPC.cancel'),
+					callback: () => console.log("Merchant sheet | Stack Modifier Cancelled")
+				}
+			},
+			default: "two",
+			close: () => console.log("Merchant sheet | Stack Modifier Closed")
+		});
+		d.render(true);
+	}
+
+	async createItemsFromCSV(actor: Actor, csvInput: any) {
+		let split = csvInput.input.split('\n');
+		let csvItems = split.map(function mapCSV(text: string) {
+			let p = '', row = [''], ret = [row], i = 0, r = 0, s = !0, l;
+			for (l of text) {
+				if ('"' === l) {
+					if (s && l === p) row[i] += l;
+					s = !s;
+				} else if ((',' === l || '|' === l) && s) l = row[++i] = '';
+				else if ('\n' === l && s) {
+					if ('\r' === p) row[i] = row[i].slice(0, -1);
+					row = ret[++r] = [l = '']; i = 0;
+				} else row[i] += l;
+				p = l;
+			}
+			return ret;
+		});
+
+		let itemPack = (await (<Game>game).packs.filter(s => s.metadata.name === (<Game>game).settings.get(Globals.ModuleName, "itemCompendium")))[0];
+		let spellPack = await this.findSpellPack(csvInput.pack)
+		let nameCol = Number(csvInput.nameCol)-1
+		let priceCol = -1
+		if (csvInput.priceCol !== undefined) {
+			priceCol = Number(csvInput.priceCol) - 1
+		}
+		console.log("Merchant sheet | csvItems", csvItems)
+		for (let csvItem of csvItems) {
+			if (csvItem[0].length > 0 && csvItem[0][0].length > 0) {
+				let item = csvItem[0];
+				let name = item[nameCol].trim();
+				let price = 0
+				if (priceCol >= 0) {
+					price = item[priceCol];
+				}
+				let storeItems = [];
+				if (name.startsWith(csvInput.scrollStart) && spellPack !== undefined) {
+					let nameSub = name.substr(csvInput.scrollStart.length, name.length).trim()
+					let spellItem = await spellPack.index.filter(i => i.name === nameSub)
+					for (const spellItemElement of spellItem) {
+						let itemData = await spellPack.getDocument(spellItemElement._id);
+						// @ts-ignore
+						let itemFound = await currencyCalculator.createScroll(itemData)
+						if (itemFound !== undefined) {
+							// @ts-ignore
+							itemFound.data.name = itemFound.name;
+							console.log("created item: ", itemFound)
+							storeItems.push(itemFound.data)
+						}
+					}
+				} else {
+					let items = await itemPack.index.filter(i => i.name === name)
+					for (const itemToStore of items) {
+						let loaded = await itemPack.getDocument(itemToStore._id);
+						storeItems.push(duplicate(loaded))
+					}
+
+				}
+				for (let itemToStore of storeItems) {
+					if (price > 0 && (itemToStore.data.price === undefined || itemToStore.data.price === 0)) {
+						itemToStore.update({[currencyCalculator.getPriceItemKey()]: price});
+					}
+				}
+				let existingItem = await actor.items.find(it => it.data.name == name);
+				//
+				if (existingItem === undefined) {
+					console.log("Create item on actor: ", storeItems)
+					await actor.createEmbeddedDocuments("Item", storeItems);
+				}
+				else {
+					// @ts-ignore
+					let newQty = Number(existingItem.data.data.quantity) + Number(1);
+					await existingItem.update({ "data.quantity": newQty});
+				}
+			}
+		}
+		await this.collapseInventory(actor)
+		return undefined;
+	}
+
+	async findSpellPack(pack: any) {
+		if (pack !== 'none') {
+			return (await (<Game>game).packs.filter(s => s.metadata.name === pack))[0]
+		}
+		return undefined;
+	}
+
+	async collapseInventory(actor: Actor) {
+		// @ts-ignore
+		var groupBy = function(xs, key) {
+			// @ts-ignore
+			return xs.reduce(function(rv, x) {
+				(rv[x[key]] = rv[x[key]] || []).push(x);
+				return rv;
+			}, {});
+		};
+		let itemGroupList = groupBy(actor.items, 'name');
+		let itemsToBeDeleted = [];
+		for (const [key, value] of Object.entries(itemGroupList)) {
+			// @ts-ignore
+			var itemToUpdateQuantity = value[0];
+			// @ts-ignore
+			for(let extraItem of value) {
+				if (itemToUpdateQuantity !== extraItem) {
+					let newQty = Number(itemToUpdateQuantity.data.data.quantity) + Number(extraItem.data.data.quantity);
+					await itemToUpdateQuantity.update({ "data.quantity": newQty});
+					itemsToBeDeleted.push(extraItem.id);
+				}
+			}
+		}
+		await actor.deleteEmbeddedDocuments("Item", itemsToBeDeleted);
 	}
 
 
