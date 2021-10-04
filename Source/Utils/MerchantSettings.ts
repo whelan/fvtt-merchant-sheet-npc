@@ -3,7 +3,7 @@ import Logger from "./Logger";
 
 
 
-class Settings {
+class MerchantSettings {
 	private constructor() {
 		Logger.Ok("Loading configuration settings.")
 		const g = game as Game;
@@ -47,7 +47,7 @@ class Settings {
 				scope: "world",
 				config: true,
 				type: String,
-				choices: this.getCompendiumnsChoices(),
+				choices: MerchantSettings.getCompendiumnsChoices(),
 				default: "none",
 				onChange: val => this.changeCompendium(val),
 
@@ -55,7 +55,7 @@ class Settings {
 		];
 	}
 
-	private getCompendiumnsChoices() {
+	public static getCompendiumnsChoices() {
 		const g = game as Game;
 
 		var myobject: {[k: string]: any} = {"none": "None"};
@@ -69,14 +69,14 @@ class Settings {
 		Logger.Ok("The item compendium to use is: " + val);
 	}
 
-	private static instance: Settings;
+	private static instance: MerchantSettings;
 
-	public static Get(): Settings {
-		if (Settings.instance)
-			return Settings.instance;
+	public static Get(): MerchantSettings {
+		if (MerchantSettings.instance)
+			return MerchantSettings.instance;
 
-		Settings.instance = new Settings();
-		return Settings.instance;
+		MerchantSettings.instance = new MerchantSettings();
+		return MerchantSettings.instance;
 	}
 
 	private SettingsInit = false;
@@ -96,4 +96,4 @@ class Settings {
 	readonly SettingsList: ReadonlyArray<Pair<ClientSettings.PartialSetting>>;
 }
 
-export default Settings;
+export default MerchantSettings;

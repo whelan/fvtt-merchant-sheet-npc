@@ -7,6 +7,7 @@ import {ItemData} from "@league-of-foundry-developers/foundry-vtt-types/src/foun
 import {PropertiesToSource} from "@league-of-foundry-developers/foundry-vtt-types/src/types/helperTypes";
 import CurrencyCalculator from "./systems/CurrencyCalculator";
 import Dnd5eCurrencyCalculator from "./systems/Dnd5eCurrencyCalculator";
+import MerchantSettings from "../Utils/MerchantSettings";
 
 let currencyCalculator: CurrencyCalculator;
 
@@ -430,24 +431,13 @@ class MerchantSheet extends ActorSheet {
 		d.render(true);
 	}
 
-	private getCompendiumnsChoices()  {
-		let myobject = {"none": "None"};
-		// @ts-ignore
-		(<Game>game).packs.map(function mapCompendiums(key: CompendiumCollection<CompendiumCollection.Metadata>, index: any) {
-			if (key.metadata.entity === 'Item') {
-				// @ts-ignore
-				myobject[key.metadata.name] = key.metadata.label
-			}
-		});
-		return myobject;
-	}
 
 	async _csvImport(event: JQuery.ClickEvent) {
 		event.preventDefault();
 
-		const template_file = "modules/merchantsheetnpc/template/csv-import.html";
-		// @ts-ignore
-		const template_data = {compendiums: getCompendiumnsChoices()};
+		const template_file = "modules/"+Globals.ModuleName+"/templates/csv-import.html";
+
+		const template_data = {compendiums: MerchantSettings.getCompendiumnsChoices()};
 		const rendered_html = await renderTemplate(template_file, template_data);
 
 

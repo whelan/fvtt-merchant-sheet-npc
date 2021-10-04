@@ -1,5 +1,5 @@
 import Logger from "./Utils/Logger";
-import Settings from "./Utils/Settings";
+import MerchantSettings from "./Utils/MerchantSettings";
 import MerchantSheet from "./merchant/MerchantSheet";
 import TransactionHelper from "./Utils/TransactionHelper";
 
@@ -29,7 +29,7 @@ Hooks.once("setup", () => {
 });
 
 Hooks.once("ready", () => {
-	Settings.Get().RegisterSettings();
+	MerchantSettings.Get().RegisterSettings();
    Logger.Ok("Template module is now ready.");
 });
 
