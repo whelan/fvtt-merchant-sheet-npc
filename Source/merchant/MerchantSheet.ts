@@ -10,12 +10,12 @@ import Dnd5eCurrencyCalculator from "./systems/Dnd5eCurrencyCalculator";
 import MerchantSettings from "../Utils/MerchantSettings";
 
 let currencyCalculator: CurrencyCalculator;
-
+let merchantSheetNPC = new MerchantSheetNPCHelper();
 
 class MerchantSheet extends ActorSheet {
 
 	get template() {
-		currencyCalculator = MerchantSheetNPCHelper.systemCurrencyCalculator();
+		currencyCalculator = merchantSheetNPC.systemCurrencyCalculator();
 		let g = game as Game;
 		Handlebars.registerHelper('equals', function (arg1, arg2, options) {
 			// @ts-ignore
@@ -33,7 +33,7 @@ class MerchantSheet extends ActorSheet {
 				this.actor.setFlag(Globals.ModuleName, "priceModifier", 1.0);
 				modifier = 1.0;
 			}
-			// if (!stackModifier) await this.actor.setFlag(moduleName, "stackModifier", 20);
+			// if (!stackModifier) await this.actor.setFlag(m oduleName, "stackModifier", 20);
 
 			Logger.Log("basePrice: " + basePrice + " modifier: " + modifier)
 
@@ -73,7 +73,7 @@ class MerchantSheet extends ActorSheet {
 	}
 
 	getData(options: any): any {
-		currencyCalculator = MerchantSheetNPCHelper.systemCurrencyCalculator();
+		currencyCalculator = merchantSheetNPC.systemCurrencyCalculator();
 
 		Logger.Log("getData")
 		let g = game as Game;
@@ -143,7 +143,7 @@ class MerchantSheet extends ActorSheet {
 				player.playerId = player.data._id;
 
 				//
-				player.merchantPermission = MerchantSheetNPCHelper.getMerchantPermissionForPlayer(this.actor.data, player);
+				player.merchantPermission = merchantSheetNPC.getMerchantPermissionForPlayer(this.actor.data, player);
 				//
 				if (player.merchantPermission >= 2 && !observers.includes(actor.data._id)) {
 					observers.push(actor.data._id);
@@ -156,8 +156,8 @@ class MerchantSheet extends ActorSheet {
 					commonPlayersPermission = 999;
 				}
 
-				player.icon = MerchantSheetNPCHelper.getPermissionIcon(player.merchantPermission);
-				player.merchantPermissionDescription = MerchantSheetNPCHelper.getPermissionDescription(player.merchantPermission);
+				player.icon = merchantSheetNPC.getPermissionIcon(player.merchantPermission);
+				player.merchantPermissionDescription = merchantSheetNPC.getPermissionDescription(player.merchantPermission);
 				playerData.push(player);
 			}
 		}
@@ -166,8 +166,8 @@ class MerchantSheet extends ActorSheet {
 			players: playerData,
 			observerCount: observers.length,
 			playersPermission: commonPlayersPermission,
-			playersPermissionIcon: MerchantSheetNPCHelper.getPermissionIcon(commonPlayersPermission),
-			playersPermissionDescription: MerchantSheetNPCHelper.getPermissionDescription(commonPlayersPermission)
+			playersPermissionIcon: merchantSheetNPC.getPermissionIcon(commonPlayersPermission),
+			playersPermissionDescription: merchantSheetNPC.getPermissionDescription(commonPlayersPermission)
 		}
 	}
 
@@ -187,17 +187,17 @@ class MerchantSheet extends ActorSheet {
 		html.find('.price-modifier').click(ev => this.buyFromMerchantModifier(ev));
 		html.find('.buy-modifier').click(ev => this.sellToMerchantModifier(ev));
 		html.find('.stack-modifier').click(ev => this.stackModifier(ev));
-		html.find('.csv-import').click(ev => this._csvImport(ev));
+		html.find('.csv-import').click(ev => this.csvImport(ev));
 		//
 		// html.find('.merchant-settings').change(ev => this._merchantSettingChange(ev));
 		// html.find('.update-inventory').click(ev => this._merchantInventoryUpdate(ev));
 		//
 		// // Buy Item
-		// html.find('.item-buy').click(ev => this._buyItem(ev));
+		html.find('.item-buy').click(ev => this.buyItem(ev));
 		// html.find('.item-buystack').click(ev => this._buyItem(ev, 1));
 		// html.find('.item-delete').click(ev => this._deleteItem(ev));
 		html.find('.change-item-quantity').click(ev => this.changeQuantity(ev));
-		html.find('.change-item-price').click(ev => MerchantSheetNPCHelper.changePrice(ev));
+		html.find('.change-item-price').click(ev => merchantSheetNPC.changePrice(ev));
 		// html.find('.merchant-item .item-name').click(event => this._onItemSummary(event));
 
 	}
@@ -214,7 +214,7 @@ class MerchantSheet extends ActorSheet {
 
 		let playerId = field[0].name;
 
-		MerchantSheetNPCHelper.updatePermissions(actorData, playerId, newLevel, event);
+		merchantSheetNPC.updatePermissions(actorData, playerId, newLevel, event);
 
 		// @ts-ignore
 		this._onSubmit(event);
@@ -432,7 +432,7 @@ class MerchantSheet extends ActorSheet {
 	}
 
 
-	async _csvImport(event: JQuery.ClickEvent) {
+	async csvImport(event: JQuery.ClickEvent) {
 		event.preventDefault();
 
 		const template_file = "modules/"+Globals.ModuleName+"/templates/csv-import.html";
@@ -595,6 +595,182 @@ class MerchantSheet extends ActorSheet {
 		await actor.deleteEmbeddedDocuments("Item", itemsToBeDeleted);
 	}
 
+	buyItem(event: JQuery.ClickEvent, stack: number = 0) {
+		event.preventDefault();
+		console.log("Merchant sheet | Buy Item clicked");
+
+		let targetGm: any = null;
+		(<Game>game).users?.forEach((u) => {
+			if (u.isGM && u.active && u.viewedScene === (<Game>game).user?.viewedScene) {
+				targetGm = u;
+			}
+		});
+		let allowNoTargetGM = (<Game>game).settings.get("merchantsheetnpc", "allowNoGM")
+		let gmId = null;
+
+		if (!allowNoTargetGM && !targetGm) {
+			Logger.Log("No Valid GM",allowNoTargetGM)
+			// @ts-ignore
+			return ui.notifications.error((<Game>game).i18n.localize("MERCHANTNPC.error-noGM"));
+		} else if (!allowNoTargetGM) {
+			gmId = targetGm.data._id;
+		}
+
+		if (this.token === null) {
+			// @ts-ignore
+			return ui.notifications.error((<Game>game).i18n.localize("MERCHANTNPC.error-noToken"));
+		}
+		// @ts-ignore
+		if (!game.user.actorId) {
+			// @ts-ignore
+			return ui.notifications.error((<Game>game).i18n.localize("MERCHANTNPC.error-noCharacter"));
+		}
+
+		let itemId = $(event.currentTarget).parents(".merchant-item").attr("data-item-id");
+		let stackModifier = $(event.currentTarget).parents(".merchant-item").attr("data-item-stack");
+		// @ts-ignore
+		const item: ItemData = this.actor.getEmbeddedDocument("Item", itemId);
+
+		const packet = {
+			type: "buy",
+			// @ts-ignore
+			buyerId: (<Game>game).user.actorId,
+			tokenId: this.token.id,
+			itemId: itemId,
+			quantity: 1,
+			processorId: gmId
+		};
+		console.log(stackModifier)
+		// @ts-ignore
+		console.log(item.data.data.quantity)
+
+		if (stack || event.shiftKey) {
+			// @ts-ignore
+			if (item.data.data.quantity < stackModifier) {
+				// @ts-ignore
+				packet.quantity = item.data.data.quantity;
+			} else {
+				// @ts-ignore
+				packet.quantity = stackModifier;
+			}
+			if (allowNoTargetGM) {
+				// @ts-ignore
+				buyTransactionFromPlayer(packet)
+			} else {
+				console.log("MerchantSheet", "Sending buy request to " + targetGm.name, packet);
+				(<Game>game).socket?.emit(Globals.Socket, packet);
+			}
+			return;
+		}
+
+		// @ts-ignore
+		let d = new QuantityDialog((quantity) => {
+				packet.quantity = quantity;
+				if (allowNoTargetGM) {
+					MerchantSheetNPCHelper.buyTransactionFromPlayer(packet)
+				} else {
+					console.log("MerchantSheet.ts", "Sending buy request to " + targetGm.name, packet);
+					MerchantSheetNPCHelper.buyTransactionFromPlayer(packet);
+				}
+			},
+			{
+				acceptLabel: "Purchase"
+			}
+		);
+		d.render(true);
+	}
+
 
 }
+class QuantityDialog extends Dialog {
+	constructor(callback: any, options: any) {
+		if (typeof (options) !== "object") {
+			options = {};
+		}
+
+		let applyChanges = false;
+		super({
+			title: (<Game>game).i18n.localize("MERCHANTNPC.quantity"),
+			content: `
+            <form>
+                <div class="form-group">
+                    <label>` + (<Game>game).i18n.localize("MERCHANTNPC.quantity")+ `:</label>
+                    <input type=number min="1" id="quantity" name="quantity" value="1">
+                </div>
+            </form>`,
+			buttons: {
+				yes: {
+					icon: "<i class='fas fa-check'></i>",
+					label: options.acceptLabel ? options.acceptLabel : (<Game>game).i18n.localize("MERCHANTNPC.item-buy"),
+					callback: () => applyChanges = true
+				},
+				no: {
+					icon: "<i class='fas fa-times'></i>",
+					label: (<Game>game).i18n.localize("MERCHANTNPC.cancel")
+				},
+			},
+			default: "yes",
+			close: () => {
+				if (applyChanges) {
+					// @ts-ignore
+					var quantity = document.getElementById('quantity').value
+
+					if (isNaN(quantity)) {
+						// @ts-ignore
+						return ui.notifications.error((<Game>game).i18n.localize("MERCHANTNPC.error-quantityInvalid"))
+					}
+
+					callback(quantity);
+
+				}
+			}
+		});
+	}
+}
+class SellerQuantityDialog extends Dialog {
+	constructor(callback: any, options: any) {
+		if (typeof (options) !== "object") {
+			options = {};
+		}
+
+		let applyChanges = false;
+		super({
+			title: (<Game>game).i18n.localize("MERCHANTNPC.quantity"),
+			content: `
+            <form>
+                <div class="form-group">
+                    <label>Quantity:</label>
+                    <input type=number min="1" id="quantity" name="quantity" value="{{test}}">
+                </div>
+            </form>`,
+			buttons: {
+				yes: {
+					icon: "<i class='fas fa-check'></i>",
+					label: options.acceptLabel ? options.acceptLabel : (<Game>game).i18n.localize("MERCHANTNPC.sell"),
+					callback: () => applyChanges = true
+				},
+				no: {
+					icon: "<i class='fas fa-times'></i>",
+					label: (<Game>game).i18n.localize("MERCHANTNPC.cancel")
+				},
+			},
+			default: "yes",
+			close: () => {
+				if (applyChanges) {
+					// @ts-ignore
+					var quantity = document.getElementById('quantity').value
+
+					if (isNaN(quantity)) {
+						// @ts-ignore
+						return ui.notifications.error(game.i18n.localize("MERCHANTNPC.error-quantityInvalid"))
+					}
+
+					callback(quantity);
+
+				}
+			}
+		});
+	}
+}
+
 export default MerchantSheet;

@@ -1,7 +1,9 @@
 import assert from "assert"
 
+let moduleName = "merchantsheetnpc";
 export default {
-	ModuleName: "merchantsheetnpc",
+	ModuleName: moduleName,
+ 	Socket: "module."+moduleName,
 	IsModule: true,
 }
 
