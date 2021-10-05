@@ -197,18 +197,17 @@ class MerchantSheetNPCHelper {
 	}
 
 	public errorMessageToActor(target: Actor, message: string) {
-		let allowNoTargetGM = (<Game>game).settings.get(Globals.ModuleName, "allowNoGM")
-		if (allowNoTargetGM) {
-			// @ts-ignore
-			ui.notifications.error(message);
-		} else {
-			// @ts-ignore
-			(<Game>game).socket.emit(Globals.Socket, {
-				type: "error",
-				targetId: target.id,
-				message: message
-			});
-		}
+		// let allowNoTargetGM = (<Game>game).settings.get(Globals.ModuleName, "allowNoGM")
+		// if (allowNoTargetGM) {
+			ui.notifications?.error(message);
+		// } else {
+		// 	// @ts-ignore
+		// 	(<Game>game).socket.emit(Globals.Socket, {
+		// 		type: "error",
+		// 		targetId: target.id,
+		// 		message: message
+		// 	});
+		// }
 	}
 
 
@@ -221,11 +220,9 @@ class MerchantSheetNPCHelper {
 			let seller = canvas.tokens.get(data.tokenId);
 
 			if (buyer && seller && seller.actor) {
-				console.log()
 				helper.transaction(seller.actor, buyer, data.itemId, data.quantity);
 			} else if (!seller) {
-				// @ts-ignore
-				ui.notifications.error(game.i18n.localize("MERCHANTNPC.playerOtherScene"));
+				ui.notifications?.error((<Game>game).i18n.localize("MERCHANTNPC.playerOtherScene"));
 			}
 		}
 	}

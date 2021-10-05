@@ -194,13 +194,32 @@ class MerchantSheet extends ActorSheet {
 		//
 		// // Buy Item
 		html.find('.item-buy').click(ev => this.buyItem(ev));
-		// html.find('.item-buystack').click(ev => this._buyItem(ev, 1));
-		// html.find('.item-delete').click(ev => this._deleteItem(ev));
+		html.find('.item-buystack').click(ev => this.buyItem(ev, 1));
+		html.find('.item-delete').click(ev => this.deleteItem(ev));
 		html.find('.change-item-quantity').click(ev => this.changeQuantity(ev));
 		html.find('.change-item-price').click(ev => merchantSheetNPC.changePrice(ev));
-		// html.find('.merchant-item .item-name').click(event => this._onItemSummary(event));
+		html.find('.merchant-item .item-name').click(event => this.onItemSummary(event));
 
 	}
+
+	private onItemSummary(event: JQuery.ClickEvent) {
+		event.preventDefault();
+		let li = $(event.currentTarget).parents(".merchant-item"),
+			item = this.actor.items.get(li.data("item-id")),
+			// @ts-ignore
+			chatData = item.getChatData({secrets: this.actor.isOwner});
+		// Toggle summary
+		if ( li.hasClass("expanded") ) {
+			let summary = li.children(".merchant-item-summary");
+			summary.slideUp(200, () => summary.remove());
+		} else {
+			let div = $(`<div class="merchant-item-summary">${chatData.description.value}</div>`);
+			li.append(div.hide());
+			div.slideDown(200);
+		}
+		li.toggleClass("expanded");
+	}
+
 
 	private onCyclePermissionProficiency(event: JQuery.ClickEvent) {
 
@@ -562,6 +581,15 @@ class MerchantSheet extends ActorSheet {
 		return undefined;
 	}
 
+	private deleteItem(event: JQuery.ClickEvent) {
+		event.preventDefault();
+		console.log("Merchant sheet | Delete Item clicked");
+		let itemId: string;
+		// @ts-ignore
+		itemId = $(event.currentTarget).parents(".merchant-item").attr("data-item-id");
+		this.actor.deleteEmbeddedDocuments("Item", [itemId]);
+	}
+
 	async findSpellPack(pack: any) {
 		if (pack !== 'none') {
 			return (await (<Game>game).packs.filter(s => s.metadata.name === pack))[0]
@@ -653,25 +681,25 @@ class MerchantSheet extends ActorSheet {
 				// @ts-ignore
 				packet.quantity = stackModifier;
 			}
-			if (allowNoTargetGM) {
+			// if (allowNoTargetGM) {
 				// @ts-ignore
-				buyTransactionFromPlayer(packet)
-			} else {
-				console.log("MerchantSheet", "Sending buy request to " + targetGm.name, packet);
-				(<Game>game).socket?.emit(Globals.Socket, packet);
-			}
+			MerchantSheetNPCHelper.buyTransactionFromPlayer(packet)
+			// } else {
+			// 	console.log("MerchantSheet", "Sending buy request to " + targetGm.name, packet);
+			// 	(<Game>game).socket?.emit(Globals.Socket, packet);
+			// }
 			return;
 		}
 
 		// @ts-ignore
 		let d = new QuantityDialog((quantity) => {
 				packet.quantity = quantity;
-				if (allowNoTargetGM) {
+				// if (allowNoTargetGM) {
 					MerchantSheetNPCHelper.buyTransactionFromPlayer(packet)
-				} else {
-					console.log("MerchantSheet.ts", "Sending buy request to " + targetGm.name, packet);
-					MerchantSheetNPCHelper.buyTransactionFromPlayer(packet);
-				}
+				// } else {
+				// 	console.log("MerchantSheet.ts", "Sending buy request to " + targetGm.name, packet);
+				// 	MerchantSheetNPCHelper.buyTransactionFromPlayer(packet);
+				// }
 			},
 			{
 				acceptLabel: "Purchase"
