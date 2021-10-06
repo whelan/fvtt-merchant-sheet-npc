@@ -3,7 +3,7 @@ import Logger from "../Utils/Logger";
 import MerchantSheetData from "./MerchantSheetData";
 import MerchantSheetNPCHelper from "./MerchantSheetNPCHelper";
 import PermissionPlayer from "./PermissionPlayer";
-import {ItemData} from "@league-of-foundry-developers/foundry-vtt-types/src/foundry/common/data/data.mjs";
+import {ActorData, ItemData} from "@league-of-foundry-developers/foundry-vtt-types/src/foundry/common/data/data.mjs";
 import {PropertiesToSource} from "@league-of-foundry-developers/foundry-vtt-types/src/types/helperTypes";
 import CurrencyCalculator from "./systems/CurrencyCalculator";
 import Dnd5eCurrencyCalculator from "./systems/Dnd5eCurrencyCalculator";
@@ -188,9 +188,9 @@ class MerchantSheet extends ActorSheet {
 		html.find('.buy-modifier').click(ev => this.sellToMerchantModifier(ev));
 		html.find('.stack-modifier').click(ev => this.stackModifier(ev));
 		html.find('.csv-import').click(ev => this.csvImport(ev));
-		//
-		// html.find('.merchant-settings').change(ev => this._merchantSettingChange(ev));
-		// html.find('.update-inventory').click(ev => this._merchantInventoryUpdate(ev));
+
+		html.find('.merchant-settings').change(ev => this.merchantSettingChange(ev));
+		// html.find('.update-inventory').click(ev => this.merchantInventoryUpdate(ev));
 		//
 		// // Buy Item
 		html.find('.item-buy').click(ev => this.buyItem(ev));
@@ -201,6 +201,230 @@ class MerchantSheet extends ActorSheet {
 		html.find('.merchant-item .item-name').click(event => this.onItemSummary(event));
 
 	}
+
+	// async merchantInventoryUpdate(event: JQuery.ClickEvent) {
+	// 	event.preventDefault();
+	//
+	// 	const moduleNamespace = "merchantsheetnpc";
+	// 	const rolltableName = this.actor.getFlag(moduleNamespace, "rolltable");
+	// 	const shopQtyFormula = this.actor.getFlag(moduleNamespace, "shopQty") || "1";
+	// 	const itemQtyFormula = this.actor.getFlag(moduleNamespace, "itemQty") || "1";
+	// 	const itemQtyLimit = this.actor.getFlag(moduleNamespace, "itemQtyLimit") || "0";
+	// 	const clearInventory = this.actor.getFlag(moduleNamespace, "clearInventory");
+	// 	const itemOnlyOnce = this.actor.getFlag(moduleNamespace, "itemOnlyOnce");
+	// 	const reducedVerbosity = game.settings.get(moduleNamespace, "reduceUpdateVerbosity");
+	//
+	// 	let shopQtyRoll = new Roll(shopQtyFormula);
+	// 	shopQtyRoll.roll();
+	//
+	// 	let rolltable = game.tables.getName(rolltableName);
+	// 	if (!rolltable) {
+	// 		// console.log(`Merchant sheet | No Rollable Table found with name "${rolltableName}".`);
+	// 		return ui.notifications.error(`No Rollable Table found with name "${rolltableName}".`);
+	// 	}
+	//
+	// 	if (itemOnlyOnce) {
+	// 		if (rolltable.results.length < shopQtyRoll.total)  {
+	// 			return ui.notifications.error(`Cannot create a merchant with ${shopQtyRoll.total} unqiue entries if the rolltable only contains ${rolltable.results.length} items`);
+	// 		}
+	// 	}
+	//
+	// 	// console.log(rolltable);
+	//
+	// 	if (clearInventory) {
+	//
+	// 		let currentItems = this.actor.data.items.map(i => i._id);
+	// 		await this.actor.deleteEmbeddedDocuments("Item", currentItems);
+	// 		// console.log(currentItems);
+	// 	}
+	//
+	// 	console.log(`Merchant sheet | Adding ${shopQtyRoll.result} new items`);
+	//
+	// 	if (!itemOnlyOnce) {
+	// 		for (let i = 0; i < shopQtyRoll.total; i++) {
+	// 			const rollResult = rolltable.roll();
+	// 			//console.log(rollResult);
+	// 			let newItem = null;
+	//
+	// 			if (rollResult.results[0].collection === "Item") {
+	// 				newItem = game.items.get(rollResult.results[0].resultId);
+	// 			}
+	// 			else {
+	// 				// Try to find it in the compendium
+	// 				const items = game.packs.get(rollResult.results[0].collection);
+	// 				// console.log(items);
+	// 				// dnd5eitems.getIndex().then(index => console.log(index));
+	// 				// let newItem = dnd5eitems.index.find(e => e.id === rollResult.results[0].resultId);
+	// 				// items.getEntity(rollResult.results[0].resultId).then(i => console.log(i));
+	// 				newItem = await items.getEntity(rollResult.results[0].resultId);
+	// 			}
+	// 			if (!newItem || newItem === null) {
+	// 				// console.log(`Merchant sheet | No item found "${rollResult.results[0].resultId}".`);
+	// 				return ui.notifications.error(`No item found "${rollResult.results[0].resultId}".`);
+	// 			}
+	//
+	// 			if (newItem.type === "spell") {
+	// 				newItem = await Item5e.createScrollFromSpell(newItem)
+	// 			}
+	//
+	// 			let itemQtyRoll = new Roll(itemQtyFormula);
+	// 			itemQtyRoll.roll();
+	// 			console.log(`Merchant sheet | Adding ${itemQtyRoll.total} x ${newItem.name}`)
+	//
+	// 			// newitem.data.data.quantity = itemQtyRoll.result;
+	//
+	// 			let existingItem = this.actor.items.find(item => item.data.name == newItem.name);
+	//
+	// 			if (existingItem === undefined) {
+	// 				await this.actor.createEmbeddedDocuments("Item", newItem);
+	// 				console.log(`Merchant sheet | ${newItem.name} does not exist.`);
+	// 				existingItem = this.actor.items.find(item => item.data.name == newItem.name);
+	//
+	// 				if (itemQtyLimit > 0 && Number(itemQtyLimit) < Number(itemQtyRoll.total)) {
+	// 					await existingItem.update({ "data.quantity": itemQtyLimit });
+	// 					if (!reducedVerbosity) ui.notifications.info(`Added new ${itemQtyLimit} x ${newItem.name}.`);
+	// 				} else {
+	// 					await existingItem.update({ "data.quantity": itemQtyRoll.total });
+	// 					if (!reducedVerbosity) ui.notifications.info(`Added new ${itemQtyRoll.total} x ${newItem.name}.`);
+	// 				}
+	// 			}
+	// 			else {
+	// 				console.log(`Merchant sheet | Item ${newItem.name} exists.`);
+	//
+	// 				let newQty = Number(existingItem.data.data.quantity) + Number(itemQtyRoll.total);
+	//
+	// 				if (itemQtyLimit > 0 && Number(itemQtyLimit) === Number(existingItem.data.data.quantity)) {
+	// 					if (!reducedVerbosity) ui.notifications.info(`${newItem.name} already at maximum quantity (${itemQtyLimit}).`);
+	// 				}
+	// 				else if (itemQtyLimit > 0 && Number(itemQtyLimit) < Number(newQty)) {
+	// 					//console.log("Exceeds existing quantity, limiting");
+	// 					await existingItem.update({ "data.quantity": itemQtyLimit });
+	// 					if (!reducedVerbosity) ui.notifications.info(`Added additional quantity to ${newItem.name} to the specified maximum of ${itemQtyLimit}.`);
+	// 				} else {
+	// 					await existingItem.update({ "data.quantity": newQty });
+	// 					if (!reducedVerbosity) ui.notifications.info(`Added additional ${itemQtyRoll.total} quantity to ${newItem.name}.`);
+	// 				}
+	// 			}
+	// 		}
+	// 	}
+	// 	else {
+	// 		// Get a list which contains indexes of all possible results
+	//
+	// 		const rolltableIndexes = []
+	//
+	// 		// Add one entry for each weight an item has
+	// 		for (let index in [...Array(rolltable.results.length).keys()]) {
+	// 			let numberOfEntries = rolltable.data.results[index].weight
+	// 			for (let i = 0; i < numberOfEntries; i++) {
+	// 				rolltableIndexes.push(index);
+	// 			}
+	// 		}
+	//
+	// 		// Shuffle the list of indexes
+	// 		var currentIndex = rolltableIndexes.length, temporaryValue, randomIndex;
+	//
+	// 		// While there remain elements to shuffle...
+	// 		while (0 !== currentIndex) {
+	//
+	// 			// Pick a remaining element...
+	// 			randomIndex = Math.floor(Math.random() * currentIndex);
+	// 			currentIndex -= 1;
+	//
+	// 			// And swap it with the current element.
+	// 			temporaryValue = rolltableIndexes[currentIndex];
+	// 			rolltableIndexes[currentIndex] = rolltableIndexes[randomIndex];
+	// 			rolltableIndexes[randomIndex] = temporaryValue;
+	// 		}
+	//
+	// 		// console.log(`Rollables: ${rolltableIndexes}`)
+	//
+	// 		let indexesToUse = [];
+	// 		let numberOfAdditionalItems = 0;
+	// 		// Get the first N entries from our shuffled list. Those are the indexes of the items in the roll table we want to add
+	// 		// But because we added multiple entries per index to account for weighting, we need to increase our list length until we got enough unique items
+	// 		while (true)
+	// 		{
+	// 			let usedEntries = rolltableIndexes.slice(0, shopQtyRoll.total + numberOfAdditionalItems);
+	// 			// console.log(`Distinct: ${usedEntries}`);
+	// 			let distinctEntris = [...new Set(usedEntries)];
+	//
+	// 			if (distinctEntris.length < shopQtyRoll.total) {
+	// 				numberOfAdditionalItems++;
+	// 				// console.log(`numberOfAdditionalItems: ${numberOfAdditionalItems}`);
+	// 				continue;
+	// 			}
+	//
+	// 			indexesToUse = distinctEntris
+	// 			// console.log(`indexesToUse: ${indexesToUse}`)
+	// 			break;
+	// 		}
+	//
+	// 		for (const index of indexesToUse)
+	// 		{
+	// 			let itemQtyRoll = new Roll(itemQtyFormula);
+	// 			itemQtyRoll.roll();
+	//
+	// 			let newItem = null
+	//
+	// 			if (rolltable.results[index].collection === "Item") {
+	// 				newItem = game.items.get(rolltable.results[index].resultId);
+	// 			}
+	// 			else {
+	// 				//Try to find it in the compendium
+	// 				const items = game.packs.get(rolltable.results[index].collection);
+	// 				newItem = await items.getEntity(rolltable.results[index].resultId);
+	// 			}
+	// 			if (!newItem || newItem === undefined) {
+	// 				return ui.notifications.error(`No item found "${rolltable.results[index].resultId}".`);
+	// 			}
+	//
+	// 			if (newItem.type === "spell") {
+	// 				newItem = await Item5e.createScrollFromSpell(newItem)
+	// 			}
+	//
+	// 			await this.actor.createEmbeddedDocuments("Item", newItem);
+	// 			let existingItem = this.actor.items.find(item => item.data.name == newItem.name);
+	//
+	// 			if (itemQtyLimit > 0 && Number(itemQtyLimit) < Number(itemQtyRoll.total)) {
+	// 				await existingItem.update({ "data.quantity": itemQtyLimit });
+	// 				if (!reducedVerbosity) ui.notifications.info(`Added new ${itemQtyLimit} x ${newItem.name}.`);
+	// 			} else {
+	// 				await existingItem.update({ "data.quantity": itemQtyRoll.total });
+	// 				if (!reducedVerbosity) ui.notifications.info(`Added new ${itemQtyRoll.total} x ${newItem.name}.`);
+	// 			}
+	// 		}
+	// 	}
+	// }
+
+
+	private async merchantSettingChange(event: JQuery.ChangeEvent<any, null, any, any>) {
+		event.preventDefault();
+		console.log("Merchant sheet | Merchant settings changed");
+
+		const expectedKeys = ["rolltable", "shopQty", "itemQty", "itemQtyLimit", "clearInventory", "itemOnlyOnce"];
+
+		let targetKey = event.target.name.split('.')[3];
+
+
+		if (expectedKeys.indexOf(targetKey) === -1) {
+			console.log(`Merchant sheet | Error changing stettings for "${targetKey}".`);
+			return ui.notifications?.error((<Game>game).i18n.format("MERCHANTNPC.error-changeSettings", {target: targetKey}))
+		}
+
+		if (targetKey == "clearInventory" || targetKey == "itemOnlyOnce") {
+			console.log(targetKey + " set to " + event.target.checked);
+			await this.actor.setFlag(Globals.ModuleName, targetKey, event.target.checked);
+		} else if (event.target.value) {
+			console.log(targetKey + " set to " + event.target.value);
+			console.log("A");
+			await this.actor.setFlag(Globals.ModuleName, targetKey, event.target.value);
+		} else {
+			console.log(targetKey + " set to " + event.target.value);
+			console.log("B");
+			await this.actor.unsetFlag(Globals.ModuleName, targetKey);
+		}
+	}
+
 
 	private onItemSummary(event: JQuery.ClickEvent) {
 		event.preventDefault();
@@ -800,5 +1024,73 @@ class SellerQuantityDialog extends Dialog {
 		});
 	}
 }
+
+Hooks.on('dropActorSheetData',(target: Actor,sheet: any,dragSource: any,user: any)=>{
+	// @ts-ignore
+	function checkCompatable(a,b){
+		if(a==b) return false;
+	}
+	if(dragSource.type=="Item" && dragSource.actorId) {
+		if(!target.data._id) {
+			console.warn("Merchant sheet | target has no data._id?",target);
+			return;
+		}
+		if(target.data._id ==  dragSource.actorId) return;  // ignore dropping on self
+		let sourceActor = (<Game>game).actors?.get(dragSource.actorId);
+		console.log("Merchant sheet | drop item");
+		console.log(dragSource)
+
+		Logger.Log("check", sourceActor !== undefined, './modules/'+Globals.ModuleName+'/templates/npc-sheet.html' === target.sheet?.template, sourceActor)
+		if(sourceActor !== undefined && target.sheet?.template === './modules/'+Globals.ModuleName+'/templates/npc-sheet.html') {
+			let actor = <Actor>sourceActor;
+			// if both source and target have the same type then allow deleting original item.
+			// this is a safety check because some game systems may allow dropping on targets
+			// that don't actually allow the GM or player to see the inventory, making the item
+			// inaccessible.
+			console.log(target)
+			// @ts-ignore
+			let buyModifier: number = target.getFlag(Globals.ModuleName, "buyModifier")
+			if (!buyModifier === undefined) buyModifier = 0.5;
+
+
+			var html = "<p>"+(<Game>game).i18n.format('MERCHANTNPC.sell-items-player',{name: dragSource.data.name, price: currencyCalculator.priceInText(buyModifier * dragSource.data.data.price)})+"</p>";
+			html += '<p><input name="quantity-modifier" id="quantity-modifier" type="range" min="0" max="'+dragSource.data.data.quantity+'" value="1" class="slider"></p>';
+			html += '<p><label>'+(<Game>game).i18n.localize("MERCHANTNPC.quantity")+':</label> <input type=number min="0" max="'+dragSource.data.data.quantity+'" value="1" id="quantity-modifier-display"></p> <input type="hidden" id="quantity-modifier-price" value = "'+(buyModifier * dragSource.data.data.price)+'"/>';
+			html += '<script>var pmSlider = document.getElementById("quantity-modifier"); var pmDisplay = document.getElementById("quantity-modifier-display"); var total = document.getElementById("quantity-modifier-total"); var price = document.getElementById("quantity-modifier-price"); pmDisplay.value = pmSlider.value; pmSlider.oninput = function() { pmDisplay.value = this.value;  total.value =this.value * price.value; }; pmDisplay.oninput = function() { pmSlider.value = this.value; };</script>';
+			html += '<p>'+(<Game>game).i18n.localize("MERCHANTNPC.total")+'<input readonly type="text"  value="'+(buyModifier * dragSource.data.data.price)+'" id = "quantity-modifier-total"/> </p>' ;
+
+			let d = new Dialog({
+				title: (<Game>game).i18n.localize("MERCHANTNPC.sell-item"),
+				content: html,
+				buttons: {
+					one: {
+						icon: '<i class="fas fa-check"></i>',
+						label: (<Game>game).i18n.localize('MERCHANTNPC.sell'),
+						callback: () => {
+							// @ts-ignore
+							let quantity = document.getElementById("quantity-modifier").value;
+							let itemId = dragSource.data._id
+							// addItemToActor(dragSource,target,quantity);
+							merchantSheetNPC.moveItems(actor, target, [{ itemId, quantity }]);
+							// @ts-ignore
+							let value: number = document.getElementById("quantity-modifier-total").value;
+							// @ts-ignore
+							merchantSheetNPC.sellItem(target, dragSource, sourceActor, quantity, value)
+						}
+					},
+					two: {
+						icon: '<i class="fas fa-times"></i>',
+						label: (<Game>game).i18n.localize('MERCHANTNPC.cancel'),
+						callback: () => console.log("Merchant sheet | Price Modifier Cancelled")
+					}
+				},
+				default: "two",
+				close: () => console.log("Merchant sheet | Price Modifier Closed")
+			});
+			d.render(true);
+		}
+	}
+});
+
 
 export default MerchantSheet;

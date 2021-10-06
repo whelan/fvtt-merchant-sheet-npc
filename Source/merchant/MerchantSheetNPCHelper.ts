@@ -113,6 +113,12 @@ class MerchantSheetNPCHelper {
 		d.render(true);
 	}
 
+	public async sellItem(target: Actor, dragSource: any, sourceActor: Actor, quantity: number, totalItemsPrice: number) {
+		let sellerFunds = currencyCalculator.actorCurrency(sourceActor);
+		currencyCalculator.addAmountForActor(sourceActor,sellerFunds,totalItemsPrice)
+	}
+
+
 	private async transaction(seller: Actor, buyer: Actor, itemId: string, quantity: number) {
 		console.log(`Buying item: ${seller}, ${buyer}, ${itemId}, ${quantity}`);
 
@@ -227,7 +233,7 @@ class MerchantSheetNPCHelper {
 		}
 	}
 
-	private async moveItems(source: Actor, destination: Actor, items: any[]) {
+	public async moveItems(source: Actor, destination: Actor, items: any[]) {
 		const updates = [];
 		const deletes = [];
 		const additions = [];
