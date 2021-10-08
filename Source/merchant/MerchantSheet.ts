@@ -35,8 +35,6 @@ class MerchantSheet extends ActorSheet {
 			}
 			// if (!stackModifier) await this.actor.setFlag(m oduleName, "stackModifier", 20);
 
-			Logger.Log("basePrice: " + basePrice + " modifier: " + modifier)
-
 			return (Math.round(basePrice * modifier * 100) / 100).toLocaleString('en');
 		});
 
@@ -195,10 +193,10 @@ class MerchantSheet extends ActorSheet {
 		// // Buy Item
 		html.find('.item-buy').click(ev => this.buyItem(ev));
 		html.find('.item-buystack').click(ev => this.buyItem(ev, 1));
-		html.find('.item-delete').click(ev => this.deleteItem(ev));
-		html.find('.change-item-quantity').click(ev => this.changeQuantity(ev));
-		html.find('.change-item-price').click(ev => merchantSheetNPC.changePrice(ev));
-		html.find('.merchant-item .item-name').click(event => this.onItemSummary(event));
+		html.find('.item-delete').click(ev => merchantSheetNPC.deleteItem(ev, this.actor));
+		html.find('.change-item-quantity').click(ev => merchantSheetNPC.changeQuantity(ev, this.actor));
+		html.find('.change-item-price').click(ev => merchantSheetNPC.changePrice(ev, this.actor));
+		html.find('.merchant-item .item-name').click(event => merchantSheetNPC.onItemSummary(event, this.actor));
 
 	}
 
@@ -416,35 +414,12 @@ class MerchantSheet extends ActorSheet {
 			await this.actor.setFlag(Globals.ModuleName, targetKey, event.target.checked);
 		} else if (event.target.value) {
 			console.log(targetKey + " set to " + event.target.value);
-			console.log("A");
 			await this.actor.setFlag(Globals.ModuleName, targetKey, event.target.value);
 		} else {
 			console.log(targetKey + " set to " + event.target.value);
-			console.log("B");
 			await this.actor.unsetFlag(Globals.ModuleName, targetKey);
 		}
 	}
-
-
-	private onItemSummary(event: JQuery.ClickEvent) {
-		event.preventDefault();
-		let li = $(event.currentTarget).parents(".merchant-item"),
-			item = this.actor.items.get(li.data("item-id")),
-			// @ts-ignore
-			chatData = item.getChatData({secrets: this.actor.isOwner});
-		// Toggle summary
-		if ( li.hasClass("expanded") ) {
-			let summary = li.children(".merchant-item-summary");
-			summary.slideUp(200, () => summary.remove());
-		} else {
-
-			let div = $(`<div class="merchant-item-summary">${currencyCalculator.getDescription(chatData.description)}</div>`);
-			li.append(div.hide());
-			div.slideDown(200);
-		}
-		li.toggleClass("expanded");
-	}
-
 
 	private onCyclePermissionProficiency(event: JQuery.ClickEvent) {
 
@@ -593,54 +568,6 @@ class MerchantSheet extends ActorSheet {
 	}
 
 
-	async changeQuantity(event: JQuery.ClickEvent) {
-		event.preventDefault();
-		console.log("Merchant sheet | Change quantity");
-		let itemId = $(event.currentTarget).parents(".merchant-item").attr("data-item-id");
-
-		// @ts-ignore
-		const item: Item = this.actor.getEmbeddedDocument("Item", itemId);
-		const template_file = "modules/"+Globals.ModuleName+"/templates/change_quantity.html";
-		// @ts-ignore
-		const quantity = item.data.data.quantity;
-		const infinityActivated = (quantity === Number.MAX_VALUE?'checked':'');
-		// @ts-ignore
-		const template_data = { quantity: quantity,
-			infinity: infinityActivated
-		};
-		const rendered_html = await renderTemplate(template_file, template_data);
-		let d = new Dialog({
-			title: (<Game>game).i18n.localize('MERCHANTNPC.quantityDialog-title'),
-			content: rendered_html,
-			buttons: {
-				one: {
-					icon: '<i class="fas fa-check"></i>',
-					label: (<Game>game).i18n.localize('MERCHANTNPC.update'),
-					callback: () => {
-						// @ts-ignore
-						if (document.getElementById("quantity-infinity").checked) {
-							this.actor.updateEmbeddedDocuments("Item",[{_id: itemId, "data.quantity": Number.MAX_VALUE}])
-						} else {
-							// @ts-ignore
-							let newQuantity: number = document.getElementById("quantity-value").value;
-							this.actor.updateEmbeddedDocuments("Item",[{
-								_id: itemId,
-								"data.quantity": newQuantity
-							}])
-						}
-					}
-				},
-				two: {
-					icon: '<i class="fas fa-times"></i>',
-					label: (<Game>game).i18n.localize('MERCHANTNPC.cancel'),
-					callback: () => console.log("Merchant sheet | Change quantity Cancelled")
-				}
-			},
-			default: "two",
-			close: () => console.log("Merchant sheet | Change quantity Closed")
-		});
-		d.render(true);
-	}
 
 	async stackModifier(event: JQuery.ClickEvent) {
 		event.preventDefault();
@@ -806,15 +733,6 @@ class MerchantSheet extends ActorSheet {
 		return undefined;
 	}
 
-	private deleteItem(event: JQuery.ClickEvent) {
-		event.preventDefault();
-		console.log("Merchant sheet | Delete Item clicked");
-		let itemId: string;
-		// @ts-ignore
-		itemId = $(event.currentTarget).parents(".merchant-item").attr("data-item-id");
-		this.actor.deleteEmbeddedDocuments("Item", [itemId]);
-	}
-
 	async findSpellPack(pack: any) {
 		if (pack !== 'none') {
 			return (await (<Game>game).packs.filter(s => s.metadata.name === pack))[0]
@@ -874,7 +792,7 @@ class MerchantSheet extends ActorSheet {
 			return ui.notifications.error((<Game>game).i18n.localize("MERCHANTNPC.error-noToken"));
 		}
 		// @ts-ignore
-		if (!game.user.actorId) {
+		if (!(<Game>game).user.actorId) {
 			// @ts-ignore
 			return ui.notifications.error((<Game>game).i18n.localize("MERCHANTNPC.error-noCharacter"));
 		}

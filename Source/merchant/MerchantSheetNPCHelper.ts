@@ -90,13 +90,13 @@ class MerchantSheetNPCHelper {
 		merchantPermissions._updateObject(event, currentPermissions);
 	}
 
-	public async changePrice(event: JQuery.ClickEvent) {
+	public async changePrice(event: JQuery.ClickEvent, actor: Actor) {
 		event.preventDefault();
 		console.log("Merchant sheet | Change item price");
 		let itemId = $(event.currentTarget).parents(".merchant-item").attr("data-item-id");
 
 		// @ts-ignore
-		const item: Item = this.actor.getEmbeddedDocument("Item", itemId);
+		const item: Item = actor.getEmbeddedDocument("Item", itemId);
 		const template_file = "modules/"+Globals.ModuleName+"/templates/change_price.html";
 		const template_data = { price: currencyCalculator.getPriceFromItem(item)};
 		const rendered_html = await renderTemplate(template_file, template_data);
@@ -124,6 +124,85 @@ class MerchantSheetNPCHelper {
 		});
 		d.render(true);
 	}
+
+	public deleteItem(event: JQuery.ClickEvent, actor: Actor) {
+		event.preventDefault();
+		console.log("Merchant sheet | Delete Item clicked");
+		let itemId: string;
+		// @ts-ignore
+		itemId = $(event.currentTarget).parents(".merchant-item").attr("data-item-id");
+		actor.deleteEmbeddedDocuments("Item", [itemId]);
+	}
+
+	public onItemSummary(event: JQuery.ClickEvent, actor: Actor) {
+		event.preventDefault();
+		let li = $(event.currentTarget).parents(".merchant-item"),
+			item = actor.items.get(li.data("item-id")),
+			// @ts-ignore
+			chatData = item.getChatData({secrets: actor.isOwner});
+		// Toggle summary
+		if ( li.hasClass("expanded") ) {
+			let summary = li.children(".merchant-item-summary");
+			summary.slideUp(200, () => summary.remove());
+		} else {
+
+			let div = $(`<div class="merchant-item-summary">${currencyCalculator.getDescription(chatData.description)}</div>`);
+			li.append(div.hide());
+			div.slideDown(200);
+		}
+		li.toggleClass("expanded");
+	}
+
+
+	public async changeQuantity(event: JQuery.ClickEvent, actor: Actor) {
+		event.preventDefault();
+		console.log("Merchant sheet | Change quantity");
+		let itemId = $(event.currentTarget).parents(".merchant-item").attr("data-item-id");
+
+		// @ts-ignore
+		const item: Item = actor.getEmbeddedDocument("Item", itemId);
+		const template_file = "modules/"+Globals.ModuleName+"/templates/change_quantity.html";
+		// @ts-ignore
+		const quantity = item.data.data.quantity;
+		const infinityActivated = (quantity === Number.MAX_VALUE?'checked':'');
+		// @ts-ignore
+		const template_data = { quantity: quantity,
+			infinity: infinityActivated
+		};
+		const rendered_html = await renderTemplate(template_file, template_data);
+		let d = new Dialog({
+			title: (<Game>game).i18n.localize('MERCHANTNPC.quantityDialog-title'),
+			content: rendered_html,
+			buttons: {
+				one: {
+					icon: '<i class="fas fa-check"></i>',
+					label: (<Game>game).i18n.localize('MERCHANTNPC.update'),
+					callback: () => {
+						// @ts-ignore
+						if (document.getElementById("quantity-infinity").checked) {
+							actor.updateEmbeddedDocuments("Item",[{_id: itemId, "data.quantity": Number.MAX_VALUE}])
+						} else {
+							// @ts-ignore
+							let newQuantity: number = document.getElementById("quantity-value").value;
+							actor.updateEmbeddedDocuments("Item",[{
+								_id: itemId,
+								"data.quantity": newQuantity
+							}])
+						}
+					}
+				},
+				two: {
+					icon: '<i class="fas fa-times"></i>',
+					label: (<Game>game).i18n.localize('MERCHANTNPC.cancel'),
+					callback: () => console.log("Merchant sheet | Change quantity Cancelled")
+				}
+			},
+			default: "two",
+			close: () => console.log("Merchant sheet | Change quantity Closed")
+		});
+		d.render(true);
+	}
+
 
 	public async sellItem(target: Actor, dragSource: any, sourceActor: Actor, quantity: number, totalItemsPrice: number) {
 		let sellerFunds = currencyCalculator.actorCurrency(sourceActor);
