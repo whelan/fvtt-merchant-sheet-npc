@@ -40,8 +40,13 @@ class MerchantSheet extends ActorSheet {
 
 		Handlebars.registerHelper('merchantsheetstackweight', function (weight, qty) {
 			let showStackWeight = g.settings.get(Globals.ModuleName, "showStackWeight");
-			if (showStackWeight) {
-				return `/${(weight * qty).toLocaleString('en')}`;
+			if (showStackWeight && qty <= Number.MAX_VALUE) {
+				let value = weight * qty;
+				if (qty === Number.MAX_VALUE) {
+					return "/-"
+				} else {
+					return `/${value.toLocaleString('en')}`;
+				}
 			} else {
 				return ""
 			}
