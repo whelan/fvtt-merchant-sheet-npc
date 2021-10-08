@@ -8,6 +8,9 @@ import Globals from "../Globals";
 import CurrencyCalculator from "./systems/CurrencyCalculator";
 import Dnd5eCurrencyCalculator from "./systems/Dnd5eCurrencyCalculator";
 import MerchantSheet from "./MerchantSheet";
+import SfrpgCurrencyCalculator from "./systems/SfrpgCurrencyCalculator";
+import SwadeCurrencyCalculator from "./systems/SwadeCurrencyCalculator";
+import Logger from "../Utils/Logger";
 
 let currencyCalculator: CurrencyCalculator;
 
@@ -16,8 +19,17 @@ class MerchantSheetNPCHelper {
 	public systemCurrencyCalculator(): CurrencyCalculator {
 		if (currencyCalculator === null || currencyCalculator === undefined) {
 			let currencyModuleImport = (<Game>game).system.id.charAt(0).toUpperCase() + (<Game>game).system.id.slice(1) + "CurrencyCalculator";
+			Logger.Log("System currency to get: " + currencyModuleImport);
 			if (currencyModuleImport === 'Dnd5eCurrencyCalculator') {
 				currencyCalculator = new Dnd5eCurrencyCalculator();
+				currencyCalculator.initSettings();
+			} else if (currencyModuleImport === 'SfrpgCurrencyCalculator') {
+				// @ts-ignore
+				currencyCalculator = new SfrpgCurrencyCalculator();
+				Logger.Log("Getting star finder", currencyCalculator);
+				currencyCalculator.initSettings();
+			} else if (currencyModuleImport === 'SwadeCurrencyCalculator') {
+				currencyCalculator = new SwadeCurrencyCalculator();
 				currencyCalculator.initSettings();
 			} else {
 				currencyCalculator = new CurrencyCalculator();

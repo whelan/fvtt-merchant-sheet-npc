@@ -76,7 +76,7 @@ export default class CurrencyCalculator {
 		return "data.price";
 	}
 
-	// static prepareItems(itemTypes: Record<BaseItem["data"]["type"], Array<InstanceType<ConfiguredDocumentClass<typeof foundry.documents.BaseItem>>>>) {
-	// 	return {};
-	// }
+	getDescription(chatData: any): string {
+		return chatData.value;
+	}
 }

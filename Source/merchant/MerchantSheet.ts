@@ -437,7 +437,8 @@ class MerchantSheet extends ActorSheet {
 			let summary = li.children(".merchant-item-summary");
 			summary.slideUp(200, () => summary.remove());
 		} else {
-			let div = $(`<div class="merchant-item-summary">${chatData.description.value}</div>`);
+
+			let div = $(`<div class="merchant-item-summary">${currencyCalculator.getDescription(chatData.description)}</div>`);
 			li.append(div.hide());
 			div.slideDown(200);
 		}
