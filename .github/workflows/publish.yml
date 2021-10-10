@@ -24,7 +24,7 @@ jobs:
         uses: actions/setup-node@v1
         with:
           node-version: 12.x
-      - run: npm ci
+      - run: npm install
       - run: npm run build:prod
       - name: Archive dist folder
         uses: actions/upload-artifact@v2
