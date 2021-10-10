@@ -1,93 +1,96 @@
-import CurrencyCalculator from "./CurrencyCalculator.js";
+import {ItemData} from "@league-of-foundry-developers/foundry-vtt-types/src/foundry/common/data/data.mjs";
+import CurrencyCalculator from "./CurrencyCalculator";
 
 export default class SfrpgCurrencyCalculator extends CurrencyCalculator {
 
-    actorCurrency(actor) {
-        return actor.data.data.currency.credit;
+    actorCurrency(actor: Actor) {
+        // @ts-ignore
+		return actor.data.data.currency.credit;
     }
 
-    updateActorWithNewFunds(buyer, buyerFunds) {
+    updateActorWithNewFunds(buyer: Actor, buyerFunds: number) {
         buyer.update({ "data.currency.credit": buyerFunds });
     }
 
-    prepareItems(items) {
+	// @ts-ignore
+	public prepareItems(items: any) {
 
         console.log("Merchant Sheet | Prepare Features");
         console.log(items);
         // // Actions
         const features = {
             ammunition: {
-                label: game.i18n.localize("MERCHANTNPC.ammunition"),
+                label: (<Game>game).i18n.localize("MERCHANTNPC.ammunition"),
                 items: items.ammunition,
                 type: "ammunition"
             },
             augmentation: {
-                label: game.i18n.localize("MERCHANTNPC.augmentation"),
+                label: (<Game>game).i18n.localize("MERCHANTNPC.augmentation"),
                 items: items.augmentation,
                 type: "augmentation"
             },
             consumable: {
-                label: game.i18n.localize("MERCHANTNPC.consumable"),
+                label: (<Game>game).i18n.localize("MERCHANTNPC.consumable"),
                 items: items.consumable,
                 type: "consumable"
             },
             container: {
-                label: game.i18n.localize("MERCHANTNPC.container"),
+                label: (<Game>game).i18n.localize("MERCHANTNPC.container"),
                 items: items.container,
                 type: "container"
             },
             equipment: {
-                label: game.i18n.localize("MERCHANTNPC.equipment"),
+                label: (<Game>game).i18n.localize("MERCHANTNPC.equipment"),
                 items: items.equipment,
                 type: "equipment"
             },
             fusion: {
-                label: game.i18n.localize("MERCHANTNPC.fusion"),
+                label: (<Game>game).i18n.localize("MERCHANTNPC.fusion"),
                 items: items.fusion,
                 type: "fusion"
             },
             goods: {
-                label: game.i18n.localize("MERCHANTNPC.goods"),
+                label: (<Game>game).i18n.localize("MERCHANTNPC.goods"),
                 items: items.goods,
                 type: "goods"
             },
             hybrid: {
-                label: game.i18n.localize("MERCHANTNPC.hybrid"),
+                label: (<Game>game).i18n.localize("MERCHANTNPC.hybrid"),
                 items: items.hybrid,
                 type: "hybrid"
             },
             magic: {
-                label: game.i18n.localize("MERCHANTNPC.magic"),
+                label: (<Game>game).i18n.localize("MERCHANTNPC.magic"),
                 items: items.magic,
                 type: "magic"
             },
             shield: {
-                label: game.i18n.localize("MERCHANTNPC.shield"),
+                label: (<Game>game).i18n.localize("MERCHANTNPC.shield"),
                 items: items.shield,
                 type: "shield"
             },
             spell: {
-                label: game.i18n.localize("MERCHANTNPC.spell"),
+                label: (<Game>game).i18n.localize("MERCHANTNPC.spell"),
                 items: items.spell,
                 type: "spell"
             },
             technological: {
-                label: game.i18n.localize("MERCHANTNPC.technological"),
+                label: (<Game>game).i18n.localize("MERCHANTNPC.technological"),
                 items: items.technological,
                 type: "technological"
             },
             upgrade: {
-                label: game.i18n.localize("MERCHANTNPC.upgrade"),
+                label: (<Game>game).i18n.localize("MERCHANTNPC.upgrade"),
                 items: items.upgrade,
                 type: "Upgrade"
             },
             weapon: {
-                label: game.i18n.localize("MERCHANTNPC.weapon"),
+                label: (<Game>game).i18n.localize("MERCHANTNPC.weapon"),
                 items: items.weapon,
                 type: "weapon"
             },
             weaponAccessory: {
-                label: game.i18n.localize("MERCHANTNPC.weaponAccessory"),
+                label: (<Game>game).i18n.localize("MERCHANTNPC.weaponAccessory"),
                 items: items.weaponAccessory,
                 type: "weaponAccessory"
             },
@@ -116,14 +119,15 @@ export default class SfrpgCurrencyCalculator extends CurrencyCalculator {
         return features;
     }
 
-    compare() {
-        return function (a, b) {
-            return a.name.localeCompare(b.name);
-        };
-    }
+	public compare() {
+		return function (a: ItemData, b: ItemData) {
+			return a.name.localeCompare(b.name);
+		};
+	}
 
-    getPriceFromItem(item) {
-        return item.data.data.price;
+    getPriceFromItem(item: Item) {
+        // @ts-ignore
+		return item.data.data.price;
     }
 
     getPriceItemKey() {
