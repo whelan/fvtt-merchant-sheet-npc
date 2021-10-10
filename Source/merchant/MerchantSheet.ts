@@ -678,9 +678,9 @@ class MerchantSheet extends ActorSheet {
 		}
 		console.log("Merchant sheet | csvItems", records)
 		for (let csvItem of records) {
+			let price = 0;
 			if (csvItem.length > 0 && csvItem[nameCol].length > 0) {
 				let name = csvItem[nameCol].trim();
-				let price = 0
 				if (priceCol >= 0) {
 					price = csvItem[priceCol];
 				}
