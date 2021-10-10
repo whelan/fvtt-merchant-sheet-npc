@@ -710,18 +710,25 @@ class MerchantSheet extends ActorSheet {
 				for (let itemToStore of storeItems) {
 					// @ts-ignore
 					if (price > 0 && (itemToStore?.data?.price === undefined || itemToStore?.data?.price === 0)) {
+						// @ts-ignore
+
 						itemToStore.update({[currencyCalculator.getPriceItemKey()]: price});
 					}
 				}
+				// @ts-ignore
 				let existingItem = await actor.items.find(it => it.data.name == name);
 				//
+				// @ts-ignore
 				if (existingItem === undefined) {
+					// @ts-ignore
 					console.log("Create item on actor: ", storeItems)
+					// @ts-ignore
 					await actor.createEmbeddedDocuments("Item", storeItems);
 				}
 				else {
 					// @ts-ignore
 					let newQty = Number(existingItem.data.data.quantity) + Number(1);
+					// @ts-ignore
 					await existingItem.update({ "data.quantity": newQty});
 				}
 			}
