@@ -1,8 +1,6 @@
 name: Update Release's
 
 on:
-  push:
-    branches: [ main ]
   release:
     types: [published]
 
