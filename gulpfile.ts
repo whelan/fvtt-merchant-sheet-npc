@@ -263,7 +263,7 @@ const cleanDist = async () => {
             continue;
 
         Logger.Warn("Cleaning " + path.relative(process.cwd(), file));
-        await fs.promises.unlink(file);
+        // await fs.promises.unlink(file);
     }
 }
 
