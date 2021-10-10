@@ -6,7 +6,7 @@
 	"scripts": {
 		"package": "gulp publish --update",
 		"build": "gulp build --dbg && gulp link",
-		"build:prod": "gulp build && gulp link",
+		"build:prod": "gulp build",
 		"build:watch": "gulp watch",
 		"clean": "gulp clean && gulp link --clean"
 	},
