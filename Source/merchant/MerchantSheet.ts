@@ -708,7 +708,7 @@ class MerchantSheet extends ActorSheet {
 
 				}
 				for (let itemToStore of storeItems) {
-					if (price > 0 && (itemToStore.data.price === undefined || itemToStore.data.price === 0)) {
+					if (price > 0 && (itemToStore.data?.price === undefined || itemToStore.data?.price === 0)) {
 						itemToStore.update({[currencyCalculator.getPriceItemKey()]: price});
 					}
 				}
