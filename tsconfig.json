@@ -32,8 +32,8 @@
     // "noResolve": true,                                /* Disallow `import`s, `require`s or `<reference>`s from expanding the number of files TypeScript should add to a project. */
 
     /* JavaScript Support */
-//     "allowJs": true,                                  /* Allow JavaScript files to be a part of your program. Use the `checkJS` option to get errors from these files. */
-//     "checkJs": false,                                  /* Enable error reporting in type-checked JavaScript files. */
+     "allowJs": true,                                  /* Allow JavaScript files to be a part of your program. Use the `checkJS` option to get errors from these files. */
+     "checkJs": false,                                  /* Enable error reporting in type-checked JavaScript files. */
     // "maxNodeModuleJsDepth": 1,                        /* Specify the maximum folder depth used for checking JavaScript files from `node_modules`. Only applicable with `allowJs`. */
 
     /* Emit */
@@ -61,8 +61,8 @@
     // "declarationDir": "./",                           /* Specify the output directory for generated declaration files. */
 
     /* Interop Constraints */
-    // "isolatedModules": true,                          /* Ensure that each file can be safely transpiled without relying on other imports. */
-    // "allowSyntheticDefaultImports": true,             /* Allow 'import x from y' when a module doesn't have a default export. */
+     "isolatedModules": true,                          /* Ensure that each file can be safely transpiled without relying on other imports. */
+     "allowSyntheticDefaultImports": true,             /* Allow 'import x from y' when a module doesn't have a default export. */
     "esModuleInterop": true,                             /* Emit additional JavaScript to ease support for importing CommonJS modules. This enables `allowSyntheticDefaultImports` for type compatibility. */
     // "preserveSymlinks": true,                         /* Disable resolving symlinks to their realpath. This correlates to the same flag in node. */
     "forceConsistentCasingInFileNames": true,            /* Ensure that casing is correct in imports. */
@@ -92,8 +92,8 @@
     // "skipDefaultLibCheck": true,                      /* Skip type checking .d.ts files that are included with TypeScript. */
     "skipLibCheck": true                                 /* Skip type checking all .d.ts files. */
   },
-  //"include": [
-  //  "./Source/**/*.ts"
-  //]
-  "exclude": ["gulpfile.ts"]
+  "include": [
+    "./Source/**/*.ts"
+  ],
+  "exclude": ["gulpfile.ts","dist"]
 }

@@ -11,6 +11,7 @@ import MerchantSettings from "../Utils/MerchantSettings";
 
 let currencyCalculator: CurrencyCalculator;
 let merchantSheetNPC = new MerchantSheetNPCHelper();
+const csvParser = require('csv-parse/lib/sync');
 
 class MerchantSheet extends ActorSheet {
 
@@ -40,9 +41,9 @@ class MerchantSheet extends ActorSheet {
 
 		Handlebars.registerHelper('merchantsheetstackweight', function (weight, qty) {
 			let showStackWeight = g.settings.get(Globals.ModuleName, "showStackWeight");
-			if (showStackWeight && qty <= Number.MAX_VALUE) {
+			if (showStackWeight) {
 				let value = weight * qty;
-				if (qty === Number.MAX_VALUE) {
+				if (qty === Number.MAX_VALUE || value > 1000000000) {
 					return "/-"
 				} else {
 					return `/${value.toLocaleString('en')}`;
@@ -609,6 +610,7 @@ class MerchantSheet extends ActorSheet {
 
 
 	async csvImport(event: JQuery.ClickEvent) {
+
 		event.preventDefault();
 
 		const template_file = "modules/"+Globals.ModuleName+"/templates/csv-import.html";
@@ -660,21 +662,11 @@ class MerchantSheet extends ActorSheet {
 	}
 
 	async createItemsFromCSV(actor: Actor, csvInput: any) {
-		let split = csvInput.input.split('\n');
-		let csvItems = split.map(function mapCSV(text: string) {
-			let p = '', row = [''], ret = [row], i = 0, r = 0, s = !0, l;
-			for (l of text) {
-				if ('"' === l) {
-					if (s && l === p) row[i] += l;
-					s = !s;
-				} else if ((',' === l || '|' === l) && s) l = row[++i] = '';
-				else if ('\n' === l && s) {
-					if ('\r' === p) row[i] = row[i].slice(0, -1);
-					row = ret[++r] = [l = '']; i = 0;
-				} else row[i] += l;
-				p = l;
-			}
-			return ret;
+
+		const records = csvParser(csvInput.input,{
+			columns: false,
+			autoParse: true,
+			skip_empty_lines: true
 		});
 
 		let itemPack = (await (<Game>game).packs.filter(s => s.metadata.name === (<Game>game).settings.get(Globals.ModuleName, "itemCompendium")))[0];
@@ -684,14 +676,13 @@ class MerchantSheet extends ActorSheet {
 		if (csvInput.priceCol !== undefined) {
 			priceCol = Number(csvInput.priceCol) - 1
 		}
-		console.log("Merchant sheet | csvItems", csvItems)
-		for (let csvItem of csvItems) {
-			if (csvItem[0].length > 0 && csvItem[0][0].length > 0) {
-				let item = csvItem[0];
-				let name = item[nameCol].trim();
+		console.log("Merchant sheet | csvItems", records)
+		for (let csvItem of records) {
+			if (csvItem.length > 0 && csvItem[nameCol].length > 0) {
+				let name = csvItem[nameCol].trim();
 				let price = 0
 				if (priceCol >= 0) {
-					price = item[priceCol];
+					price = csvItem[priceCol];
 				}
 				let storeItems = [];
 				if (name.startsWith(csvInput.scrollStart) && spellPack !== undefined) {

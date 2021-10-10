@@ -16,7 +16,7 @@ class MerchantSettings {
 				default: true,
 				type: Boolean
 			}],
-			["showStackWeight", {
+				["showStackWeight", {
 				name: "Show Stack Weight?",
 				hint: "If enabled, shows the weight of the entire stack next to the item weight",
 				scope: "world",

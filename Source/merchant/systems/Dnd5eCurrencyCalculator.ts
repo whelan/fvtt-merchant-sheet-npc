@@ -43,7 +43,6 @@ export default class Dnd5eCurrencyCalculator extends CurrencyCalculator {
 		const scrollItem = fromUuid(scrollUuid);
 		// @ts-ignore
 		const scrollData = scrollItem.data;
-		delete scrollData._id;
 
 		// Split the scroll description into an intro paragraph and the remaining details
 		const scrollDescription = scrollData.data.description.value;

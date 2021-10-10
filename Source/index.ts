@@ -1,11 +1,11 @@
 import Logger from "./Utils/Logger";
 import MerchantSettings from "./Utils/MerchantSettings";
 import MerchantSheet from "./merchant/MerchantSheet";
-import TransactionHelper from "./Utils/TransactionHelper";
 
 import PreloadTemplates from "./PreloadTemplates";
 import Globals from "./Globals";
 import MerchantSheetNPCHelper from "./merchant/MerchantSheetNPCHelper";
+import csvParser from "csv-parse/lib/sync";
 
 
 Hooks.once("init", async () => {
@@ -13,7 +13,18 @@ Hooks.once("init", async () => {
 });
 
 Hooks.once("setup", () => {
-   Logger.Log("Template module is being setup.")
+	const csvParser = require('csv-parse/lib/sync');
+
+	const csv = 'type,part\r\nunicorn,horn\r\nrainbow,pink';
+//
+	const records = csvParser(csv, {
+		columns: false,
+		autoParse: true,
+		skip_empty_lines: true
+	});
+	console.log(records);
+
+	Logger.Log("Template module is being setup.")
 });
 
 Hooks.once("ready", () => {
@@ -35,6 +46,20 @@ Hooks.once("ready", () => {
 
 });
 
+// const csv = require('csv-parser')
+// const fs = require('fs')
+// const results = [];
+//
+// fs.createReadStream('data.csv')
+// 	.pipe(csv())
+// 	.on('data', (data) => results.push(data))
+// 	.on('end', () => {
+// 		console.log(results);
+// 		// [
+// 		//   { NAME: 'Daffy Duck', AGE: '24' },
+// 		//   { NAME: 'Bugs Bunny', AGE: '22' }
+// 		// ]
+// 	});
 Actors.registerSheet("core", MerchantSheet, {
 	label: "merchant NPC",
 	types: ["npc"],
