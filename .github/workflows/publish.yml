@@ -15,7 +15,7 @@ jobs:
         id: manifest_link_version
         uses: microsoft/variable-substitution@v1
         with:
-          files: './src/module.json'
+          files: './Source/module.json'
         env:
           version: ${{github.event.release.tag_name}}
           manifest: https://github.com/${{github.repository}}/releases/latest/download/module.json
