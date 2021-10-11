@@ -398,6 +398,22 @@ class MerchantSheetNPCHelper {
 		return results;
 	}
 
+	public initModifiers(actor: Actor) {
+		let priceModifier = actor.getFlag(Globals.ModuleName, "priceModifier");
+		let sellModifier = actor.getFlag(Globals.ModuleName, "buyModifier");
+		let sellerStack = actor.getFlag(Globals.ModuleName, "stackModifier");
+		if (priceModifier === undefined) {
+			actor.setFlag(Globals.ModuleName, "priceModifier", 1.0);
+		}
+		if (sellModifier === undefined) {
+			actor.setFlag(Globals.ModuleName, "buyModifier", 0.5);
+		}
+		if (sellerStack === undefined) {
+			actor.setFlag(Globals.ModuleName, "stackModifier", 20);
+		}
+		actor.render();
+	}
+
 
 }
 

@@ -574,7 +574,6 @@ class MerchantSheet extends ActorSheet {
 	}
 
 
-
 	async stackModifier(event: JQuery.ClickEvent) {
 		event.preventDefault();
 
@@ -947,6 +946,19 @@ class SellerQuantityDialog extends Dialog {
 		});
 	}
 }
+
+Hooks.on('updateActor', (actor: Actor, data: any) => {
+	if (actor.getFlag("core", "sheetClass") === 'core.o') {
+		merchantSheetNPC.initModifiers(actor);
+	}
+});
+
+Hooks.on('createActor', (actor: Actor, data: any) => {
+	if (actor.sheet?.template === './modules/'+Globals.ModuleName+'/templates/npc-sheet.html') {
+		merchantSheetNPC.initModifiers(actor);
+	}
+});
+
 
 Hooks.on('dropActorSheetData',(target: Actor,sheet: any,dragSource: any,user: any)=>{
 	// @ts-ignore

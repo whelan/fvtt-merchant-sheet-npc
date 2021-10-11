@@ -1,3 +1,6 @@
+## Version 2.0.1
+* Fixes the problem with NaN issue on merchant sheet #59
+
 ## Version 2.0.0
 * Changed to typescript. After upgrade remember to select the sheet again on the tokens
 * Added a csv parser, remember to not have header field in the pasted content
