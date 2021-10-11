@@ -1,4 +1,10 @@
-## Version 1.5.2
+## Version 2.0.0
+* Changed to typescript. After upgrade remember to select the sheet again on the tokens
+* Added a csv parser, remember to not have header field in the pasted content
+* Fixes for dnd5e 1.5, This version does not support dnd5e 1.4
+* Fixes unlimited quantity and a weight less than 1 glitch #50
+
+## Version 1.5.3
 * Added missing translations in german and danish
 
 ## Version 1.5.2
