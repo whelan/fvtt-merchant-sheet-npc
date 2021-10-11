@@ -350,18 +350,18 @@ export default class Dnd5eCurrencyCalculator extends CurrencyCalculator {
             default: false,
             type: Boolean
         });
+$
 		conversionRates = {"pp": 1,
 			// @ts-ignore
-			"gp": CONFIG.DND5E.currencyConversion.gp.each,
+			"gp": CONFIG.DND5E.currencies.gp.conversion.each,
 			// @ts-ignore
-			"ep": CONFIG.DND5E.currencyConversion.ep.each,
+			"ep": CONFIG.DND5E.currencies.ep.conversion.each,
 			// @ts-ignore
-			"sp": CONFIG.DND5E.currencyConversion.sp.each,
+			"sp": CONFIG.DND5E.currencies.sp.conversion.each,
 			// @ts-ignore
-			"cp": CONFIG.DND5E.currencyConversion.cp.each
-	};
-
-	super.initSettings();
+			"cp": CONFIG.DND5E.currencies.cp.conversion.each
+		};
+		super.initSettings();
     }
 
     getPriceFromItem(item: Item) {
