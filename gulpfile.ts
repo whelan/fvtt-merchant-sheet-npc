@@ -171,7 +171,7 @@ const buildLess = () => {
 }
 
 const copyFiles = async() => {
-    const statics = ["lang", "fonts", "assets", "templates", "packs", "module.json", "system.json"];
+    const statics = ["lang", "fonts", "assets", "templates", "packs", "module.json"];
 
     const recursiveFileSearch = (dir: string, callback: (err: NodeJS.ErrnoException | null, res: Array<string>) => void) => {
         let results: Array<string> = [];
@@ -206,7 +206,7 @@ const copyFiles = async() => {
     try {
         for (const entity of statics) {
             let p = null;
-            if (entity.endsWith("module.json")) {
+            if (entity.endsWith("module.json") || entity.endsWith("templates") || entity.endsWith("lang")) {
                 p = path.join("Source", entity);
             } else {
                 p = path.join("Assets", entity);
@@ -218,7 +218,7 @@ const copyFiles = async() => {
                             throw err;
 
                         for (const file of res) {
-                            const newFile = path.join("dist", path.relative(process.cwd(), file.replace(/[Aa]ssets[\/\\]/g, '')));
+                            const newFile = path.join("dist", path.relative(process.cwd(), file.replace(/[S]ource[\/\\]/g, '')));
                             Logger.Ok("Copying file: " + newFile);
                             const folder = path.parse(newFile).dir;
                             if (!fs.existsSync(folder))
@@ -259,11 +259,11 @@ const cleanDist = async () => {
 
     await getFiles(path.resolve("./dist"));
     for(const file of files) {
-        if (file.endsWith("bundle.js") || file.endsWith(".css") || file.endsWith("module.json"))
+        if (file.endsWith("bundle.js") || file.endsWith(".css") || file.endsWith("module.json") || file.endsWith("templates") || file.endsWith("lang"))
             continue;
 
         Logger.Warn("Cleaning " + path.relative(process.cwd(), file));
-        // await fs.promises.unlink(file);
+        await fs.promises.unlink(file);
     }
 }
 
@@ -330,8 +330,6 @@ const linkUserData = async () => {
     try {
         if (fs.existsSync(path.resolve(".", "dist", "module.json")) || fs.existsSync(path.resolve(".", "Source", "module.json"))) {
             destDir = "modules";
-        } else if (fs.existsSync(path.resolve(".", "dist", "system.json")) || fs.existsSync(path.resolve(".", "Source", "system.json"))) {
-            destDir = "systems";
         } else {
             throw Error(`Could not find module.json or system.json`);
         }
@@ -490,7 +488,7 @@ const updateManifest = (cb: any) => {
         const result = `${rawURL}/v${manifest.file.version}/package/${manifest.file.name}-v${manifest.file.version}.zip`;
 
         manifest.file.url = repoURL;
-        manifest.file.manifest = `${rawURL}/master/${manifestRoot}/${manifest.name}`;
+        manifest.file.manifest = `${rawURL}/main/${manifestRoot}/${manifest.name}`;
         manifest.file.download = result;
 
         const prettyProjectJson = stringify(manifest.file, {
