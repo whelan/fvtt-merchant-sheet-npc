@@ -626,21 +626,18 @@ class MerchantSheet extends ActorSheet {
 					icon: '<i class="fas fa-check"></i>',
 					label: (<Game>game).i18n.localize('MERCHANTNPC.update'),
 					callback: () => {
-						// @ts-ignore
-						let pack = document.getElementById("csv-pack-name").value;
-						// @ts-ignore
-						let scrollStart = document.getElementById("csv-scroll-name-value").value;
-						// @ts-ignore
-						let priceCol = document.getElementById("csv-price-value").value;
-						// @ts-ignore
-						let nameCol = document.getElementById("csv-name-value").value;
-						// @ts-ignore
-						let input = document.getElementById("csv").value;
+						let pack = (<HTMLInputElement>document.getElementById("csv-pack-name")).value;
+						let scrollStart = (<HTMLInputElement>document.getElementById("csv-scroll-name-value")).value;
+						let priceCol = (<HTMLInputElement>document.getElementById("csv-price-value")).value;
+						let nameCol = (<HTMLInputElement>document.getElementById("csv-name-value")).value;
+						let skip = (<HTMLInputElement>document.getElementById("csv-skip-value")).checked;
+						let input = (<HTMLInputElement>document.getElementById("csv")).value;
 						let csvInput = {
 							pack: pack,
 							scrollStart: scrollStart,
 							priceCol: priceCol,
 							nameCol: nameCol,
+							skip: skip,
 							input: input
 						}
 						// @ts-ignore
@@ -661,11 +658,15 @@ class MerchantSheet extends ActorSheet {
 	}
 
 	async createItemsFromCSV(actor: Actor, csvInput: any) {
-
+		let startLine = 1;
+		if (csvInput.skip) {
+			startLine++;
+		}
 		const records = csvParser(csvInput.input,{
 			columns: false,
 			autoParse: true,
-			skip_empty_lines: true
+			skip_empty_lines: true,
+			from_line: startLine
 		});
 
 		let itemPack = (await (<Game>game).packs.filter(s => s.metadata.name === (<Game>game).settings.get(Globals.ModuleName, "itemCompendium")))[0];
