@@ -59,8 +59,8 @@ class MerchantSheet extends ActorSheet {
 			return (Math.round(weight * 1e5) / 1e5).toString();
 		});
 
-		Handlebars.registerHelper('itemInfinity', function (qty) {
-			return (qty === Number.MAX_VALUE)
+		Handlebars.registerHelper('itemInfinity', function (qty,infinity) {
+			return infinity || (qty === Number.MAX_VALUE)
 		});
 
 		return "./modules/" + Globals.ModuleName + "/templates/npc-sheet.html";
@@ -101,6 +101,7 @@ class MerchantSheet extends ActorSheet {
 		let priceModifier: number = 1.0;
 		let moduleName = "merchantsheetnpc";
 		priceModifier = <number> this.actor.getFlag(moduleName, "priceModifier");
+		sheetData.infinity = <boolean> this.actor.getFlag(moduleName, "infinity");
 
 		let stackModifier: number = 20;
 		stackModifier = <number> this.actor.getFlag(moduleName, "stackModifier");
@@ -862,13 +863,13 @@ class MerchantSheet extends ActorSheet {
 
 		event.preventDefault();
 
-		const template_file = "modules/"+Globals.ModuleName+"/templates/changeQuantity.html";
+		const template_file = "modules/"+Globals.ModuleName+"/templates/change_all_quantity.html";
 
 		const template_data = {};
 		const rendered_html = await renderTemplate(template_file, template_data);
 
 
-		function getElementById(elementId: String): HTMLInputElement {
+		function getElementById(elementId: string): HTMLInputElement {
 			return <HTMLInputElement>document.getElementById(elementId);
 		}
 
@@ -880,11 +881,7 @@ class MerchantSheet extends ActorSheet {
 					icon: '<i class="fas fa-check"></i>',
 					label: (<Game>game).i18n.localize('MERCHANTNPC.update'),
 					callback: () => {
-						let pack = getElementById("csv-pack-name").value;
-						let scrollStart = getElementById("csv-scroll-name-value").value;
-						let priceCol = getElementById("csv-price-value").value;
-						let nameCol = getElementById("csv-name-value").value;
-						let quantityChanger = new QuantityChanger(getElementById("infinity").checked,getElementById("quantity").value);
+						let quantityChanger = new QuantityChanger(getElementById("quantity-infinity").checked,getElementById("quantity-value").value);
 						this.updateQuantityForAllItems(this.actor, quantityChanger)
 
 					}
@@ -906,7 +903,7 @@ class MerchantSheet extends ActorSheet {
 		if (quantityChanger.infinity) {
 			return;
 		}
-		
+
 
 	}
 }

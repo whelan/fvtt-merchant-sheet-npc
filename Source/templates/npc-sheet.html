@@ -30,7 +30,7 @@
 			</div>
 			<div class="charbutton">
 				<button type="button" class="change-quantity-all" type="change-quantity-all" name="change-quantity-all" value=""><i
-					class="fa fa-plus-square-o"></i>Change quantity for all items
+					class="fa fa-box"></i>Set quantity for items
 				</button>
 			</div>
 		</div>
@@ -107,7 +107,7 @@
 						<a class="item-control change-item-quantity"
 						   title="{{localize 'MERCHANTNPC.change-item-quantity-help'}}">
 							<i class="fas fa-box"></i>
-							{{#if (itemInfinity item.data.data.quantity)}}
+							{{#if (itemInfinity item.data.data.quantity ../../infinity)}}
 							<i class="fas fa-infinity"></i>
 							{{else}}
 							{{item.data.data.quantity}}
@@ -115,7 +115,7 @@
 						</a>
 						{{else}}
 						<i class="fas fa-box"></i>
-						{{#if (itemInfinity item.data.data.quantity)}}
+						{{#if (itemInfinity item.data.data.quantity ../../infinity)}}
 						<i class="fas fa-infinity"></i>
 						{{else}}
 						{{item.data.data.quantity}}
