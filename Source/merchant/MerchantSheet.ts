@@ -8,6 +8,7 @@ import {PropertiesToSource} from "@league-of-foundry-developers/foundry-vtt-type
 import CurrencyCalculator from "./systems/CurrencyCalculator";
 import Dnd5eCurrencyCalculator from "./systems/Dnd5eCurrencyCalculator";
 import MerchantSettings from "../Utils/MerchantSettings";
+import QuantityChanger from "./model/QuantityChanger";
 
 let currencyCalculator: CurrencyCalculator;
 let merchantSheetNPC = new MerchantSheetNPCHelper();
@@ -192,6 +193,7 @@ class MerchantSheet extends ActorSheet {
 		html.find('.buy-modifier').click(ev => this.sellToMerchantModifier(ev));
 		html.find('.stack-modifier').click(ev => this.stackModifier(ev));
 		html.find('.csv-import').click(ev => this.csvImport(ev));
+		html.find('.change-quantity-all').click(ev => this.changeQuantityForItems(ev));
 
 		html.find('.merchant-settings').change(ev => this.merchantSettingChange(ev));
 		// html.find('.update-inventory').click(ev => this.merchantInventoryUpdate(ev));
@@ -856,6 +858,57 @@ class MerchantSheet extends ActorSheet {
 	}
 
 
+	private async changeQuantityForItems(event: JQuery.ClickEvent<any, null, any, any>) {
+
+		event.preventDefault();
+
+		const template_file = "modules/"+Globals.ModuleName+"/templates/changeQuantity.html";
+
+		const template_data = {};
+		const rendered_html = await renderTemplate(template_file, template_data);
+
+
+		function getElementById(elementId: String): HTMLInputElement {
+			return <HTMLInputElement>document.getElementById(elementId);
+		}
+
+		let d = new Dialog({
+			title: (<Game>game).i18n.localize('MERCHANTNPC.quantity'),
+			content: rendered_html,
+			buttons: {
+				one: {
+					icon: '<i class="fas fa-check"></i>',
+					label: (<Game>game).i18n.localize('MERCHANTNPC.update'),
+					callback: () => {
+						let pack = getElementById("csv-pack-name").value;
+						let scrollStart = getElementById("csv-scroll-name-value").value;
+						let priceCol = getElementById("csv-price-value").value;
+						let nameCol = getElementById("csv-name-value").value;
+						let quantityChanger = new QuantityChanger(getElementById("infinity").checked,getElementById("quantity").value);
+						this.updateQuantityForAllItems(this.actor, quantityChanger)
+
+					}
+				},
+				two: {
+					icon: '<i class="fas fa-times"></i>',
+					label: (<Game>game).i18n.localize('MERCHANTNPC.cancel'),
+					callback: () => console.log("Merchant sheet | Stack Modifier Cancelled")
+				}
+			},
+			default: "two",
+			close: () => console.log("Merchant sheet | Stack Modifier Closed")
+		});
+		d.render(true);
+	}
+
+	private updateQuantityForAllItems(actor: Actor, quantityChanger: QuantityChanger) {
+		actor.setFlag(Globals.ModuleName, "infinity", quantityChanger.infinity);
+		if (quantityChanger.infinity) {
+			return;
+		}
+		
+
+	}
 }
 class QuantityDialog extends Dialog {
 	constructor(callback: any, options: any) {
