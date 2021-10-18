@@ -40,11 +40,11 @@ class MerchantSheet extends ActorSheet {
 			return (Math.round(basePrice * modifier * 100) / 100).toLocaleString('en');
 		});
 
-		Handlebars.registerHelper('merchantsheetstackweight', function (weight, qty) {
+		Handlebars.registerHelper('merchantsheetstackweight', function (weight, qty, infinity) {
 			let showStackWeight = g.settings.get(Globals.ModuleName, "showStackWeight");
 			if (showStackWeight) {
 				let value = weight * qty;
-				if (qty === Number.MAX_VALUE || value > 1000000000) {
+				if (qty === Number.MAX_VALUE || value > 1000000000 || infinity) {
 					return "/-"
 				} else {
 					return `/${value.toLocaleString('en')}`;

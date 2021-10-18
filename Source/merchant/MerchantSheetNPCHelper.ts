@@ -336,7 +336,7 @@ class MerchantSheetNPCHelper {
 			// @ts-ignore
 			let quantity = Number(i.quantity);
 			let item = source.getEmbeddedDocument("Item", itemId);
-
+			let infinity = source.getFlag(Globals.ModuleName,"infinity");
 			// Move all items if we select more than the quantity.
 			if (item !== undefined && item.data.data.quantity < quantity) {
 				// @ts-ignore
@@ -345,7 +345,7 @@ class MerchantSheetNPCHelper {
 
 			let newItem = duplicate(item);
 			// @ts-ignore
-			const update = { _id: itemId, "data.quantity": item.data.data.quantity >= (Number.MAX_VALUE-10000) ? Number.MAX_VALUE : item.data.data.quantity - quantity };
+			const update = { _id: itemId, "data.quantity": item.data.data.quantity >= Number.MAX_VALUE-10000 || infinity ? Number.MAX_VALUE : item.data.data.quantity - quantity };
 			let allowNoTargetGM = (<Game>game).settings.get(Globals.ModuleName, "allowNoGM")
 
 			if (update["data.quantity"] === 0 && !allowNoTargetGM) {
