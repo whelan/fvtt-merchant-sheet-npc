@@ -864,14 +864,11 @@ class MerchantSheet extends ActorSheet {
 		event.preventDefault();
 
 		const template_file = "modules/"+Globals.ModuleName+"/templates/change_all_quantity.html";
-
-		const template_data = {};
+		Logger.Log("infinity: ", this.actor.getFlag(Globals.ModuleName,"infinity"), this.actor)
+		const template_data = {infinity: this.actor.getFlag(Globals.ModuleName,"infinity")? "checked":""};
 		const rendered_html = await renderTemplate(template_file, template_data);
 
 
-		function getElementById(elementId: string): HTMLInputElement {
-			return <HTMLInputElement>document.getElementById(elementId);
-		}
 
 		let d = new Dialog({
 			title: (<Game>game).i18n.localize('MERCHANTNPC.quantity'),
@@ -881,7 +878,7 @@ class MerchantSheet extends ActorSheet {
 					icon: '<i class="fas fa-check"></i>',
 					label: (<Game>game).i18n.localize('MERCHANTNPC.update'),
 					callback: () => {
-						let quantityChanger = new QuantityChanger(getElementById("quantity-infinity").checked,getElementById("quantity-value").value);
+						let quantityChanger = new QuantityChanger(MerchantSheetNPCHelper.getElementById("quantity-infinity").checked,MerchantSheetNPCHelper.getElementById("quantity-value").value);
 						this.updateQuantityForAllItems(this.actor, quantityChanger)
 
 					}

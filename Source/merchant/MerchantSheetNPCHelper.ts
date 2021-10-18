@@ -16,6 +16,10 @@ let currencyCalculator: CurrencyCalculator;
 
 class MerchantSheetNPCHelper {
 
+	public static getElementById(elementId: string): HTMLInputElement {
+		return <HTMLInputElement>document.getElementById(elementId);
+	}
+
 	public systemCurrencyCalculator(): CurrencyCalculator {
 		if (currencyCalculator === null || currencyCalculator === undefined) {
 			let currencyModuleImport = (<Game>game).system.id.charAt(0).toUpperCase() + (<Game>game).system.id.slice(1) + "CurrencyCalculator";
