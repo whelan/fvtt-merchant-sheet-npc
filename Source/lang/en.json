@@ -80,5 +80,6 @@
   "MERCHANTNPC.csv-spell-compendium-field": "Which compendium is the spell compendium",
   "MERCHANTNPC.csv-input": "Paste the CSV content here",
   "MERCHANTNPC.pickItemCompendium": "Which compendium should items to generate come from",
-  "MERCHANTNPC.pickItemCompendium_hint": "This will be used for CSV import to take the item from that and find the item from the compendium. At a later stage Randomizer will be added"
+  "MERCHANTNPC.pickItemCompendium_hint": "This will be used for CSV import to take the item from that and find the item from the compendium. At a later stage Randomizer will be added",
+  "MERCHANTNPC.invalidQuantity": "It is not possible to buy or sell items that does not have a quantity"
 }

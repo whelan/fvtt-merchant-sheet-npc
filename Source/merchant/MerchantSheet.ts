@@ -808,7 +808,10 @@ class MerchantSheet extends ActorSheet {
 		let stackModifier = $(event.currentTarget).parents(".merchant-item").attr("data-item-stack");
 		// @ts-ignore
 		const item: ItemData = this.actor.getEmbeddedDocument("Item", itemId);
-
+		// @ts-ignore
+		if (item.data.quantity <= 0) {
+			return (ui.notifications || new Notifications).error((<Game>game).i18n.localize("MERCHANTNPC.invalidQuantity"));
+		}
 		const packet = {
 			type: "buy",
 			// @ts-ignore
@@ -900,8 +903,22 @@ class MerchantSheet extends ActorSheet {
 		if (quantityChanger.infinity) {
 			return;
 		}
-
-
+		Logger.Log("Changing quantity")
+		let itemQtyFormula = MerchantSheetNPCHelper.getElementById("quantity-value").value
+		let items = actor.items;
+		let updateItems: any[] = [];
+		items.forEach(item => {
+			let itemQtyRoll = new Roll(itemQtyFormula);
+			itemQtyRoll.roll();
+			updateItems.push({
+				_id: item.id,
+				"data.quantity": itemQtyRoll.total
+			});
+		});
+		// @ts-ignore
+		Logger.Log("Changing quantity for item: ", updateItems);
+		// @ts-ignore
+		actor.updateEmbeddedDocuments("Item",updateItems);
 	}
 }
 class QuantityDialog extends Dialog {
@@ -1016,6 +1033,10 @@ Hooks.on('dropActorSheetData',(target: Actor,sheet: any,dragSource: any,user: an
 	if(dragSource.type=="Item" && dragSource.actorId) {
 		if(!target.data._id) {
 			console.warn("Merchant sheet | target has no data._id?",target);
+			return;
+		}
+		if (dragSource.data.data.quantity <= 0) {
+			(ui.notifications || new Notifications).error((<Game>game).i18n.localize("MERCHANTNPC.invalidQuantity"));
 			return;
 		}
 		if(target.data._id ==  dragSource.actorId) return;  // ignore dropping on self

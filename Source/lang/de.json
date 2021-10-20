@@ -79,5 +79,6 @@
   "MERCHANTNPC.csv-spell-compendium-field": "Welches Kompendium ist das Zauberspruch-Kompendium",
   "MERCHANTNPC.csv-input": "Füg hier den Inhalt der CSV ein",
   "MERCHANTNPC.pickItemCompendium": "Welches Kompendium soll für die Generierung von Gegenständen verwendet werden",
-  "MERCHANTNPC.pickItemCompendium_hint": "Der CSV-Import entnimmt die Gegenstände diesem Kompendium. Zu einem späteren Zeitpunkt wird auch eine zufällige Auswahl möglich sein."
+  "MERCHANTNPC.pickItemCompendium_hint": "Der CSV-Import entnimmt die Gegenstände diesem Kompendium. Zu einem späteren Zeitpunkt wird auch eine zufällige Auswahl möglich sein.",
+  "MERCHANTNPC.invalidQuantity": "Es ist nicht möglich, Gegenstand zu kaufen oder zu verkaufen, die keine Menge haben"
 }
