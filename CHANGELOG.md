@@ -1,3 +1,8 @@
+## Version 2.1.0
+* Changed button layout 
+* Added a fast way to set quantities for all items. Possible to set infinity for all items in store
+* Fixed bug with trying to sell or buy an item that have a quantity of 0. 
+
 ## Version 2.0.1
 * Fixes the problem with NaN issue on merchant sheet #59
 
