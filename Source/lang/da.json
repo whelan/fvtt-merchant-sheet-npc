@@ -79,7 +79,8 @@
   "MERCHANTNPC.csv-spell-compendium-field": "Hvilket kompendie indeholder spells som scrolls skal laves fra",
   "MERCHANTNPC.csv-input": "Indsæt CSV her",
   "MERCHANTNPC.pickItemCompendium": "Hvilket kompendie bruges til Items",
-  "MERCHANTNPC.pickItemCompendium_hint": "Dette vil blive brugt til CSV input for at finde et Item. Senere vil der blive bygget en tilfældighedsgenerator"
+  "MERCHANTNPC.pickItemCompendium_hint": "Dette vil blive brugt til CSV input for at finde et Item. Senere vil der blive bygget en tilfældighedsgenerator",
+  "MERCHANTNPC.invalidQuantity": "Det er ikke muligt at købe eller sælge items der ikke har et antal"
 
 
 }

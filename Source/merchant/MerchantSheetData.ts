@@ -35,6 +35,7 @@ class MerchantSheetData implements ActorSheet.Data<ActorSheet.Options> {
 	title: string;
 	// @ts-ignore
 	sections: {};
+	infinity: boolean = false;
 
 }
 export default MerchantSheetData

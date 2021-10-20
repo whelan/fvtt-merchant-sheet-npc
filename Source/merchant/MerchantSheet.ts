@@ -8,6 +8,7 @@ import {PropertiesToSource} from "@league-of-foundry-developers/foundry-vtt-type
 import CurrencyCalculator from "./systems/CurrencyCalculator";
 import Dnd5eCurrencyCalculator from "./systems/Dnd5eCurrencyCalculator";
 import MerchantSettings from "../Utils/MerchantSettings";
+import QuantityChanger from "./model/QuantityChanger";
 
 let currencyCalculator: CurrencyCalculator;
 let merchantSheetNPC = new MerchantSheetNPCHelper();
@@ -39,11 +40,11 @@ class MerchantSheet extends ActorSheet {
 			return (Math.round(basePrice * modifier * 100) / 100).toLocaleString('en');
 		});
 
-		Handlebars.registerHelper('merchantsheetstackweight', function (weight, qty) {
+		Handlebars.registerHelper('merchantsheetstackweight', function (weight, qty, infinity) {
 			let showStackWeight = g.settings.get(Globals.ModuleName, "showStackWeight");
 			if (showStackWeight) {
 				let value = weight * qty;
-				if (qty === Number.MAX_VALUE || value > 1000000000) {
+				if (qty === Number.MAX_VALUE || value > 1000000000 || infinity) {
 					return "/-"
 				} else {
 					return `/${value.toLocaleString('en')}`;
@@ -58,8 +59,8 @@ class MerchantSheet extends ActorSheet {
 			return (Math.round(weight * 1e5) / 1e5).toString();
 		});
 
-		Handlebars.registerHelper('itemInfinity', function (qty) {
-			return (qty === Number.MAX_VALUE)
+		Handlebars.registerHelper('itemInfinity', function (qty,infinity) {
+			return infinity || (qty === Number.MAX_VALUE)
 		});
 
 		return "./modules/" + Globals.ModuleName + "/templates/npc-sheet.html";
@@ -100,6 +101,7 @@ class MerchantSheet extends ActorSheet {
 		let priceModifier: number = 1.0;
 		let moduleName = "merchantsheetnpc";
 		priceModifier = <number> this.actor.getFlag(moduleName, "priceModifier");
+		sheetData.infinity = <boolean> this.actor.getFlag(moduleName, "infinity");
 
 		let stackModifier: number = 20;
 		stackModifier = <number> this.actor.getFlag(moduleName, "stackModifier");
@@ -192,6 +194,7 @@ class MerchantSheet extends ActorSheet {
 		html.find('.buy-modifier').click(ev => this.sellToMerchantModifier(ev));
 		html.find('.stack-modifier').click(ev => this.stackModifier(ev));
 		html.find('.csv-import').click(ev => this.csvImport(ev));
+		html.find('.change-quantity-all').click(ev => this.changeQuantityForItems(ev));
 
 		html.find('.merchant-settings').change(ev => this.merchantSettingChange(ev));
 		// html.find('.update-inventory').click(ev => this.merchantInventoryUpdate(ev));
@@ -626,21 +629,18 @@ class MerchantSheet extends ActorSheet {
 					icon: '<i class="fas fa-check"></i>',
 					label: (<Game>game).i18n.localize('MERCHANTNPC.update'),
 					callback: () => {
-						// @ts-ignore
-						let pack = document.getElementById("csv-pack-name").value;
-						// @ts-ignore
-						let scrollStart = document.getElementById("csv-scroll-name-value").value;
-						// @ts-ignore
-						let priceCol = document.getElementById("csv-price-value").value;
-						// @ts-ignore
-						let nameCol = document.getElementById("csv-name-value").value;
-						// @ts-ignore
-						let input = document.getElementById("csv").value;
+						let pack = (<HTMLInputElement>document.getElementById("csv-pack-name")).value;
+						let scrollStart = (<HTMLInputElement>document.getElementById("csv-scroll-name-value")).value;
+						let priceCol = (<HTMLInputElement>document.getElementById("csv-price-value")).value;
+						let nameCol = (<HTMLInputElement>document.getElementById("csv-name-value")).value;
+						let skip = (<HTMLInputElement>document.getElementById("csv-skip-value")).checked;
+						let input = (<HTMLInputElement>document.getElementById("csv")).value;
 						let csvInput = {
 							pack: pack,
 							scrollStart: scrollStart,
 							priceCol: priceCol,
 							nameCol: nameCol,
+							skip: skip,
 							input: input
 						}
 						// @ts-ignore
@@ -661,11 +661,15 @@ class MerchantSheet extends ActorSheet {
 	}
 
 	async createItemsFromCSV(actor: Actor, csvInput: any) {
-
+		let startLine = 1;
+		if (csvInput.skip) {
+			startLine++;
+		}
 		const records = csvParser(csvInput.input,{
 			columns: false,
 			autoParse: true,
-			skip_empty_lines: true
+			skip_empty_lines: true,
+			from_line: startLine
 		});
 
 		let itemPack = (await (<Game>game).packs.filter(s => s.metadata.name === (<Game>game).settings.get(Globals.ModuleName, "itemCompendium")))[0];
@@ -804,7 +808,10 @@ class MerchantSheet extends ActorSheet {
 		let stackModifier = $(event.currentTarget).parents(".merchant-item").attr("data-item-stack");
 		// @ts-ignore
 		const item: ItemData = this.actor.getEmbeddedDocument("Item", itemId);
-
+		// @ts-ignore
+		if (item.data.quantity <= 0) {
+			return (ui.notifications || new Notifications).error((<Game>game).i18n.localize("MERCHANTNPC.invalidQuantity"));
+		}
 		const packet = {
 			type: "buy",
 			// @ts-ignore
@@ -855,6 +862,64 @@ class MerchantSheet extends ActorSheet {
 	}
 
 
+	private async changeQuantityForItems(event: JQuery.ClickEvent<any, null, any, any>) {
+
+		event.preventDefault();
+
+		const template_file = "modules/"+Globals.ModuleName+"/templates/change_all_quantity.html";
+		Logger.Log("infinity: ", this.actor.getFlag(Globals.ModuleName,"infinity"), this.actor)
+		const template_data = {infinity: this.actor.getFlag(Globals.ModuleName,"infinity")? "checked":""};
+		const rendered_html = await renderTemplate(template_file, template_data);
+
+
+
+		let d = new Dialog({
+			title: (<Game>game).i18n.localize('MERCHANTNPC.quantity'),
+			content: rendered_html,
+			buttons: {
+				one: {
+					icon: '<i class="fas fa-check"></i>',
+					label: (<Game>game).i18n.localize('MERCHANTNPC.update'),
+					callback: () => {
+						let quantityChanger = new QuantityChanger(MerchantSheetNPCHelper.getElementById("quantity-infinity").checked,MerchantSheetNPCHelper.getElementById("quantity-value").value);
+						this.updateQuantityForAllItems(this.actor, quantityChanger)
+
+					}
+				},
+				two: {
+					icon: '<i class="fas fa-times"></i>',
+					label: (<Game>game).i18n.localize('MERCHANTNPC.cancel'),
+					callback: () => console.log("Merchant sheet | Stack Modifier Cancelled")
+				}
+			},
+			default: "two",
+			close: () => console.log("Merchant sheet | Stack Modifier Closed")
+		});
+		d.render(true);
+	}
+
+	private updateQuantityForAllItems(actor: Actor, quantityChanger: QuantityChanger) {
+		actor.setFlag(Globals.ModuleName, "infinity", quantityChanger.infinity);
+		if (quantityChanger.infinity) {
+			return;
+		}
+		Logger.Log("Changing quantity")
+		let itemQtyFormula = MerchantSheetNPCHelper.getElementById("quantity-value").value
+		let items = actor.items;
+		let updateItems: any[] = [];
+		items.forEach(item => {
+			let itemQtyRoll = new Roll(itemQtyFormula);
+			itemQtyRoll.roll();
+			updateItems.push({
+				_id: item.id,
+				"data.quantity": itemQtyRoll.total
+			});
+		});
+		// @ts-ignore
+		Logger.Log("Changing quantity for item: ", updateItems);
+		// @ts-ignore
+		actor.updateEmbeddedDocuments("Item",updateItems);
+	}
 }
 class QuantityDialog extends Dialog {
 	constructor(callback: any, options: any) {
@@ -968,6 +1033,10 @@ Hooks.on('dropActorSheetData',(target: Actor,sheet: any,dragSource: any,user: an
 	if(dragSource.type=="Item" && dragSource.actorId) {
 		if(!target.data._id) {
 			console.warn("Merchant sheet | target has no data._id?",target);
+			return;
+		}
+		if (dragSource.data.data.quantity <= 0) {
+			(ui.notifications || new Notifications).error((<Game>game).i18n.localize("MERCHANTNPC.invalidQuantity"));
 			return;
 		}
 		if(target.data._id ==  dragSource.actorId) return;  // ignore dropping on self

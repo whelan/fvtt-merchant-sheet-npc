@@ -1,7 +1,7 @@
 {
   "dataPath": "/Users/lnorregaard/Library/Application Support/FoundryVTT/",
   "moduleName": "Test merchant typescript",
-  "repository": "https://github.com/Lazrius/FoundryVTT-Typescript-Module-Template",
-  "rawURL": "https://raw.githubusercontent.com/Lazrius/FoundryVTT-Typescript-Module-Template",
-  "downloadURL": "https://github.com/Lazrius/FoundryVTT-Typescript-Module-Template/raw"
+  "repository": "https://github.com/whelan/fvtt-merchant-sheet-npc",
+  "rawURL": "https://raw.githubusercontent.com/whelan/fvtt-merchant-sheet-npc",
+  "downloadURL": "https://github.com/whelan/fvtt-merchant-sheet-npc/raw"
 }
