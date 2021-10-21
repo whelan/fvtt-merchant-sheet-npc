@@ -259,7 +259,7 @@ const cleanDist = async () => {
 
     await getFiles(path.resolve("./dist"));
     for(const file of files) {
-        if (file.endsWith("bundle.js") || file.endsWith(".css") || file.endsWith("module.json") || file.endsWith("templates") || file.endsWith("lang"))
+        if (file.endsWith("bundle.js") || file.endsWith(".css") || file.endsWith("module.json") || file.endsWith("templates") || file.endsWith("lang")|| file.endsWith(".json") || file.endsWith(".html"))
             continue;
 
         Logger.Warn("Cleaning " + path.relative(process.cwd(), file));
@@ -407,7 +407,10 @@ async function packageBuild() {
             // Add the directory with the final code
             zip.file("dist/module.json", { name: "module.json" });
             zip.file("dist/bundle.js", { name: "bundle.js" });
-            zip.glob("dist/*.css", {});
+            zip.glob("dist/*.css", {cwd:__dirname});
+            zip.directory("dist/lang", "lang");
+            zip.directory("dist/templates", "templates");
+            Logger.Ok(`Zip files`);
 
             zip.finalize();
         } catch (err) {
