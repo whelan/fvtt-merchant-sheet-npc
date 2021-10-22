@@ -63,7 +63,7 @@ class MerchantSheet extends ActorSheet {
 			return infinity || (qty === Number.MAX_VALUE)
 		});
 
-		return "./modules/" + Globals.ModuleName + "/templates/npc-sheet.html";
+		return getSheetTemplateName();
 	}
 
 	static get defaultOptions() {
@@ -1012,16 +1012,26 @@ class SellerQuantityDialog extends Dialog {
 	}
 }
 
-Hooks.on('updateActor', (actor: Actor, data: any) => {
-	if (actor.getFlag("core", "sheetClass") === 'core.o') {
+function getSheetTemplateName() {
+	return './modules/' + Globals.ModuleName + '/templates/npc-sheet.html';
+}
+
+function isActorMerchant(actor: Actor) {
+	return actor.sheet?.template === getSheetTemplateName();
+}
+
+function checkInitModifiers(actor: Actor) {
+	if (isActorMerchant(actor)) {
 		merchantSheetNPC.initModifiers(actor);
 	}
+}
+
+Hooks.on('updateActor', (actor: Actor, data: any) => {
+	checkInitModifiers(actor);
 });
 
 Hooks.on('createActor', (actor: Actor, data: any) => {
-	if (actor.sheet?.template === './modules/'+Globals.ModuleName+'/templates/npc-sheet.html') {
-		merchantSheetNPC.initModifiers(actor);
-	}
+	checkInitModifiers(actor);
 });
 
 
@@ -1044,8 +1054,7 @@ Hooks.on('dropActorSheetData',(target: Actor,sheet: any,dragSource: any,user: an
 		console.log("Merchant sheet | drop item");
 		console.log(dragSource)
 
-		Logger.Log("check", sourceActor !== undefined, './modules/'+Globals.ModuleName+'/templates/npc-sheet.html' === target.sheet?.template, sourceActor)
-		if(sourceActor !== undefined && target.sheet?.template === './modules/'+Globals.ModuleName+'/templates/npc-sheet.html') {
+		if(sourceActor !== undefined && isActorMerchant(target)) {
 			let actor = <Actor>sourceActor;
 			// if both source and target have the same type then allow deleting original item.
 			// this is a safety check because some game systems may allow dropping on targets
