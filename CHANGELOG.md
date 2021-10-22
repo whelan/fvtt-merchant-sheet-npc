@@ -1,3 +1,7 @@
+## Version 2.1.2
+* Fix that new merchants was not initialized correct with the modifiers. 
+
+## Version 2.1.1
 ## Version 2.1.0
 * Changed button layout 
 * Added a fast way to set quantities for all items. Possible to set infinity for all items in store
