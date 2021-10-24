@@ -1,3 +1,8 @@
+## Version 2.1.3
+* Added How to use documentation
+* Fix Stack modifer
+* Fix set for all items if roll formula is empty
+
 ## Version 2.1.2
 * Fix that new merchants was not initialized correct with the modifiers. 
 
