@@ -588,7 +588,6 @@ class MerchantSheet extends ActorSheet {
 		const rendered_html = await renderTemplate(template_file, template_data);
 
 		// @ts-ignore
-		let stackModifierValue = document.getElementById("stack-modifier").value;
 		let d = new Dialog({
 			title: (<Game>game).i18n.localize('MERCHANTNPC.stack-modifier'),
 			content: rendered_html,
@@ -596,7 +595,10 @@ class MerchantSheet extends ActorSheet {
 				one: {
 					icon: '<i class="fas fa-check"></i>',
 					label: (<Game>game).i18n.localize('MERCHANTNPC.update'),
-					callback: () => this.actor.setFlag(Globals.ModuleName, "stackModifier",  stackModifierValue / 1)
+					callback: () => {
+						let stackModifierValue = MerchantSheetNPCHelper.getElementById("stack-modifier").value;
+						this.actor.setFlag(Globals.ModuleName, "stackModifier", parseInt(stackModifierValue))
+					}
 				},
 				two: {
 					icon: '<i class="fas fa-times"></i>',
@@ -903,8 +905,11 @@ class MerchantSheet extends ActorSheet {
 		if (quantityChanger.infinity) {
 			return;
 		}
-		Logger.Log("Changing quantity")
 		let itemQtyFormula = MerchantSheetNPCHelper.getElementById("quantity-value").value
+		if (!itemQtyFormula || /^\s*$/.test(itemQtyFormula)) {
+			return;
+		}
+		Logger.Log("Changing quantity")
 		let items = actor.items;
 		let updateItems: any[] = [];
 		items.forEach(item => {

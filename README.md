@@ -45,7 +45,7 @@ Here are the things a player can interact with the merchant
 A player can buy an item or a stack of items from a merchant
 
 #### Sell item to merchant
-A player can sell an item to a merchant by using the drag drop functionality. If that is used the player either accept or decline the price. The GM can modify the price again and the player tries again. Maybe the new price is accepted
+A player can sell an item to a merchant by using the drag drop functionality. If that is used the player either accept or decline the price offered. 
 
 At the moment the mercant have unlimited amount of money.
 
