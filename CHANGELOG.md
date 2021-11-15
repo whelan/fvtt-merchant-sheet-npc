@@ -1,3 +1,6 @@
+## Version 2.1.4
+* Fix problem with Monks Tokenbar conversion to lootTable. Thanks IronMonk for pointing to _sheet instead of sheet
+
 ## Version 2.1.3
 * Added How to use documentation
 * Fix Stack modifer

@@ -78,12 +78,15 @@ class MerchantSheet extends ActorSheet {
 	}
 
 	getData(options: any): any {
+		// @ts-ignore
+		const sheetData: MerchantSheetData = super.getData();
+		if (!isActorMerchant(sheetData.actor)) {
+			return;
+		}
 		currencyCalculator = merchantSheetNPC.systemCurrencyCalculator();
 
 		Logger.Log("getData")
 		let g = game as Game;
-		// @ts-ignore
-		const sheetData: MerchantSheetData = super.getData();
 
 		// Prepare GM Settings
 		// @ts-ignore
@@ -1022,25 +1025,27 @@ function getSheetTemplateName() {
 }
 
 function isActorMerchant(actor: Actor) {
-	return actor.sheet?.template === getSheetTemplateName();
+	// @ts-ignore
+	return actor._sheet?.template === getSheetTemplateName();
 }
 
 function checkInitModifiers(actor: Actor) {
 	if (isActorMerchant(actor)) {
 		merchantSheetNPC.initModifiers(actor);
 	}
+
 }
 
-Hooks.on('updateActor', (actor: Actor, data: any) => {
+Hooks.on('updateActor', async function (actor: Actor, options: any,data: any) {
 	checkInitModifiers(actor);
-});
+})
 
-Hooks.on('createActor', (actor: Actor, data: any) => {
+Hooks.on('createActor', async function (actor: Actor, options: any,data: any) {
 	checkInitModifiers(actor);
-});
+})
 
 
-Hooks.on('dropActorSheetData',(target: Actor,sheet: any,dragSource: any,user: any)=>{
+Hooks.on('dropActorSheetData',async function (target: Actor,sheet: any,dragSource: any,user: any) {
 	// @ts-ignore
 	function checkCompatable(a,b){
 		if(a==b) return false;
@@ -1105,7 +1110,6 @@ Hooks.on('dropActorSheetData',(target: Actor,sheet: any,dragSource: any,user: an
 				default: "two",
 				close: () => console.log("Merchant sheet | Price Modifier Closed")
 			});
-			d.render(true);
 		}
 	}
 });

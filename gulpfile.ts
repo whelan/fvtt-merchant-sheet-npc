@@ -488,7 +488,7 @@ const updateManifest = (cb: any) => {
 
         /* Update URLs */
 
-        const result = `${rawURL}/v${manifest.file.version}/package/${manifest.file.name}-v${manifest.file.version}.zip`;
+        const result = `${repoURL}/releases/download/${manifest.file.name}/module.zip`;
 
         manifest.file.url = repoURL;
         manifest.file.manifest = `${rawURL}/${manifest.file.version}/${manifestRoot}/${manifest.name}`;
