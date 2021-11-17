@@ -91,7 +91,7 @@
 					<h3 class="item-name">{{section.label}}</h3>
 					{{#if ../owner}}
 					<div class="item-controls">
-						<a class="item-control item-create" title="{{localize 'MERCHANTNPC.item-create-help'}}"
+						<a class="item-control item-add" title="{{localize 'MERCHANTNPC.item-create-help'}}"
 						   data-type="{{section.type}}">
 							<i class="fas fa-plus"></i>{{localize "MERCHANTNPC.item-create"}}</a>
 					</div>
@@ -148,6 +148,7 @@
 						<a class="item-control item-buy" title="{{localize 'MERCHANTNPC.item-buy'}}"><i
 							class="fas fa-dollar-sign"></i></a>
 						{{#if ../../isGM}}
+						<a class="item-control item-edit" title='{{localize "MERCHANTNPC.Item-edit"}}'><i class="fas fa-edit"></i></a>
 						<a class="item-control item-delete" title="{{localize 'MERCHANTNPC.item-delete'}}"><i
 							class="fas fa-trash"></i></a>
 						{{/if}}

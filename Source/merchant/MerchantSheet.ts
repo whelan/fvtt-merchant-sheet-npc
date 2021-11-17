@@ -9,6 +9,7 @@ import CurrencyCalculator from "./systems/CurrencyCalculator";
 import Dnd5eCurrencyCalculator from "./systems/Dnd5eCurrencyCalculator";
 import MerchantSettings from "../Utils/MerchantSettings";
 import QuantityChanger from "./model/QuantityChanger";
+import Item = ContextMenu.Item;
 
 let currencyCalculator: CurrencyCalculator;
 let merchantSheetNPC = new MerchantSheetNPCHelper();
@@ -186,43 +187,54 @@ class MerchantSheet extends ActorSheet {
 		return super._onDropItemCreate(itemData);
 	}
 
-	// onItemCreate(event) {
-	// 	event.preventDefault();
-	// 	const header = event.currentTarget;
-	// 	const type = header.dataset.type;
-	// 	const itemData = {
-	// 		name: (<Game>game).i18n.format("DND5E.ItemNew", {type: (<Game>game).i18n.localize(`DND5E.ItemType${type.capitalize()}`)}),
-	// 		type: type,
-	// 		data: foundry.utils.deepClone(header.dataset)
-	// 	};
-	// 	delete itemData.data.type;
-	// 	return this.actor.createEmbeddedDocuments("Item", [itemData]);
-	// }
+	onItemCreate(event: any) {
+		event.preventDefault();
+		const header = event.currentTarget;
+		const type = header.dataset.type;
+		const itemData = {
+			name: (<Game>game).i18n.format("MERCHANTNPC.item-new", {type: (<Game>game).i18n.localize(`MERCHANTNPC.${type.toLowerCase()}`)}),
+			type: type,
+			data: foundry.utils.deepClone(header.dataset)
+		};
+		delete itemData.data.type;
+		return this.actor.createEmbeddedDocuments("Item", [itemData]);
+	}
+	onItemEdit(event: any) {
+		event.preventDefault();
+		// @ts-ignore
+		let itemId: string = $(event.currentTarget).parents(".merchant-item").attr("data-item-id");
+		const item = this.actor.items.get(itemId);
+
+		// @ts-ignore
+		return item.sheet.render(true);
+	}
 
 	activateListeners(html: JQuery) {
 		super.activateListeners(html);
 		// Toggle Permissions
-		html.find('.permission-proficiency').click(ev => this.onCyclePermissionProficiency(ev));
-		html.find('.permission-proficiency-bulk').click(ev => this.onCyclePermissionProficiencyBulk(ev));
+		html.find('.permission-proficiency').on('click',ev => this.onCyclePermissionProficiency(ev));
+		html.find('.permission-proficiency-bulk').on('click',ev => this.onCyclePermissionProficiencyBulk(ev));
 		//
 		// // Price Modifier
-		html.find('.price-modifier').click(ev => this.buyFromMerchantModifier(ev));
-		html.find('.buy-modifier').click(ev => this.sellToMerchantModifier(ev));
-		html.find('.stack-modifier').click(ev => this.stackModifier(ev));
-		html.find('.csv-import').click(ev => this.csvImport(ev));
-		html.find('.change-quantity-all').click(ev => this.changeQuantityForItems(ev));
+		html.find('.price-modifier').on('click',ev => this.buyFromMerchantModifier(ev));
+		html.find('.buy-modifier').on('click',ev => this.sellToMerchantModifier(ev));
+		html.find('.stack-modifier').on('click',ev => this.stackModifier(ev));
+		html.find('.csv-import').on('click',ev => this.csvImport(ev));
+		// @ts-ignore
+		html.find('.change-quantity-all').on('click',ev => this.changeQuantityForItems(ev));
 
 		html.find('.merchant-settings').change(ev => this.merchantSettingChange(ev));
-		// html.find('.update-inventory').click(ev => this.merchantInventoryUpdate(ev));
+		// html.find('.update-inventory').on('click',ev => this.merchantInventoryUpdate(ev));
 		//
 		// // Buy Item
-		html.find('.item-buy').click(ev => this.buyItem(ev));
-		html.find('.item-buystack').click(ev => this.buyItem(ev, 1));
-		html.find('.item-delete').click(ev => merchantSheetNPC.deleteItem(ev, this.actor));
-		html.find('.change-item-quantity').click(ev => merchantSheetNPC.changeQuantity(ev, this.actor));
-		html.find('.change-item-price').click(ev => merchantSheetNPC.changePrice(ev, this.actor));
-		html.find('.merchant-item .item-name').click(event => merchantSheetNPC.onItemSummary(event, this.actor));
-
+		html.find('.item-buy').on('click',ev => this.buyItem(ev));
+		html.find('.item-buystack').on('click',ev => this.buyItem(ev, 1));
+		html.find('.item-delete').on('click',ev => merchantSheetNPC.deleteItem(ev, this.actor));
+		html.find('.change-item-quantity').on('click',ev => merchantSheetNPC.changeQuantity(ev, this.actor));
+		html.find('.change-item-price').on('click',ev => merchantSheetNPC.changePrice(ev, this.actor));
+		html.find('.merchant-item .item-name').on('click',event => merchantSheetNPC.onItemSummary(event, this.actor));
+		html.find(".item-add").on('click',this.onItemCreate.bind(this));
+		html.find(".item-edit").on('click',this.onItemEdit.bind(this));
 	}
 
 	// async merchantInventoryUpdate(event: JQuery.ClickEvent) {
