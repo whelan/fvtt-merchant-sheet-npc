@@ -186,6 +186,19 @@ class MerchantSheet extends ActorSheet {
 		return super._onDropItemCreate(itemData);
 	}
 
+	// onItemCreate(event) {
+	// 	event.preventDefault();
+	// 	const header = event.currentTarget;
+	// 	const type = header.dataset.type;
+	// 	const itemData = {
+	// 		name: (<Game>game).i18n.format("DND5E.ItemNew", {type: (<Game>game).i18n.localize(`DND5E.ItemType${type.capitalize()}`)}),
+	// 		type: type,
+	// 		data: foundry.utils.deepClone(header.dataset)
+	// 	};
+	// 	delete itemData.data.type;
+	// 	return this.actor.createEmbeddedDocuments("Item", [itemData]);
+	// }
+
 	activateListeners(html: JQuery) {
 		super.activateListeners(html);
 		// Toggle Permissions
@@ -1061,8 +1074,7 @@ Hooks.on('dropActorSheetData',async function (target: Actor,sheet: any,dragSourc
 		}
 		if(target.data._id ==  dragSource.actorId) return;  // ignore dropping on self
 		let sourceActor = (<Game>game).actors?.get(dragSource.actorId);
-		console.log("Merchant sheet | drop item");
-		console.log(dragSource)
+		Logger.Log("Drop item", dragSource, target);
 
 		if(sourceActor !== undefined && isActorMerchant(target)) {
 			let actor = <Actor>sourceActor;
@@ -1110,6 +1122,7 @@ Hooks.on('dropActorSheetData',async function (target: Actor,sheet: any,dragSourc
 				default: "two",
 				close: () => console.log("Merchant sheet | Price Modifier Closed")
 			});
+			d.render(true);
 		}
 	}
 });
