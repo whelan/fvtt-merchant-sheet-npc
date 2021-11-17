@@ -1,3 +1,6 @@
+## Version 2.1.5
+* Fix problem with selling items. The sell dialog was disabled. It should now work again
+
 ## Version 2.1.4
 * Fix problem with Monks Tokenbar conversion to lootTable. Thanks IronMonk for pointing to _sheet instead of sheet
 
