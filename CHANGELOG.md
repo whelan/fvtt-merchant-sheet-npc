@@ -1,3 +1,7 @@
+## Version 2.2.0
+* Add functionality for add button 
+* Enable csv import to create unknown items, this is enabled by default. 
+
 ## Version 2.1.5
 * Fix problem with selling items. The sell dialog was disabled. It should now work again
 
