@@ -190,6 +190,8 @@ class MerchantSheet extends ActorSheet {
 	onItemCreate(event: any) {
 		event.preventDefault();
 		const header = event.currentTarget;
+		console.log(header)
+		console.log(header.dataset)
 		const type = header.dataset.type;
 		const itemData = {
 			name: (<Game>game).i18n.format("MERCHANTNPC.item-new", {type: (<Game>game).i18n.localize(`MERCHANTNPC.${type.toLowerCase()}`)}),
@@ -734,11 +736,22 @@ class MerchantSheet extends ActorSheet {
 					}
 				} else {
 					let items = await itemPack.index.filter(i => i.name === name)
-					for (const itemToStore of items) {
-						let loaded = await itemPack.getDocument(itemToStore._id);
-						storeItems.push(duplicate(loaded))
-					}
+					if (items.length === 0) {
+						const itemData = {
+							name: name,
+							type: 'consumable',
+							data: foundry.utils.deepClone({type: 'consumable', price: price})
+						};
+						// @ts-ignore
+						delete itemData.data.type;
+						storeItems.push(itemData);
 
+					} else {
+						for (const itemToStore of items) {
+							let loaded = await itemPack.getDocument(itemToStore._id);
+							storeItems.push(duplicate(loaded))
+						}
+					}
 				}
 				for (let itemToStore of storeItems) {
 					// @ts-ignore
