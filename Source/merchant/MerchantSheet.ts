@@ -40,6 +40,10 @@ class MerchantSheet extends ActorSheet {
 			return '';
 		});
 
+		Handlebars.registerHelper('getTypeLocalized', function (key: string): string {
+			return (<Game>game).i18n.localize("MERCHANTNPC."+key)
+		});
+
 		Handlebars.registerHelper('merchantsheetprice', function (basePrice, modifier) {
 			if (modifier === 'undefined') {
 				// @ts-ignore
@@ -659,7 +663,7 @@ class MerchantSheet extends ActorSheet {
 
 		const template_file = "modules/"+Globals.ModuleName+"/templates/csv-import.html";
 
-		const template_data = {compendiums: MerchantSettings.getCompendiumnsChoices()};
+		const template_data = {itemTypes: (<Game>game).system.entityTypes.Item , compendiums: MerchantSettings.getCompendiumnsChoices()};
 		const rendered_html = await renderTemplate(template_file, template_data);
 
 
@@ -673,6 +677,7 @@ class MerchantSheet extends ActorSheet {
 					callback: () => {
 						let pack = (<HTMLInputElement>document.getElementById("csv-pack-name")).value;
 						let item = (<HTMLInputElement>document.getElementById("csv-item-name")).value;
+						let type = (<HTMLInputElement>document.getElementById("csv-type-name")).value;
 						let scrollStart = (<HTMLInputElement>document.getElementById("csv-scroll-name-value")).value;
 						let priceCol = (<HTMLInputElement>document.getElementById("csv-price-value")).value;
 						let nameCol = (<HTMLInputElement>document.getElementById("csv-name-value")).value;
@@ -685,7 +690,8 @@ class MerchantSheet extends ActorSheet {
 							priceCol: priceCol,
 							nameCol: nameCol,
 							skip: skip,
-							input: input
+							input: input,
+							type: type
 						}
 						// @ts-ignore
 						this.createItemsFromCSV(this.actor, csvInput)
@@ -756,7 +762,7 @@ class MerchantSheet extends ActorSheet {
 						}
 					}
 					if (items.length === 0) {
-						this.crateNewItem(name, price, storeItems);
+						this.crateNewItem(name, price, csvInput.type, storeItems);
 					}
 				}
 				for (let itemToStore of storeItems) {
@@ -789,10 +795,10 @@ class MerchantSheet extends ActorSheet {
 		return undefined;
 	}
 
-	private crateNewItem(name: any, price: number, storeItems: any[]) {
+	private crateNewItem(name: string, price: number, type: string, storeItems: any[]) {
 		const itemData = {
 			name: name,
-			type: 'consumable',
+			type: type,
 			data: foundry.utils.deepClone({type: 'consumable', price: price})
 		};
 		// @ts-ignore

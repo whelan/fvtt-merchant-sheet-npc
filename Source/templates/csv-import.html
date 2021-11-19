@@ -19,6 +19,13 @@
 	{{/each}}
 	{{/select}}
 </select></div></p>
+<p><div><label>{{localize "MERCHANTNPC.csv-item-fallback-field"}}:</label></div> <div> <select class="merchant-sheet-chooser" id="csv-type-name" name="csv-type-name">
+	{{#select typeName}}
+	{{#each itemTypes}}
+	<option value="{{this}}">{{getTypeLocalized this}}</option>
+	{{/each}}
+	{{/select}}
+</select></div></p>
 <p><label for="csv">{{localize "MERCHANTNPC.csv-input"}}:</label>
     <textarea rows="20" id="csv"></textarea>
 </p>
