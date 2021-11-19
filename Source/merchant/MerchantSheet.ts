@@ -30,6 +30,16 @@ class MerchantSheet extends ActorSheet {
 			return (arg1 != arg2) ? options.fn(this) : options.inverse(this);
 		});
 
+
+		Handlebars.registerHelper('itemSelected', function (key: string): string {
+			let selectedKey: any = (<Game>game).settings.get(Globals.ModuleName, "itemCompendium")
+			console.log(key, " - ", selectedKey)
+			if (key === selectedKey) {
+				return 'selected';
+			}
+			return '';
+		});
+
 		Handlebars.registerHelper('merchantsheetprice', function (basePrice, modifier) {
 			if (modifier === 'undefined') {
 				// @ts-ignore
@@ -662,6 +672,7 @@ class MerchantSheet extends ActorSheet {
 					label: (<Game>game).i18n.localize('MERCHANTNPC.update'),
 					callback: () => {
 						let pack = (<HTMLInputElement>document.getElementById("csv-pack-name")).value;
+						let item = (<HTMLInputElement>document.getElementById("csv-item-name")).value;
 						let scrollStart = (<HTMLInputElement>document.getElementById("csv-scroll-name-value")).value;
 						let priceCol = (<HTMLInputElement>document.getElementById("csv-price-value")).value;
 						let nameCol = (<HTMLInputElement>document.getElementById("csv-name-value")).value;
@@ -669,6 +680,7 @@ class MerchantSheet extends ActorSheet {
 						let input = (<HTMLInputElement>document.getElementById("csv")).value;
 						let csvInput = {
 							pack: pack,
+							itemPack: item,
 							scrollStart: scrollStart,
 							priceCol: priceCol,
 							nameCol: nameCol,
@@ -704,7 +716,7 @@ class MerchantSheet extends ActorSheet {
 			from_line: startLine
 		});
 
-		let itemPack = (await (<Game>game).packs.filter(s => s.metadata.name === (<Game>game).settings.get(Globals.ModuleName, "itemCompendium")))[0];
+		let itemPack = await this.findSpellPack(csvInput.itemPack);
 		let spellPack = await this.findSpellPack(csvInput.pack)
 		let nameCol = Number(csvInput.nameCol)-1
 		let priceCol = -1
@@ -719,7 +731,7 @@ class MerchantSheet extends ActorSheet {
 				if (priceCol >= 0) {
 					price = csvItem[priceCol];
 				}
-				let storeItems = [];
+				let storeItems: any[] = [];
 				if (name.startsWith(csvInput.scrollStart) && spellPack !== undefined) {
 					let nameSub = name.substr(csvInput.scrollStart.length, name.length).trim()
 					let spellItem = await spellPack.index.filter(i => i.name === nameSub)
@@ -735,22 +747,16 @@ class MerchantSheet extends ActorSheet {
 						}
 					}
 				} else {
-					let items = await itemPack.index.filter(i => i.name === name)
-					if (items.length === 0) {
-						const itemData = {
-							name: name,
-							type: 'consumable',
-							data: foundry.utils.deepClone({type: 'consumable', price: price})
-						};
-						// @ts-ignore
-						delete itemData.data.type;
-						storeItems.push(itemData);
-
-					} else {
+					let items: any[] = [];
+					if (itemPack !== undefined) {
+						items = itemPack.index.filter(i => i.name === name)
 						for (const itemToStore of items) {
 							let loaded = await itemPack.getDocument(itemToStore._id);
 							storeItems.push(duplicate(loaded))
 						}
+					}
+					if (items.length === 0) {
+						this.crateNewItem(name, price, storeItems);
 					}
 				}
 				for (let itemToStore of storeItems) {
@@ -781,6 +787,17 @@ class MerchantSheet extends ActorSheet {
 		}
 		await this.collapseInventory(actor)
 		return undefined;
+	}
+
+	private crateNewItem(name: any, price: number, storeItems: any[]) {
+		const itemData = {
+			name: name,
+			type: 'consumable',
+			data: foundry.utils.deepClone({type: 'consumable', price: price})
+		};
+		// @ts-ignore
+		delete itemData.data.type;
+		storeItems.push(itemData);
 	}
 
 	async findSpellPack(pack: any) {
