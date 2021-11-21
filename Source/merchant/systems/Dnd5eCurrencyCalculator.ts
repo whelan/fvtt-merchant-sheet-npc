@@ -41,11 +41,20 @@ export default class Dnd5eCurrencyCalculator extends CurrencyCalculator {
 		// @ts-ignore
 		const scrollUuid = `Compendium.${CONFIG.DND5E.sourcePacks.ITEMS}.${CONFIG.DND5E.spellScrollIds[level]}`;
 		const scrollItem = fromUuid(scrollUuid);
+		if (scrollItem === undefined) {
+			return undefined;
+		}
 		// @ts-ignore
 		const scrollData = scrollItem.data;
+		if (scrollData === undefined) {
+			return undefined;
+		}
 
 		// Split the scroll description into an intro paragraph and the remaining details
-		const scrollDescription = scrollData.data.description.value;
+		let scrollDescription = '';
+		if (scrollData !== undefined && scrollData.data !== undefined && scrollData.data.description !== undefined) {
+			scrollDescription = scrollData.data.description.value;
+		}
 		const pdel = '</p>';
 		const scrollIntroEnd = scrollDescription.indexOf(pdel);
 		const scrollIntro = scrollDescription.slice(0, scrollIntroEnd + pdel.length);
