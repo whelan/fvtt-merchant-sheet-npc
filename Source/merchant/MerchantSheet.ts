@@ -1194,7 +1194,7 @@ Hooks.on('dropActorSheetData',async function (target: Actor,sheet: any,dragSourc
 							let quantity = document.getElementById("quantity-modifier").value;
 							let itemId = dragSource.data._id
 							// addItemToActor(dragSource,target,quantity);
-							merchantSheetNPC.moveItems(actor, target, [{ itemId, quantity }]);
+							merchantSheetNPC.moveItems(actor, target, [{ itemId, quantity }], true);
 							// @ts-ignore
 							let value: number = document.getElementById("quantity-modifier-total").value;
 							// @ts-ignore

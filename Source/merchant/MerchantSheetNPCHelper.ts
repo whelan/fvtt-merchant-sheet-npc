@@ -258,8 +258,10 @@ class MerchantSheetNPCHelper {
 		currencyCalculator.subtractAmountFromActor(buyer,buyerFunds,itemCostInGold);
 
 		// Update buyer's funds
-
-		let moved = await helper.moveItems(seller, buyer, [{ itemId, quantity }]);
+		// @ts-ignore
+		let keepItem: Boolean = seller.getFlag(Globals.ModuleName,"keepDepleted");
+		Logger.Log("keepDepleted",keepItem)
+		let moved = await helper.moveItems(seller, buyer, [{ itemId, quantity }],!keepItem);
 
 		let chatPrice = currencyCalculator.priceInText(itemCostInGold);
 		for (let m of moved) {
@@ -328,7 +330,7 @@ class MerchantSheetNPCHelper {
 		}
 	}
 
-	public async moveItems(source: Actor, destination: Actor, items: any[]) {
+	public async moveItems(source: Actor, destination: Actor, items: any[], deleteItemFromSource: Boolean) {
 		const updates = [];
 		const deletes = [];
 		const additions = [];
@@ -352,7 +354,7 @@ class MerchantSheetNPCHelper {
 			const update = { _id: itemId, "data.quantity": item.data.data.quantity >= Number.MAX_VALUE-10000 || infinity ? Number.MAX_VALUE : item.data.data.quantity - quantity };
 			let allowNoTargetGM = (<Game>game).settings.get(Globals.ModuleName, "allowNoGM")
 
-			if (update["data.quantity"] === 0 && !allowNoTargetGM) {
+			if (update["data.quantity"] === 0 && !allowNoTargetGM && deleteItemFromSource) {
 				deletes.push(itemId);
 			}
 			else {
