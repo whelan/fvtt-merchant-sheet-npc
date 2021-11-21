@@ -911,7 +911,7 @@ class MerchantSheet extends ActorSheet {
 		// @ts-ignore
 		const item: ItemData = this.actor.getEmbeddedDocument("Item", itemId);
 		// @ts-ignore
-		if (item.data.quantity <= 0) {
+		if (item.data.data.quantity <= 0) {
 			return (ui.notifications || new Notifications).error((<Game>game).i18n.localize("MERCHANTNPC.invalidQuantity"));
 		}
 		const packet = {
@@ -923,9 +923,7 @@ class MerchantSheet extends ActorSheet {
 			quantity: 1,
 			processorId: gmId
 		};
-		console.log(stackModifier)
 		// @ts-ignore
-		console.log(item.data.data.quantity)
 
 		if (stack || event.shiftKey) {
 			// @ts-ignore
