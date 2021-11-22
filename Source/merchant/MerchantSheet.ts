@@ -3,10 +3,9 @@ import Logger from "../Utils/Logger";
 import MerchantSheetData from "./MerchantSheetData";
 import MerchantSheetNPCHelper from "./MerchantSheetNPCHelper";
 import PermissionPlayer from "./PermissionPlayer";
-import {ActorData, ItemData} from "@league-of-foundry-developers/foundry-vtt-types/src/foundry/common/data/data.mjs";
+import {ItemData} from "@league-of-foundry-developers/foundry-vtt-types/src/foundry/common/data/data.mjs";
 import {PropertiesToSource} from "@league-of-foundry-developers/foundry-vtt-types/src/types/helperTypes";
 import CurrencyCalculator from "./systems/CurrencyCalculator";
-import Dnd5eCurrencyCalculator from "./systems/Dnd5eCurrencyCalculator";
 import MerchantSettings from "../Utils/MerchantSettings";
 import QuantityChanger from "./model/QuantityChanger";
 
@@ -24,9 +23,27 @@ class MerchantSheet extends ActorSheet {
 			return (arg1 == arg2) ? options.fn(this) : options.inverse(this);
 		});
 
+		Handlebars.registerHelper('shouldItemBeVisible', function (quantity, isGM, options) {
+			return isGM || quantity > 0;
+		});
+
 		Handlebars.registerHelper('unequals', function (arg1, arg2, options) {
 			// @ts-ignore
 			return (arg1 != arg2) ? options.fn(this) : options.inverse(this);
+		});
+
+
+		Handlebars.registerHelper('itemSelected', function (key: string): string {
+			let selectedKey: any = (<Game>game).settings.get(Globals.ModuleName, "itemCompendium")
+			console.log(key, " - ", selectedKey)
+			if (key === selectedKey) {
+				return 'selected';
+			}
+			return '';
+		});
+
+		Handlebars.registerHelper('getTypeLocalized', function (key: string): string {
+			return (<Game>game).i18n.localize("MERCHANTNPC."+key)
 		});
 
 		Handlebars.registerHelper('merchantsheetprice', function (basePrice, modifier) {
@@ -85,7 +102,6 @@ class MerchantSheet extends ActorSheet {
 		}
 		currencyCalculator = merchantSheetNPC.systemCurrencyCalculator();
 
-		Logger.Log("getData")
 		let g = game as Game;
 
 		// Prepare GM Settings
@@ -105,6 +121,7 @@ class MerchantSheet extends ActorSheet {
 		let moduleName = "merchantsheetnpc";
 		priceModifier = <number> this.actor.getFlag(moduleName, "priceModifier");
 		sheetData.infinity = <boolean> this.actor.getFlag(moduleName, "infinity");
+		sheetData.isService = <boolean> this.actor.getFlag(moduleName, "service");
 
 		let stackModifier: number = 20;
 		stackModifier = <number> this.actor.getFlag(moduleName, "stackModifier");
@@ -117,7 +134,6 @@ class MerchantSheet extends ActorSheet {
 		sheetData.sections = currencyCalculator.prepareItems(this.actor.itemTypes);
 		sheetData.merchant = merchant;
 		sheetData.owner = sheetData.isGM;
-		Logger.Log("SheetData: ", sheetData)
 		// Return data for rendering
 		// @ts-ignore
 		return sheetData;
@@ -143,10 +159,6 @@ class MerchantSheet extends ActorSheet {
 			const actor = g.actors.get(player.data.character);
 			//
 			if (actor) {
-
-				Logger.Log("Player: " + player.data.name + " actor ", actor.data)
-
-
 				player.actor = actor.data.name;
 				player.actorId = actor.data._id;
 				player.playerId = player.data._id;
@@ -186,43 +198,57 @@ class MerchantSheet extends ActorSheet {
 		return super._onDropItemCreate(itemData);
 	}
 
-	// onItemCreate(event) {
-	// 	event.preventDefault();
-	// 	const header = event.currentTarget;
-	// 	const type = header.dataset.type;
-	// 	const itemData = {
-	// 		name: (<Game>game).i18n.format("DND5E.ItemNew", {type: (<Game>game).i18n.localize(`DND5E.ItemType${type.capitalize()}`)}),
-	// 		type: type,
-	// 		data: foundry.utils.deepClone(header.dataset)
-	// 	};
-	// 	delete itemData.data.type;
-	// 	return this.actor.createEmbeddedDocuments("Item", [itemData]);
-	// }
+	onItemCreate(event: any) {
+		event.preventDefault();
+		const header = event.currentTarget;
+		console.log(header)
+		console.log(header.dataset)
+		const type = header.dataset.type;
+		const itemData = {
+			name: (<Game>game).i18n.format("MERCHANTNPC.item-new", {type: (<Game>game).i18n.localize(`MERCHANTNPC.${type.toLowerCase()}`)}),
+			type: type,
+			data: foundry.utils.deepClone(header.dataset)
+		};
+		delete itemData.data.type;
+		return this.actor.createEmbeddedDocuments("Item", [itemData]);
+	}
+	onItemEdit(event: any) {
+		event.preventDefault();
+		// @ts-ignore
+		let itemId: string = $(event.currentTarget).parents(".merchant-item").attr("data-item-id");
+		const item = this.actor.items.get(itemId);
+
+		// @ts-ignore
+		return item.sheet.render(true);
+	}
 
 	activateListeners(html: JQuery) {
 		super.activateListeners(html);
 		// Toggle Permissions
-		html.find('.permission-proficiency').click(ev => this.onCyclePermissionProficiency(ev));
-		html.find('.permission-proficiency-bulk').click(ev => this.onCyclePermissionProficiencyBulk(ev));
+		html.find('.permission-proficiency').on('click',ev => this.onCyclePermissionProficiency(ev));
+		html.find('.permission-proficiency-bulk').on('click',ev => this.onCyclePermissionProficiencyBulk(ev));
 		//
 		// // Price Modifier
-		html.find('.price-modifier').click(ev => this.buyFromMerchantModifier(ev));
-		html.find('.buy-modifier').click(ev => this.sellToMerchantModifier(ev));
-		html.find('.stack-modifier').click(ev => this.stackModifier(ev));
-		html.find('.csv-import').click(ev => this.csvImport(ev));
-		html.find('.change-quantity-all').click(ev => this.changeQuantityForItems(ev));
+		html.find('.price-modifier').on('click',ev => this.buyFromMerchantModifier(ev));
+		html.find('.buy-modifier').on('click',ev => this.sellToMerchantModifier(ev));
+		html.find('.stack-modifier').on('click',ev => this.stackModifier(ev));
+		html.find('.csv-import').on('click',ev => this.csvImport(ev));
+		// @ts-ignore
+		html.find('.change-quantity-all').on('click',ev => this.changeQuantityForItems(ev));
+		html.find('.merchant-settings').on('click',ev => this.merchantSettingChange(ev));
 
-		html.find('.merchant-settings').change(ev => this.merchantSettingChange(ev));
-		// html.find('.update-inventory').click(ev => this.merchantInventoryUpdate(ev));
+		// html.find('.merchant-settings').change(ev => this.merchantSettingChange(ev));
+		// html.find('.update-inventory').on('click',ev => this.merchantInventoryUpdate(ev));
 		//
 		// // Buy Item
-		html.find('.item-buy').click(ev => this.buyItem(ev));
-		html.find('.item-buystack').click(ev => this.buyItem(ev, 1));
-		html.find('.item-delete').click(ev => merchantSheetNPC.deleteItem(ev, this.actor));
-		html.find('.change-item-quantity').click(ev => merchantSheetNPC.changeQuantity(ev, this.actor));
-		html.find('.change-item-price').click(ev => merchantSheetNPC.changePrice(ev, this.actor));
-		html.find('.merchant-item .item-name').click(event => merchantSheetNPC.onItemSummary(event, this.actor));
-
+		html.find('.item-buy').on('click',ev => this.buyItem(ev));
+		html.find('.item-buystack').on('click',ev => this.buyItem(ev, 1));
+		html.find('.item-delete').on('click',ev => merchantSheetNPC.deleteItem(ev, this.actor));
+		html.find('.change-item-quantity').on('click',ev => merchantSheetNPC.changeQuantity(ev, this.actor));
+		html.find('.change-item-price').on('click',ev => merchantSheetNPC.changePrice(ev, this.actor));
+		html.find('.merchant-item .item-name').on('click',event => merchantSheetNPC.onItemSummary(event, this.actor));
+		html.find(".item-add").on('click',this.onItemCreate.bind(this));
+		html.find(".item-edit").on('click',this.onItemEdit.bind(this));
 	}
 
 	// async merchantInventoryUpdate(event: JQuery.ClickEvent) {
@@ -420,31 +446,68 @@ class MerchantSheet extends ActorSheet {
 	// }
 
 
-	private async merchantSettingChange(event: JQuery.ChangeEvent<any, null, any, any>) {
+	private async merchantSettingChange(event: JQuery.ClickEvent) {
 		event.preventDefault();
-		console.log("Merchant sheet | Merchant settings changed");
+		const template_file = "modules/"+Globals.ModuleName+"/templates/settings.html";
+		Logger.Log("infinity: ", this.actor.getFlag(Globals.ModuleName,"infinity"), this.actor)
+		const template_data = {
+			disableSell: this.actor.getFlag(Globals.ModuleName,"disableSell")? "checked":"",
+			keepDepleted: this.actor.getFlag(Globals.ModuleName,"keepDepleted")? "checked":"",
+			service: this.actor.getFlag(Globals.ModuleName,"service")? "checked":""};
+		const rendered_html = await renderTemplate(template_file, template_data);
 
-		const expectedKeys = ["rolltable", "shopQty", "itemQty", "itemQtyLimit", "clearInventory", "itemOnlyOnce"];
-
-		let targetKey = event.target.name.split('.')[3];
 
 
-		if (expectedKeys.indexOf(targetKey) === -1) {
-			console.log(`Merchant sheet | Error changing stettings for "${targetKey}".`);
-			return ui.notifications?.error((<Game>game).i18n.format("MERCHANTNPC.error-changeSettings", {target: targetKey}))
-		}
+		let d = new Dialog({
+			title: (<Game>game).i18n.localize('MERCHANTNPC.quantity'),
+			content: rendered_html,
+			buttons: {
+				one: {
+					icon: '<i class="fas fa-check"></i>',
+					label: (<Game>game).i18n.localize('MERCHANTNPC.update'),
+					callback: () => {
+						this.actor.setFlag(Globals.ModuleName, "disableSell", MerchantSheetNPCHelper.getElementById("disable-sell").checked);
+						this.actor.setFlag(Globals.ModuleName, "keepDepleted", MerchantSheetNPCHelper.getElementById("keep-depleted").checked);
+						this.actor.setFlag(Globals.ModuleName, "service", MerchantSheetNPCHelper.getElementById("service").checked);
 
-		if (targetKey == "clearInventory" || targetKey == "itemOnlyOnce") {
-			console.log(targetKey + " set to " + event.target.checked);
-			await this.actor.setFlag(Globals.ModuleName, targetKey, event.target.checked);
-		} else if (event.target.value) {
-			console.log(targetKey + " set to " + event.target.value);
-			await this.actor.setFlag(Globals.ModuleName, targetKey, event.target.value);
-		} else {
-			console.log(targetKey + " set to " + event.target.value);
-			await this.actor.unsetFlag(Globals.ModuleName, targetKey);
-		}
+					}
+				},
+				two: {
+					icon: '<i class="fas fa-times"></i>',
+					label: (<Game>game).i18n.localize('MERCHANTNPC.cancel'),
+					callback: () => console.log("Merchant sheet | Stack Modifier Cancelled")
+				}
+			},
+			default: "two",
+			close: () => console.log("Merchant sheet | Stack Modifier Closed")
+		});
+		d.render(true);
 	}
+	// private async merchantSettingChange(event: JQuery.ChangeEvent<any, null, any, any>) {
+	// 	event.preventDefault();
+	// 	console.log("Merchant sheet | Merchant settings changed");
+	//
+	// 	const expectedKeys = ["rolltable", "shopQty", "itemQty", "itemQtyLimit", "clearInventory", "itemOnlyOnce"];
+	//
+	// 	let targetKey = event.target.name.split('.')[3];
+	//
+	//
+	// 	if (expectedKeys.indexOf(targetKey) === -1) {
+	// 		console.log(`Merchant sheet | Error changing stettings for "${targetKey}".`);
+	// 		return ui.notifications?.error((<Game>game).i18n.format("MERCHANTNPC.error-changeSettings", {target: targetKey}))
+	// 	}
+	//
+	// 	if (targetKey == "clearInventory" || targetKey == "itemOnlyOnce") {
+	// 		console.log(targetKey + " set to " + event.target.checked);
+	// 		await this.actor.setFlag(Globals.ModuleName, targetKey, event.target.checked);
+	// 	} else if (event.target.value) {
+	// 		console.log(targetKey + " set to " + event.target.value);
+	// 		await this.actor.setFlag(Globals.ModuleName, targetKey, event.target.value);
+	// 	} else {
+	// 		console.log(targetKey + " set to " + event.target.value);
+	// 		await this.actor.unsetFlag(Globals.ModuleName, targetKey);
+	// 	}
+	// }
 
 	private onCyclePermissionProficiency(event: JQuery.ClickEvent) {
 
@@ -635,7 +698,7 @@ class MerchantSheet extends ActorSheet {
 
 		const template_file = "modules/"+Globals.ModuleName+"/templates/csv-import.html";
 
-		const template_data = {compendiums: MerchantSettings.getCompendiumnsChoices()};
+		const template_data = {itemTypes: (<Game>game).system.entityTypes.Item , compendiums: MerchantSettings.getCompendiumnsChoices()};
 		const rendered_html = await renderTemplate(template_file, template_data);
 
 
@@ -648,6 +711,8 @@ class MerchantSheet extends ActorSheet {
 					label: (<Game>game).i18n.localize('MERCHANTNPC.update'),
 					callback: () => {
 						let pack = (<HTMLInputElement>document.getElementById("csv-pack-name")).value;
+						let item = (<HTMLInputElement>document.getElementById("csv-item-name")).value;
+						let type = (<HTMLInputElement>document.getElementById("csv-type-name")).value;
 						let scrollStart = (<HTMLInputElement>document.getElementById("csv-scroll-name-value")).value;
 						let priceCol = (<HTMLInputElement>document.getElementById("csv-price-value")).value;
 						let nameCol = (<HTMLInputElement>document.getElementById("csv-name-value")).value;
@@ -655,11 +720,13 @@ class MerchantSheet extends ActorSheet {
 						let input = (<HTMLInputElement>document.getElementById("csv")).value;
 						let csvInput = {
 							pack: pack,
+							itemPack: item,
 							scrollStart: scrollStart,
 							priceCol: priceCol,
 							nameCol: nameCol,
 							skip: skip,
-							input: input
+							input: input,
+							type: type
 						}
 						// @ts-ignore
 						this.createItemsFromCSV(this.actor, csvInput)
@@ -690,7 +757,7 @@ class MerchantSheet extends ActorSheet {
 			from_line: startLine
 		});
 
-		let itemPack = (await (<Game>game).packs.filter(s => s.metadata.name === (<Game>game).settings.get(Globals.ModuleName, "itemCompendium")))[0];
+		let itemPack = await this.findSpellPack(csvInput.itemPack);
 		let spellPack = await this.findSpellPack(csvInput.pack)
 		let nameCol = Number(csvInput.nameCol)-1
 		let priceCol = -1
@@ -705,7 +772,7 @@ class MerchantSheet extends ActorSheet {
 				if (priceCol >= 0) {
 					price = csvItem[priceCol];
 				}
-				let storeItems = [];
+				let storeItems: any[] = [];
 				if (name.startsWith(csvInput.scrollStart) && spellPack !== undefined) {
 					let nameSub = name.substr(csvInput.scrollStart.length, name.length).trim()
 					let spellItem = await spellPack.index.filter(i => i.name === nameSub)
@@ -721,12 +788,17 @@ class MerchantSheet extends ActorSheet {
 						}
 					}
 				} else {
-					let items = await itemPack.index.filter(i => i.name === name)
-					for (const itemToStore of items) {
-						let loaded = await itemPack.getDocument(itemToStore._id);
-						storeItems.push(duplicate(loaded))
+					let items: any[] = [];
+					if (itemPack !== undefined) {
+						items = itemPack.index.filter(i => i.name === name)
+						for (const itemToStore of items) {
+							let loaded = await itemPack.getDocument(itemToStore._id);
+							storeItems.push(duplicate(loaded))
+						}
 					}
-
+					if (items.length === 0) {
+						this.crateNewItem(name, price, csvInput.type, storeItems);
+					}
 				}
 				for (let itemToStore of storeItems) {
 					// @ts-ignore
@@ -756,6 +828,17 @@ class MerchantSheet extends ActorSheet {
 		}
 		await this.collapseInventory(actor)
 		return undefined;
+	}
+
+	private crateNewItem(name: string, price: number, type: string, storeItems: any[]) {
+		const itemData = {
+			name: name,
+			type: type,
+			data: foundry.utils.deepClone({type: 'consumable', price: price})
+		};
+		// @ts-ignore
+		delete itemData.data.type;
+		storeItems.push(itemData);
 	}
 
 	async findSpellPack(pack: any) {
@@ -827,7 +910,7 @@ class MerchantSheet extends ActorSheet {
 		// @ts-ignore
 		const item: ItemData = this.actor.getEmbeddedDocument("Item", itemId);
 		// @ts-ignore
-		if (item.data.quantity <= 0) {
+		if (item.data.data.quantity <= 0) {
 			return (ui.notifications || new Notifications).error((<Game>game).i18n.localize("MERCHANTNPC.invalidQuantity"));
 		}
 		const packet = {
@@ -839,10 +922,8 @@ class MerchantSheet extends ActorSheet {
 			quantity: 1,
 			processorId: gmId
 		};
-		console.log(stackModifier)
 		// @ts-ignore
-		console.log(item.data.data.quantity)
-
+		let service = this.token.actor.getFlag(Globals.ModuleName,"service");
 		if (stack || event.shiftKey) {
 			// @ts-ignore
 			if (item.data.data.quantity < stackModifier) {
@@ -853,30 +934,33 @@ class MerchantSheet extends ActorSheet {
 				packet.quantity = stackModifier;
 			}
 			// if (allowNoTargetGM) {
-				// @ts-ignore
+			// @ts-ignore
 			MerchantSheetNPCHelper.buyTransactionFromPlayer(packet)
 			// } else {
 			// 	console.log("MerchantSheet", "Sending buy request to " + targetGm.name, packet);
 			// 	(<Game>game).socket?.emit(Globals.Socket, packet);
 			// }
 			return;
+		} else if (service) {
+			packet.quantity = 1;
+			MerchantSheetNPCHelper.buyTransactionFromPlayer(packet)
+		} else {
+			// @ts-ignore
+			let d = new QuantityDialog((quantity) => {
+					packet.quantity = quantity;
+					// if (allowNoTargetGM) {
+						MerchantSheetNPCHelper.buyTransactionFromPlayer(packet)
+					// } else {
+					// 	console.log("MerchantSheet.ts", "Sending buy request to " + targetGm.name, packet);
+					// 	MerchantSheetNPCHelper.buyTransactionFromPlayer(packet);
+					// }
+				},
+				{
+					acceptLabel: "Purchase"
+				}
+			);
+			d.render(true);
 		}
-
-		// @ts-ignore
-		let d = new QuantityDialog((quantity) => {
-				packet.quantity = quantity;
-				// if (allowNoTargetGM) {
-					MerchantSheetNPCHelper.buyTransactionFromPlayer(packet)
-				// } else {
-				// 	console.log("MerchantSheet.ts", "Sending buy request to " + targetGm.name, packet);
-				// 	MerchantSheetNPCHelper.buyTransactionFromPlayer(packet);
-				// }
-			},
-			{
-				acceptLabel: "Purchase"
-			}
-		);
-		d.render(true);
 	}
 
 
@@ -885,7 +969,6 @@ class MerchantSheet extends ActorSheet {
 		event.preventDefault();
 
 		const template_file = "modules/"+Globals.ModuleName+"/templates/change_all_quantity.html";
-		Logger.Log("infinity: ", this.actor.getFlag(Globals.ModuleName,"infinity"), this.actor)
 		const template_data = {infinity: this.actor.getFlag(Globals.ModuleName,"infinity")? "checked":""};
 		const rendered_html = await renderTemplate(template_file, template_data);
 
@@ -1059,6 +1142,10 @@ Hooks.on('createActor', async function (actor: Actor, options: any,data: any) {
 
 
 Hooks.on('dropActorSheetData',async function (target: Actor,sheet: any,dragSource: any,user: any) {
+	let disableSell = target.getFlag(Globals.ModuleName,"disableSell");
+	if (disableSell !== undefined && disableSell) {
+		return false;
+	}
 	// @ts-ignore
 	function checkCompatable(a,b){
 		if(a==b) return false;
@@ -1106,7 +1193,7 @@ Hooks.on('dropActorSheetData',async function (target: Actor,sheet: any,dragSourc
 							let quantity = document.getElementById("quantity-modifier").value;
 							let itemId = dragSource.data._id
 							// addItemToActor(dragSource,target,quantity);
-							merchantSheetNPC.moveItems(actor, target, [{ itemId, quantity }]);
+							merchantSheetNPC.moveItems(actor, target, [{ itemId, quantity }], true);
 							// @ts-ignore
 							let value: number = document.getElementById("quantity-modifier-total").value;
 							// @ts-ignore

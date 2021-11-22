@@ -1,3 +1,13 @@
+## Version 2.2.0
+* Add functionality for add button 
+* Enable csv import to create unknown items, this is enabled by default.
+* Added settings to disable sell item to merchant
+* Added settings to keep depleted item on merchant for the GM to easy change the quantity later
+* Added settings to enable a service merchant. Like a butcher or tavern or church
+![Settings overview](images/settings.png)
+* Changed merchant to service if enabled
+![Service merchant](images/Service-merchant.png)
+
 ## Version 2.1.5
 * Fix problem with selling items. The sell dialog was disabled. It should now work again
 
