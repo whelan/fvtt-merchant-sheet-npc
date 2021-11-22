@@ -256,28 +256,33 @@ class MerchantSheetNPCHelper {
 		}
 
 		currencyCalculator.subtractAmountFromActor(buyer,buyerFunds,itemCostInGold);
-
-		// Update buyer's funds
-		// @ts-ignore
-		let keepItem: Boolean = seller.getFlag(Globals.ModuleName,"keepDepleted");
-		Logger.Log("keepDepleted",keepItem)
-		let moved = await helper.moveItems(seller, buyer, [{ itemId, quantity }],!keepItem);
-
 		let chatPrice = currencyCalculator.priceInText(itemCostInGold);
-		for (let m of moved) {
-			this.chatMessage(
-				seller, buyer,
-				(<Game>game).i18n.format('MERCHANTNPC.buyText', {buyer: buyer.name, quantity: quantity, itemName: m.item.name, chatPrice: chatPrice}),
-				m.item);
+		let service = seller.getFlag(Globals.ModuleName, "service");
+		if (!service) {
+			// Update buyer's funds
+			// @ts-ignore
+			let keepItem: Boolean = seller.getFlag(Globals.ModuleName,"keepDepleted");
+			Logger.Log("keepDepleted",keepItem)
+			let moved = await helper.moveItems(seller, buyer, [{ itemId, quantity }],!keepItem);
+			for (let m of moved) {
+				this.chatMessage(
+					seller, buyer,
+					(<Game>game).i18n.format('MERCHANTNPC.buyText', {buyer: buyer.name, quantity: quantity, itemName: m.item.name, chatPrice: chatPrice}),
+					m.item,false);
+			}
+		} else {
+			// @ts-ignore
+			this.chatMessage(seller, buyer, (<Game>game).i18n.format('MERCHANTNPC.buyText', {buyer: buyer.name, quantity: quantity, itemName: sellItem.name, chatPrice: chatPrice}), sellItem,service);
 		}
 	}
 
-	private chatMessage(speaker: Actor, owner: Actor, message: string, item: Item) {
+	private chatMessage(speaker: Actor, owner: Actor, message: string, item: Item, service: Boolean) {
+		let image =  (service?'':'<div class= "merchant-item-image" style="background-image: url(${item.img})"></div>');
 		if ((<Game>game).settings.get(Globals.ModuleName, "buyChat")) {
 			message = `
             <div class="chat-card item-card" data-actor-id="${owner.id}" data-item-id="${item.id}">
                 <header class="card-header flexrow">
-                    <div class= "merchant-item-image" style="background-image: url(${item.img})"></div>
+            		${image}    
                     <h3 class="item-name">${item.name}</h3>
                 </header>
 

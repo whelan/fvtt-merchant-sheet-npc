@@ -102,7 +102,6 @@ class MerchantSheet extends ActorSheet {
 		}
 		currencyCalculator = merchantSheetNPC.systemCurrencyCalculator();
 
-		Logger.Log("getData")
 		let g = game as Game;
 
 		// Prepare GM Settings
@@ -122,6 +121,7 @@ class MerchantSheet extends ActorSheet {
 		let moduleName = "merchantsheetnpc";
 		priceModifier = <number> this.actor.getFlag(moduleName, "priceModifier");
 		sheetData.infinity = <boolean> this.actor.getFlag(moduleName, "infinity");
+		sheetData.isService = <boolean> this.actor.getFlag(moduleName, "service");
 
 		let stackModifier: number = 20;
 		stackModifier = <number> this.actor.getFlag(moduleName, "stackModifier");
@@ -134,7 +134,6 @@ class MerchantSheet extends ActorSheet {
 		sheetData.sections = currencyCalculator.prepareItems(this.actor.itemTypes);
 		sheetData.merchant = merchant;
 		sheetData.owner = sheetData.isGM;
-		Logger.Log("SheetData: ", sheetData)
 		// Return data for rendering
 		// @ts-ignore
 		return sheetData;
@@ -160,10 +159,6 @@ class MerchantSheet extends ActorSheet {
 			const actor = g.actors.get(player.data.character);
 			//
 			if (actor) {
-
-				Logger.Log("Player: " + player.data.name + " actor ", actor.data)
-
-
 				player.actor = actor.data.name;
 				player.actorId = actor.data._id;
 				player.playerId = player.data._id;
@@ -928,7 +923,7 @@ class MerchantSheet extends ActorSheet {
 			processorId: gmId
 		};
 		// @ts-ignore
-
+		let service = this.token.actor.getFlag(Globals.ModuleName,"service");
 		if (stack || event.shiftKey) {
 			// @ts-ignore
 			if (item.data.data.quantity < stackModifier) {
@@ -939,30 +934,33 @@ class MerchantSheet extends ActorSheet {
 				packet.quantity = stackModifier;
 			}
 			// if (allowNoTargetGM) {
-				// @ts-ignore
+			// @ts-ignore
 			MerchantSheetNPCHelper.buyTransactionFromPlayer(packet)
 			// } else {
 			// 	console.log("MerchantSheet", "Sending buy request to " + targetGm.name, packet);
 			// 	(<Game>game).socket?.emit(Globals.Socket, packet);
 			// }
 			return;
+		} else if (service) {
+			packet.quantity = 1;
+			MerchantSheetNPCHelper.buyTransactionFromPlayer(packet)
+		} else {
+			// @ts-ignore
+			let d = new QuantityDialog((quantity) => {
+					packet.quantity = quantity;
+					// if (allowNoTargetGM) {
+						MerchantSheetNPCHelper.buyTransactionFromPlayer(packet)
+					// } else {
+					// 	console.log("MerchantSheet.ts", "Sending buy request to " + targetGm.name, packet);
+					// 	MerchantSheetNPCHelper.buyTransactionFromPlayer(packet);
+					// }
+				},
+				{
+					acceptLabel: "Purchase"
+				}
+			);
+			d.render(true);
 		}
-
-		// @ts-ignore
-		let d = new QuantityDialog((quantity) => {
-				packet.quantity = quantity;
-				// if (allowNoTargetGM) {
-					MerchantSheetNPCHelper.buyTransactionFromPlayer(packet)
-				// } else {
-				// 	console.log("MerchantSheet.ts", "Sending buy request to " + targetGm.name, packet);
-				// 	MerchantSheetNPCHelper.buyTransactionFromPlayer(packet);
-				// }
-			},
-			{
-				acceptLabel: "Purchase"
-			}
-		);
-		d.render(true);
 	}
 
 
@@ -971,7 +969,6 @@ class MerchantSheet extends ActorSheet {
 		event.preventDefault();
 
 		const template_file = "modules/"+Globals.ModuleName+"/templates/change_all_quantity.html";
-		Logger.Log("infinity: ", this.actor.getFlag(Globals.ModuleName,"infinity"), this.actor)
 		const template_data = {infinity: this.actor.getFlag(Globals.ModuleName,"infinity")? "checked":""};
 		const rendered_html = await renderTemplate(template_file, template_data);
 

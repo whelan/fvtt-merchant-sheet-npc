@@ -5,6 +5,7 @@ import {
 import {ActorData} from "@league-of-foundry-developers/foundry-vtt-types/src/foundry/common/data/data.mjs";
 
 class MerchantSheetData implements ActorSheet.Data<ActorSheet.Options> {
+	isService: boolean = false
 	isGM: boolean = false
 	owner: boolean = false
     merchant: any

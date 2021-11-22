@@ -82,5 +82,11 @@
   "MERCHANTNPC.pickItemCompendium": "Which compendium should items to generate come from",
   "MERCHANTNPC.pickItemCompendium_hint": "This will be used for CSV import to take the item from that and find the item from the compendium. At a later stage Randomizer will be added",
   "MERCHANTNPC.invalidQuantity": "It is not possible to buy or sell items that does not have a quantity",
-  "MERCHANTNPC.item-new": "New {type}"
+  "MERCHANTNPC.item-new": "New {type}",
+  "MERCHANTNPC.tool": "Tool",
+  "MERCHANTNPC.class": "Class",
+  "MERCHANTNPC.backpack": "Backpack",
+  "MERCHANTNPC.feat": "Feat",
+  "MERCHANTNPC.csv-item-compendium-field": "Which item compendium should the importer use",
+  "MERCHANTNPC.csv-item-fallback-field": "Item type to use if item is not found in compendium"
 }
