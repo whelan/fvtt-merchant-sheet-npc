@@ -11,6 +11,7 @@ import MerchantSheet from "./MerchantSheet";
 import SfrpgCurrencyCalculator from "./systems/SfrpgCurrencyCalculator";
 import SwadeCurrencyCalculator from "./systems/SwadeCurrencyCalculator";
 import Logger from "../Utils/Logger";
+import Wfrp4eCurrencyCalculator from "./systems/Wfrp4eCurrencyCalculator";
 
 let currencyCalculator: CurrencyCalculator;
 
@@ -34,6 +35,9 @@ class MerchantSheetNPCHelper {
 				currencyCalculator.initSettings();
 			} else if (currencyModuleImport === 'SwadeCurrencyCalculator') {
 				currencyCalculator = new SwadeCurrencyCalculator();
+				currencyCalculator.initSettings();
+			} else if (currencyModuleImport === 'Wfrp4eCurrencyCalculator') {
+				currencyCalculator = new Wfrp4eCurrencyCalculator();
 				currencyCalculator.initSettings();
 			} else {
 				currencyCalculator = new CurrencyCalculator();
