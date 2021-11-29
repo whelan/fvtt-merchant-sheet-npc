@@ -118,7 +118,7 @@ class MerchantSheetNPCHelper {
 					label: (<Game>game).i18n.localize('MERCHANTNPC.update'),
 					callback: () => {
 						// @ts-ignore
-						item.update({[currencyCalculator.getPriceItemKey()]: document.getElementById("price-value").value});
+						item.update({[currencyCalculator.getPriceItemKey()]: currencyCalculator.getPrice(document.getElementById("price-value").value)});
 					}
 				},
 				two: {
@@ -171,7 +171,7 @@ class MerchantSheetNPCHelper {
 		const item: Item = actor.getEmbeddedDocument("Item", itemId);
 		const template_file = "modules/"+Globals.ModuleName+"/templates/change_quantity.html";
 		// @ts-ignore
-		const quantity = item.data.data.quantity;
+		const quantity = currencyCalculator.getQuantity(item.data.data.quantity);
 		const infinityActivated = (quantity === Number.MAX_VALUE?'checked':'');
 		// @ts-ignore
 		const template_data = { quantity: quantity,
@@ -188,13 +188,14 @@ class MerchantSheetNPCHelper {
 					callback: () => {
 						// @ts-ignore
 						if (document.getElementById("quantity-infinity").checked) {
-							actor.updateEmbeddedDocuments("Item",[{_id: itemId, "data.quantity": Number.MAX_VALUE}])
+
+							actor.updateEmbeddedDocuments("Item",[{_id: itemId, [currencyCalculator.getQuantityKey()]: Number.MAX_VALUE}])
 						} else {
 							// @ts-ignore
 							let newQuantity: number = document.getElementById("quantity-value").value;
 							actor.updateEmbeddedDocuments("Item",[{
 								_id: itemId,
-								"data.quantity": newQuantity
+								[currencyCalculator.getQuantityKey()]: newQuantity
 							}])
 						}
 					}
@@ -224,7 +225,8 @@ class MerchantSheetNPCHelper {
 		let sellItem = seller.getEmbeddedDocument("Item", itemId);
 		// If the buyer attempts to buy more then what's in stock, buy all the stock.
 		if (sellItem !== undefined && sellItem.data.data.quantity < quantity) {
-			quantity = sellItem.data.data.quantity;
+			// @ts-ignore
+			quantity = currencyCalculator.getQuantity(sellItem.data.data.quantity);
 		}
 
 		// On negative quantity we show an error
@@ -353,24 +355,24 @@ class MerchantSheetNPCHelper {
 			let item = source.getEmbeddedDocument("Item", itemId);
 			let infinity = source.getFlag(Globals.ModuleName,"infinity");
 			// Move all items if we select more than the quantity.
-			if (item !== undefined && item.data.data.quantity < quantity) {
+			// @ts-ignore
+			if (item !== undefined && currencyCalculator.getQuantity(item.data.data.quantity) < quantity) {
 				// @ts-ignore
-				quantity = Number(item.data.data.quantity);
+				quantity = Number(currencyCalculator.getQuantity(item.data.data.quantity));
 			}
 
 			let newItem = duplicate(item);
 			// @ts-ignore
-			const update = { _id: itemId, "data.quantity": item.data.data.quantity >= Number.MAX_VALUE-10000 || infinity ? Number.MAX_VALUE : item.data.data.quantity - quantity };
+			const update = { _id: itemId, [currencyCalculator.getQuantityKey()]: currencyCalculator.getQuantity(item.data.data.quantity) >= Number.MAX_VALUE-10000 || infinity ? Number.MAX_VALUE : currencyCalculator.getQuantity(item.data.data.quantity) - quantity };
 			let allowNoTargetGM = (<Game>game).settings.get(Globals.ModuleName, "allowNoGM")
 
-			if (update["data.quantity"] === 0 && !allowNoTargetGM && deleteItemFromSource) {
+			if (update[currencyCalculator.getQuantityKey()] === 0 && !allowNoTargetGM && deleteItemFromSource) {
 				deletes.push(itemId);
 			}
 			else {
 				updates.push(update);
 			}
-
-			newItem.data.quantity = quantity;
+			currencyCalculator.setQuantityForItemData(newItem.data,quantity)
 			results.push({
 				item: newItem,
 				quantity: quantity
@@ -381,14 +383,15 @@ class MerchantSheetNPCHelper {
 			} else {
 				//console.log("Existing Item");
 				// @ts-ignore
-				destItem.data.data.quantity = Number(destItem.data.data.quantity) + Number(newItem.data.quantity);
+				currencyCalculator.setQuantityForItemData(destItem.data.data,Number(currencyCalculator.getQuantity(destItem.data.data.quantity)) + Number(currencyCalculator.getQuantity(newItem.data.quantity)))
+
 				// @ts-ignore
-				if (destItem.data.data.quantity < 0) {
+				if (currencyCalculator.getQuantity(destItem.data.data.quantity) < 0) {
 				// @ts-ignore
-					destItem.data.data.quantity = 0;
+					currencyCalculator.setQuantityForItemData(destItem.data.data,0)
 				}
 				// @ts-ignore
-				const destUpdate = { _id: destItem._id, "data.quantity": destItem.data.data.quantity };
+				const destUpdate = { _id: destItem._id, [currencyCalculator.getQuantityKey()]: currencyCalculator.getQuantity(destItem.data.data.quantity) };
 				destUpdates.push(destUpdate);
 			}
 		}

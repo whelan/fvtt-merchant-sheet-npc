@@ -78,5 +78,9 @@ export default class SwadeCurrencyCalculator extends CurrencyCalculator {
 		return chatData;
 	}
 
+	currency(): string {
+		return '' + (<Game>game).settings.get("swade","currencyName");
+	}
+
 
 }

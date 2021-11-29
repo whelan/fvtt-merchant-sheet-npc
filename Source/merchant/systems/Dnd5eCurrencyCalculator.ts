@@ -382,5 +382,7 @@ $
         return "data.price";
     }
 
-
+	currency(): string {
+		return 'GP';
+	}
 }

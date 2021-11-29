@@ -8,6 +8,7 @@ import {PropertiesToSource} from "@league-of-foundry-developers/foundry-vtt-type
 import {ItemData} from "@league-of-foundry-developers/foundry-vtt-types/src/foundry/common/data/data.mjs";
 import * as Console from "console";
 import Globals from "../../Globals";
+import Logger from "../../Utils/Logger";
 // @ts-ignore
 
 
@@ -83,11 +84,14 @@ export default class Wfrp4eCurrencyCalculator extends CurrencyCalculator {
 
     actorCurrency(actor: Actor) {
         // @ts-ignore
-		return actor.data.data.currency;
+		let price = this.getBPprice(game.wfrp4e.market.getCharacterMoney(actor.items))
+		console.log("Actor currency: ", price);
+		return price;
     }
 
     buyerHaveNotEnoughFunds(itemCostInGold:number, buyerFunds: any) {
-		return true;
+		let buyerFundInBP = this.getBPprice(buyerFunds);
+		return itemCostInGold > buyerFundInBP
         // let itemCostInPlatinum = itemCostInGold / conversionRates["gp"]
         // let buyerFundsAsPlatinum = this.convertToPlatinum(buyerFunds);
 		//
@@ -114,7 +118,10 @@ export default class Wfrp4eCurrencyCalculator extends CurrencyCalculator {
 
 
     subtractAmountFromActor(buyer: Actor, buyerFunds: any, itemCostInGold: number) {
+		// @ts-ignore
+		game.wfrp4e.market.payCommand('0gc 0ss ' + itemCostInGold+'bp',buyer);
 
+		// @ts-ignore
         // let itemCostInPlatinum = itemCostInGold / conversionRates["gp"]
         // let buyerFundsAsPlatinum = this.convertToPlatinum(buyerFunds);
 
@@ -274,6 +281,7 @@ export default class Wfrp4eCurrencyCalculator extends CurrencyCalculator {
     }
 
     priceInText(itemCostInGold: number): string {
+		//X GC Y SS Z BP
         return itemCostInGold + " gp";
     }
 
@@ -282,35 +290,30 @@ export default class Wfrp4eCurrencyCalculator extends CurrencyCalculator {
         console.log("Merchant Sheet | Prepare Features");
         // Actions
         const features = {
+			ammunition: {
+                label: (<Game>game).i18n.localize("MERCHANTNPC.ammunition"),
+                items: [],
+                type: "ammunition"
+            },
+			armour: {
+                label: (<Game>game).i18n.localize("MERCHANTNPC.armour"),
+                items: [],
+                type: "armour"
+            },
             weapons: {
                 label: (<Game>game).i18n.localize("MERCHANTNPC.weapons"),
                 items: [],
                 type: "weapon"
             },
-            equipment: {
-                label: (<Game>game).i18n.localize("MERCHANTNPC.equipment"),
-                items: [],
-                type: "equipment"
-            },
-            consumables: {
-                label: (<Game>game).i18n.localize("MERCHANTNPC.consumables"),
-                items: [],
-                type: "consumable"
-            },
-            tools: {
-                label: (<Game>game).i18n.localize("MERCHANTNPC.tools"),
-                items: [],
-                type: "tool"
-            },
-            containers: {
-                label: (<Game>game).i18n.localize("MERCHANTNPC.containers"),
+            container: {
+                label: (<Game>game).i18n.localize("MERCHANTNPC.container"),
                 items: [],
                 type: "container"
             },
-            loot: {
-                label: (<Game>game).i18n.localize("MERCHANTNPC.loot"),
+            spell: {
+                label: (<Game>game).i18n.localize("MERCHANTNPC.spell"),
                 items: [],
-                type: "loot"
+                type: "spell"
             },
 
         };
@@ -318,22 +321,17 @@ export default class Wfrp4eCurrencyCalculator extends CurrencyCalculator {
         features.weapons.items = items.weapon
         features.weapons.items.sort(this.sort());
 		// @ts-ignore
-        features.equipment.items = items.equipment
-        features.equipment.items.sort(this.sort());
-
+        features.armour.items = items.armour
+        features.armour.items.sort(this.sort());
 		// @ts-ignore
-		features.consumables.items = items.consumable
-        features.consumables.items.sort(this.sort());
+        features.ammunition.items = items.ammunition
+        features.ammunition.items.sort(this.sort());
 		// @ts-ignore
-        features.tools.items = items.tool
-        features.tools.items.sort(this.sort());
-
+        features.container.items = items.container
+        features.container.items.sort(this.sort());
 		// @ts-ignore
-		features.containers.items = items.backpack
-        features.containers.items.sort(this.sort());
-		// @ts-ignore
-        features.loot.items = items.loot
-        features.loot.items.sort(this.sort());
+        features.spell.items = items.spell
+        features.spell.items.sort(this.sort());
         return features;
     }
 
@@ -354,12 +352,59 @@ export default class Wfrp4eCurrencyCalculator extends CurrencyCalculator {
 
     getPriceFromItem(item: Item) {
         // @ts-ignore
-		return item.data.data.price;
+		return this.getBPprice(item.data.data.price);
+
     }
 
     getPriceItemKey() {
         return "data.price";
     }
 
+	getQuantity(quantity: any): number {
+		return quantity.value;
+	}
+	getQuantityKey(): string {
+		return "data.quantity.value"
+	}
+	setQuantityForItemData(data: any, quantity: number) {
+		Logger.Log("Changing quantity for item and set quantity", data, quantity)
+		data.quantity.value = quantity;
+	}
 
+	getWeight(itemData: any) {
+		return itemData.encumbrance.value;
+	}
+
+	getPriceOutputWithModifier(basePrice: any, modifier: number): string {
+		console.log("price: ", basePrice)
+		let baseAmount = this.getBPprice(basePrice);
+		let priceCalculated = Math.round(Math.round(baseAmount * modifier * 100) / 100);
+
+		// @ts-ignore
+		let priceAmount = game.wfrp4e.market.makeSomeChange(priceCalculated,false);
+		// @ts-ignore
+		return game.wfrp4e.market.amountToString(priceAmount);
+	}
+
+
+	private getBPprice(basePrice: any) {
+		let gc: number = basePrice.gc * 240
+		let ss: number = basePrice.ss * 12
+		let bp: number = basePrice.bp
+
+		let baseAmount: number = gc + +ss + +bp;
+		return baseAmount;
+	}
+
+	getPrice(priceValue: number): any {
+		// @ts-ignore
+		let amount = game.wfrp4e.market.makeSomeChange(priceValue,true);
+		amount.label = "Price";
+		amount.type = "String";
+		return amount;
+	}
+
+	currency(): string {
+		return 'BP';
+	}
 }

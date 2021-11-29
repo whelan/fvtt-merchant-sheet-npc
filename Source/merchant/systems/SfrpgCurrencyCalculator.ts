@@ -134,4 +134,7 @@ export default class SfrpgCurrencyCalculator extends CurrencyCalculator {
         return "data.price";
     }
 
+	currency(): string {
+		return 'credit';
+	}
 }

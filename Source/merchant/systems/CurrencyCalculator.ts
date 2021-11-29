@@ -1,6 +1,7 @@
 import {PropertiesToSource} from "@league-of-foundry-developers/foundry-vtt-types/src/types/helperTypes";
 import {ItemData} from "@league-of-foundry-developers/foundry-vtt-types/src/foundry/common/data/data.mjs";
 import MerchantSheet from "../MerchantSheet";
+import Logger from "../../Utils/Logger";
 
 export default class CurrencyCalculator {
 
@@ -78,5 +79,34 @@ export default class CurrencyCalculator {
 
 	getDescription(chatData: any): string {
 		return chatData.value;
+	}
+
+	getQuantity(quantity: any): number {
+		return quantity;
+	}
+
+	getQuantityKey(): string {
+		return "data.quantity"
+	}
+
+	getWeight(itemData: any) {
+		return itemData.weight;
+	}
+
+	getPriceOutputWithModifier(basePrice: any, modifier: number): string {
+		return (Math.round((<number>basePrice) * modifier * 100) / 100).toLocaleString('en')
+	}
+
+	getPrice(priceValue: number): any {
+		return priceValue;
+	}
+
+	currency(): string {
+		return '';
+	}
+
+	setQuantityForItemData(data: any, quantity: number) {
+		Logger.Log("Changing quantity for item and set quantity", data, quantity)
+		data.quantity = quantity;
 	}
 }
