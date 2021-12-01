@@ -106,7 +106,7 @@ class MerchantSheetNPCHelper {
 		// @ts-ignore
 		const item: Item = actor.getEmbeddedDocument("Item", itemId);
 		const template_file = "modules/"+Globals.ModuleName+"/templates/change_price.html";
-		const template_data = { price: currencyCalculator.getPriceFromItem(item)};
+		const template_data = { price: currencyCalculator.getPriceFromItem(item.data)};
 		const rendered_html = await renderTemplate(template_file, template_data);
 
 		let d = new Dialog({
@@ -249,7 +249,11 @@ class MerchantSheetNPCHelper {
 		if (sellerStack !== undefined && quantity > sellerStack) quantity = sellerStack;
 
 		// @ts-ignore
-		let itemCostInGold = Math.round(currencyCalculator.getPriceFromItem(sellItem) * sellerModifier * 100) / 100;
+		console.log(sellItem)
+		// @ts-ignore
+		console.log(currencyCalculator.getPriceFromItem(sellItem.data))
+		// @ts-ignore
+		let itemCostInGold = Math.round(currencyCalculator.getPriceFromItem(sellItem.data) * sellerModifier * 100) / 100;
 
 		itemCostInGold *= quantity;
 		let currency = currencyCalculator.actorCurrency(buyer);

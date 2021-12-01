@@ -77,7 +77,7 @@
 					{{/each}}
 				</ol>
 				{{/if}}
-				<div class="editor">
+				<div style="{{editorStyle}}" class="editor">
 					{{editor content=data.data.details.biography.value target="data.details.biography.value" button=true
 					owner=owner editable=isGM}}
 				</div>

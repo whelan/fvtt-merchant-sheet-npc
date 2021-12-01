@@ -68,7 +68,7 @@ export default class CurrencyCalculator {
 	}
 
 
-	getPriceFromItem(item: Item) {
+	getPriceFromItem(item: any) {
 		// @ts-ignore
 		return item.data.price;
 	}
@@ -108,5 +108,13 @@ export default class CurrencyCalculator {
 	setQuantityForItemData(data: any, quantity: number) {
 		Logger.Log("Changing quantity for item and set quantity", data, quantity)
 		data.quantity = quantity;
+	}
+
+	inputStyle(): string {
+		return ""
+	}
+
+	editorStyle() {
+		return ""
 	}
 }
