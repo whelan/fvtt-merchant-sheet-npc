@@ -127,11 +127,14 @@ export default class SfrpgCurrencyCalculator extends CurrencyCalculator {
 
     getPriceFromItem(item: Item) {
         // @ts-ignore
-		return item.data.data.price;
+		return item.data.price;
     }
 
     getPriceItemKey() {
         return "data.price";
     }
 
+	currency(): string {
+		return 'credit';
+	}
 }

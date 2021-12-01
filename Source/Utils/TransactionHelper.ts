@@ -27,9 +27,9 @@ class TransactionHelper {
 		let sellItem = <Item>seller.getEmbeddedDocument("Item", itemId);
 		// If the buyer attempts to buy more then what's in stock, buy all the stock.
 		// @ts-ignore
-		if (sellItem !== null && sellItem.data.data.quantity < quantity) {
+		if (sellItem !== null && currencyCalculator.getQuantity(sellItem.data.data.quantity) < quantity) {
 			// @ts-ignore
-			quantity = sellItem.data.data.quantity;
+			quantity = currencyCalculator.getQuantity(sellItem.data.data.quantity);
 		}
 
 		// On negative quantity we show an error

@@ -5,21 +5,21 @@
 <p><div><label>{{localize "MERCHANTNPC.csv-name-field"}}:</label></div> <div><input name="csv-name-value" id="csv-name-value" value="1" class="field"></div></p>
 <p><div><label>{{localize "MERCHANTNPC.csv-price-field"}}:</label></div> <div><input name="csv-price-value" id="csv-price-value" value="" class="field"></div></p>
 <p><div><label>{{localize "MERCHANTNPC.csv-scroll-name-field"}}:</label></div> <div><input name="csv-scroll-name-value" id="csv-scroll-name-value" value="Scroll of" class="field"></div></p>
-<p><div><label>{{localize "MERCHANTNPC.csv-spell-compendium-field"}}:</label></div> <div> <select class="merchant-sheet-chooser" id="csv-pack-name" name="csv-pack-name">
+<p><div><label>{{localize "MERCHANTNPC.csv-spell-compendium-field"}}:</label></div> <div> <select style="{{inputStyle}}" class="merchant-sheet-chooser" id="csv-pack-name" name="csv-pack-name">
     {{#select packName}}
     {{#each compendiums}}
     <option value="{{@key}}">{{this}}</option>
     {{/each}}
     {{/select}}
 </select></div></p>
-<p><div><label>{{localize "MERCHANTNPC.csv-item-compendium-field"}}:</label></div> <div> <select class="merchant-sheet-chooser" id="csv-item-name" name="csv-item-name">
+<p><div><label>{{localize "MERCHANTNPC.csv-item-compendium-field"}}:</label></div> <div> <select style="{{inputStyle}}" class="merchant-sheet-chooser" id="csv-item-name" name="csv-item-name">
 	{{#select packName}}
 	{{#each compendiums}}
 	<option value="{{@key}}"  {{ itemSelected @key}}>{{this}}</option>
 	{{/each}}
 	{{/select}}
 </select></div></p>
-<p><div><label>{{localize "MERCHANTNPC.csv-item-fallback-field"}}:</label></div> <div> <select class="merchant-sheet-chooser" id="csv-type-name" name="csv-type-name">
+<p><div><label>{{localize "MERCHANTNPC.csv-item-fallback-field"}}:</label></div> <div> <select style="{{inputStyle}}" class="merchant-sheet-chooser" id="csv-type-name" name="csv-type-name">
 	{{#select typeName}}
 	{{#each itemTypes}}
 	<option value="{{this}}">{{getTypeLocalized this}}</option>

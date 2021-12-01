@@ -63,7 +63,7 @@ export default class SwadeCurrencyCalculator extends CurrencyCalculator {
 
 	getPriceFromItem(item: Item) {
         // @ts-ignore
-		return item.data.data.price;
+		return item.data.price;
     }
 
     getPriceItemKey() {
@@ -76,6 +76,10 @@ export default class SwadeCurrencyCalculator extends CurrencyCalculator {
 
 	getDescription(chatData: any): string {
 		return chatData;
+	}
+
+	currency(): string {
+		return '' + (<Game>game).settings.get("swade","currencyName");
 	}
 
 

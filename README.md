@@ -48,7 +48,7 @@ A player can buy an item or a stack of items from a merchant
 A player can sell an item to a merchant by using the drag drop functionality. If that is used the player either accept or decline the price offered. 
 
 #### Change settings on the merchant
-The merchant settings is under a settings page
+The merchant settings are under a settings page
 
 ![](images/settings.png)
 
@@ -56,13 +56,14 @@ The merchant settings is under a settings page
 It is possible to create a merchant which does not transfer items to the buyer and does not change the item on the seller. 
 ![](images/Service-merchant.png)
 
-At the moment the merchant have unlimited amount of money.
+At the moment the merchant has an unlimited amount of money.
 
 ## Compatibility:
 - This works only in FVTT 0.8.x and with these systems (maybe more if the system is using simple quantity): 
   * swade
   * dnd5e  
   * Starfinder 
+  * WFRP
 
 ## Installation Instructions
 

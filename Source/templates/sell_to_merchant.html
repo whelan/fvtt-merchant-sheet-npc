@@ -3,7 +3,7 @@
 </p>
 <p><input name="price-modifier-percent" id="price-modifier-percent" type="range" min="0" max="200"
           value="{{buyModifier}}" class="slider"></p>
-<p><label>{{localize "MERCHANTNPC.percentage"}}:</label> <input type=number min="0" max="200"
+<p><label>{{localize "MERCHANTNPC.percentage"}}:</label> <input style="{{inputStyle}}" type=number min="0" max="200"
                                                                 value="{{buyModifier}}"
                                                                 id="price-modifier-percent-display"></p>
 <script>var pmSlider = document.getElementById("price-modifier-percent");

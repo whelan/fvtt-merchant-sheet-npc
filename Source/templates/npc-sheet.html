@@ -77,7 +77,7 @@
 					{{/each}}
 				</ol>
 				{{/if}}
-				<div class="editor">
+				<div style="{{editorStyle}}" class="editor">
 					{{editor content=data.data.details.biography.value target="data.details.biography.value" button=true
 					owner=owner editable=isGM}}
 				</div>
@@ -135,7 +135,7 @@
 				</li>
 
 				{{else}}
-				{{#if (shouldItemBeVisible item.data.data.quantity ../../isGM)}}
+				{{#if (shouldItemBeVisible (getItemQuantity item.data.data.quantity) ../../isGM)}}
 				<li class="merchant-item flexrow" data-item-id="{{item.data._id}}"
 					data-item-stack="{{../../stackModifier}}">
 					<div class="merchant-item-image" style="background-image: url({{item.img}})"></div>
@@ -145,18 +145,18 @@
 						<a class="item-control change-item-quantity"
 						   title="{{localize 'MERCHANTNPC.change-item-quantity-help'}}">
 							<i class="fas fa-box"></i>
-							{{#if (itemInfinity item.data.data.quantity ../../infinity)}}
+							{{#if (itemInfinity (getItemQuantity item.data.data.quantity) ../../infinity)}}
 							<i class="fas fa-infinity"></i>
 							{{else}}
-							{{item.data.data.quantity}}
+							{{getItemQuantity item.data.data.quantity}}
 							{{/if}}
 						</a>
 						{{else}}
 						<i class="fas fa-box"></i>
-						{{#if (itemInfinity item.data.data.quantity ../../infinity)}}
+						{{#if (itemInfinity (getItemQuantity item.data.data.quantity) ../../infinity)}}
 						<i class="fas fa-infinity"></i>
 						{{else}}
-						{{item.data.data.quantity}}
+						{{getItemQuantity item.data.data.quantity}}
 						{{/if}}
 
 						{{/if}}
@@ -165,8 +165,8 @@
 					<div class="item-weight">
 						<i class="fas fa-weight-hanging" title="{{localize 'MERCHANTNPC.weight'}}"></i>
 						{{merchantsheetweight
-						item.data.data.weight}}{{merchantsheetstackweight item.data.data.weight
-						item.data.data.quantity ../../infinity}}
+						(getItemWeight item.data.data)}}{{merchantsheetstackweight (getItemWeight item.data.data)
+						(getItemQuantity item.data.data.quantity) ../../infinity}}
 					</div>
 					<div class="item-price">
 						{{#if ../../isGM}}

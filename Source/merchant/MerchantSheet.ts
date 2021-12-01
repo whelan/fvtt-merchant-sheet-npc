@@ -22,9 +22,27 @@ class MerchantSheet extends ActorSheet {
 			// @ts-ignore
 			return (arg1 == arg2) ? options.fn(this) : options.inverse(this);
 		});
+		Handlebars.registerHelper('inputStyle', function (options) {
+			return currencyCalculator.inputStyle();
+		});
+
+		Handlebars.registerHelper('editorStyle', function (options) {
+			return currencyCalculator.editorStyle();
+		});
 
 		Handlebars.registerHelper('shouldItemBeVisible', function (quantity, isGM, options) {
 			return isGM || quantity > 0;
+		});
+
+		Handlebars.registerHelper('getItemQuantity', function (quantity, options) {
+			return currencyCalculator.getQuantity(quantity);
+		});
+
+		Handlebars.registerHelper('getItemWeight', function (itemData, options) {
+			return currencyCalculator.getWeight(itemData);
+		});
+		Handlebars.registerHelper('getPriceCurrency', function () {
+			return currencyCalculator.currency();
 		});
 
 		Handlebars.registerHelper('unequals', function (arg1, arg2, options) {
@@ -54,7 +72,7 @@ class MerchantSheet extends ActorSheet {
 			}
 			// if (!stackModifier) await this.actor.setFlag(m oduleName, "stackModifier", 20);
 
-			return (Math.round(basePrice * modifier * 100) / 100).toLocaleString('en');
+			return currencyCalculator.getPriceOutputWithModifier(basePrice,modifier);
 		});
 
 		Handlebars.registerHelper('merchantsheetstackweight', function (weight, qty, infinity) {
@@ -459,7 +477,7 @@ class MerchantSheet extends ActorSheet {
 
 
 		let d = new Dialog({
-			title: (<Game>game).i18n.localize('MERCHANTNPC.quantity'),
+			title: (<Game>game).i18n.localize('MERCHANTNPC.settings'),
 			content: rendered_html,
 			buttons: {
 				one: {
@@ -820,7 +838,7 @@ class MerchantSheet extends ActorSheet {
 				}
 				else {
 					// @ts-ignore
-					let newQty = Number(existingItem.data.data.quantity) + Number(1);
+					let newQty = currencyCalculator.getQuantity(existingItem.data.data.quantity) + Number(1);
 					// @ts-ignore
 					await existingItem.update({ "data.quantity": newQty});
 				}
@@ -865,7 +883,7 @@ class MerchantSheet extends ActorSheet {
 			// @ts-ignore
 			for(let extraItem of value) {
 				if (itemToUpdateQuantity !== extraItem) {
-					let newQty = Number(itemToUpdateQuantity.data.data.quantity) + Number(extraItem.data.data.quantity);
+					let newQty = currencyCalculator.getQuantity(itemToUpdateQuantity.data.data.quantity) + currencyCalculator.getQuantity(extraItem.data.data.quantity);
 					await itemToUpdateQuantity.update({ "data.quantity": newQty});
 					itemsToBeDeleted.push(extraItem.id);
 				}
@@ -910,7 +928,7 @@ class MerchantSheet extends ActorSheet {
 		// @ts-ignore
 		const item: ItemData = this.actor.getEmbeddedDocument("Item", itemId);
 		// @ts-ignore
-		if (item.data.data.quantity <= 0) {
+		if (currencyCalculator.getQuantity(item.data.data.quantity) <= 0) {
 			return (ui.notifications || new Notifications).error((<Game>game).i18n.localize("MERCHANTNPC.invalidQuantity"));
 		}
 		const packet = {
@@ -926,9 +944,9 @@ class MerchantSheet extends ActorSheet {
 		let service = this.token.actor.getFlag(Globals.ModuleName,"service");
 		if (stack || event.shiftKey) {
 			// @ts-ignore
-			if (item.data.data.quantity < stackModifier) {
+			if (currencyCalculator.getQuantity(item.data.data.quantity) < stackModifier) {
 				// @ts-ignore
-				packet.quantity = item.data.data.quantity;
+				packet.quantity = currencyCalculator.getQuantity(item.data.data.quantity);
 			} else {
 				// @ts-ignore
 				packet.quantity = stackModifier;
@@ -1155,7 +1173,7 @@ Hooks.on('dropActorSheetData',async function (target: Actor,sheet: any,dragSourc
 			console.warn("Merchant sheet | target has no data._id?",target);
 			return;
 		}
-		if (dragSource.data.data.quantity <= 0) {
+		if (currencyCalculator.getQuantity(dragSource.data.data.quantity) <= 0) {
 			(ui.notifications || new Notifications).error((<Game>game).i18n.localize("MERCHANTNPC.invalidQuantity"));
 			return;
 		}
@@ -1175,11 +1193,13 @@ Hooks.on('dropActorSheetData',async function (target: Actor,sheet: any,dragSourc
 			if (!buyModifier === undefined) buyModifier = 0.5;
 
 
-			var html = "<p>"+(<Game>game).i18n.format('MERCHANTNPC.sell-items-player',{name: dragSource.data.name, price: currencyCalculator.priceInText(buyModifier * dragSource.data.data.price)})+"</p>";
-			html += '<p><input name="quantity-modifier" id="quantity-modifier" type="range" min="0" max="'+dragSource.data.data.quantity+'" value="1" class="slider"></p>';
-			html += '<p><label>'+(<Game>game).i18n.localize("MERCHANTNPC.quantity")+':</label> <input type=number min="0" max="'+dragSource.data.data.quantity+'" value="1" id="quantity-modifier-display"></p> <input type="hidden" id="quantity-modifier-price" value = "'+(buyModifier * dragSource.data.data.price)+'"/>';
+			let itemPrice = currencyCalculator.getPriceFromItem(dragSource.data);
+			let price = currencyCalculator.priceInText(buyModifier * itemPrice);
+			var html = "<div>"+(<Game>game).i18n.format('MERCHANTNPC.sell-items-player',{name: dragSource.data.name, price: price})+"</div>";
+			html += '<div><input name="quantity-modifier" id="quantity-modifier" type="range" min="0" max="'+currencyCalculator.getQuantity(dragSource.data.data.quantity)+'" value="1" class="slider"></div>';
+			html += '<div><label>'+(<Game>game).i18n.localize("MERCHANTNPC.quantity")+':</label> <input style="'+currencyCalculator.inputStyle()+'" type=number min="0" max="'+currencyCalculator.getQuantity(dragSource.data.data.quantity)+'" value="1" id="quantity-modifier-display"></div> <input type="hidden" id="quantity-modifier-price" value = "'+(buyModifier * itemPrice)+'"/>';
 			html += '<script>var pmSlider = document.getElementById("quantity-modifier"); var pmDisplay = document.getElementById("quantity-modifier-display"); var total = document.getElementById("quantity-modifier-total"); var price = document.getElementById("quantity-modifier-price"); pmDisplay.value = pmSlider.value; pmSlider.oninput = function() { pmDisplay.value = this.value;  total.value =this.value * price.value; }; pmDisplay.oninput = function() { pmSlider.value = this.value; };</script>';
-			html += '<p>'+(<Game>game).i18n.localize("MERCHANTNPC.total")+'<input readonly type="text"  value="'+(buyModifier * dragSource.data.data.price)+'" id = "quantity-modifier-total"/> </p>' ;
+			html += '<div>'+(<Game>game).i18n.localize("MERCHANTNPC.total")+'<input style="'+currencyCalculator.inputStyle()+'" readonly type="text"  value="'+(itemPrice * buyModifier)+'" id = "quantity-modifier-total"/> </div>' ;
 
 			let d = new Dialog({
 				title: (<Game>game).i18n.localize("MERCHANTNPC.sell-item"),
