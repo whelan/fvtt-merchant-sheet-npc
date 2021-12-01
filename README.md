@@ -63,6 +63,7 @@ At the moment the merchant has an unlimited amount of money.
   * swade
   * dnd5e  
   * Starfinder 
+  * WFRP
 
 ## Installation Instructions
 

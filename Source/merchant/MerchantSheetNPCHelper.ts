@@ -249,10 +249,6 @@ class MerchantSheetNPCHelper {
 		if (sellerStack !== undefined && quantity > sellerStack) quantity = sellerStack;
 
 		// @ts-ignore
-		console.log(sellItem)
-		// @ts-ignore
-		console.log(currencyCalculator.getPriceFromItem(sellItem.data))
-		// @ts-ignore
 		let itemCostInGold = Math.round(currencyCalculator.getPriceFromItem(sellItem.data) * sellerModifier * 100) / 100;
 
 		itemCostInGold *= quantity;
