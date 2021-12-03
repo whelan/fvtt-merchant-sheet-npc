@@ -1,3 +1,12 @@
+## Version 2.3.1
+* Fixes for WFRP CSS
+* 
+
+
+
+## Version 2.3.0
+* Added support for WFRP
+
 ## Version 2.2.0
 * Add functionality for add button 
 * Enable csv import to create unknown items, this is enabled by default.

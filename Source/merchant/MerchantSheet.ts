@@ -1056,7 +1056,7 @@ class QuantityDialog extends Dialog {
             <form>
                 <div class="form-group">
                     <label>` + (<Game>game).i18n.localize("MERCHANTNPC.quantity")+ `:</label>
-                    <input type=number min="1" id="quantity" name="quantity" value="1">
+                    <input style="`+currencyCalculator.inputStyle()+`" type=number min="1" id="quantity" name="quantity" value="1">
                 </div>
             </form>`,
 			buttons: {

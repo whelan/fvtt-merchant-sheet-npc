@@ -277,7 +277,7 @@ export default class Wfrp4eCurrencyCalculator extends CurrencyCalculator {
 	}
 
 	inputStyle(): string {
-		return "color: white"
+		return "color: white; background: black"
 	}
 	editorStyle(): string {
 		return "background: white"
