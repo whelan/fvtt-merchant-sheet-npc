@@ -104,6 +104,12 @@
   "MERCHANTNPC.trait": "Trait",
   "MERCHANTNPC.extendedTest": "ExtendedTest",
   "MERCHANTNPC.vehicleMod": "VehicleMod",
-  "MERCHANTNPC.cargo": "Cargo"
-
+  "MERCHANTNPC.cargo": "Cargo",
+  "MERCHANTNPC.trapping.clothingAccessories": "Clothing and Accessories",
+  "MERCHANTNPC.trapping.foodAndDrink": "Food and Drink",
+  "MERCHANTNPC.trapping.toolsAndKits": "Tools and Kits",
+  "MERCHANTNPC.trapping.booksAndDocuments": "Books and Documents",
+  "MERCHANTNPC.trapping.tradeTools": "Trade Tools and Workshops",
+  "MERCHANTNPC.trapping.drugsPoisonsHerbsDraughts": "Drugs, Poisons, Herbs and Draughts",
+  "MERCHANTNPC.trapping.misc": "Miscellaneous"
 }

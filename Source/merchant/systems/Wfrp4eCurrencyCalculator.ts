@@ -171,6 +171,11 @@ export default class Wfrp4eCurrencyCalculator extends CurrencyCalculator {
                 items: [],
                 type: "spell"
             },
+            trapping: {
+                label: (<Game>game).i18n.localize("MERCHANTNPC.trapping"),
+                items: [],
+                type: "trapping"
+            },
 
         };
 		// @ts-ignore
@@ -188,6 +193,9 @@ export default class Wfrp4eCurrencyCalculator extends CurrencyCalculator {
 		// @ts-ignore
         features.spell.items = items.spell
         features.spell.items.sort(this.sort());
+
+        features.trapping.items = items.trapping
+        features.trapping.items.sort(this.sort());
         return features;
     }
 
