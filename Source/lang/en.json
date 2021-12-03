@@ -88,5 +88,22 @@
   "MERCHANTNPC.backpack": "Backpack",
   "MERCHANTNPC.feat": "Feat",
   "MERCHANTNPC.csv-item-compendium-field": "Which item compendium should the importer use",
-  "MERCHANTNPC.csv-item-fallback-field": "Item type to use if item is not found in compendium"
+  "MERCHANTNPC.csv-item-fallback-field": "Item type to use if item is not found in compendium",
+  "MERCHANTNPC.armour": "Armour",
+  "MERCHANTNPC.career": "Career",
+  "MERCHANTNPC.critical": "Critical",
+  "MERCHANTNPC.disease": "Disease",
+  "MERCHANTNPC.injury": "Injury",
+  "MERCHANTNPC.money": "Money",
+  "MERCHANTNPC.mutation": "Mutation",
+  "MERCHANTNPC.prayer": "Prayer",
+  "MERCHANTNPC.psychology": "Psychology",
+  "MERCHANTNPC.talent": "Talent",
+  "MERCHANTNPC.trapping": "Trapping",
+  "MERCHANTNPC.skill": "Skill",
+  "MERCHANTNPC.trait": "Trait",
+  "MERCHANTNPC.extendedTest": "ExtendedTest",
+  "MERCHANTNPC.vehicleMod": "VehicleMod",
+  "MERCHANTNPC.cargo": "Cargo"
+
 }
