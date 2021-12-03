@@ -89,26 +89,12 @@ export default class Wfrp4eCurrencyCalculator extends CurrencyCalculator {
 		return price;
     }
 
-    buyerHaveNotEnoughFunds(itemCostInGold:number, buyerFunds: any) {
-		let buyerFundInBP = this.getBPprice(buyerFunds);
-		return itemCostInGold > buyerFundInBP
-        // let itemCostInPlatinum = itemCostInGold / conversionRates["gp"]
-        // let buyerFundsAsPlatinum = this.convertToPlatinum(buyerFunds);
-		//
-        // return itemCostInPlatinum > buyerFundsAsPlatinum;
+    buyerHaveNotEnoughFunds(itemCostInGold:number, buyerFunds: number) {
+		return itemCostInGold > buyerFunds
     }
 
     convertToPlatinum(buyerFunds: any) {
 		return 1;
-        // let buyerFundsAsPlatinum = buyerFunds["pp"];
-        // buyerFundsAsPlatinum += buyerFunds["gp"] / conversionRates["gp"];
-        // buyerFundsAsPlatinum += buyerFunds["ep"] / conversionRates["gp"] / conversionRates["ep"];
-        // buyerFundsAsPlatinum += buyerFunds["sp"] / conversionRates["gp"] / conversionRates["ep"] / conversionRates["sp"];
-        // buyerFundsAsPlatinum += buyerFunds["cp"] / conversionRates["gp"] / conversionRates["ep"] / conversionRates["sp"] / conversionRates["cp"];
-		//
-        // console.log(`buyerFundsAsPlatinum : ${buyerFundsAsPlatinum}`);
-		//
-        // return buyerFundsAsPlatinum;
     }
 
     updateActorWithNewFunds(buyer: Actor, buyerFunds: any) {
@@ -255,13 +241,12 @@ export default class Wfrp4eCurrencyCalculator extends CurrencyCalculator {
 	}
 
 
-	private getBPprice(basePrice: any) {
+	private getBPprice(basePrice: any): number {
 		let gc: number = basePrice.gc * 240
 		let ss: number = basePrice.ss * 12
 		let bp: number = basePrice.bp
 
-		let baseAmount: number = gc + +ss + +bp;
-		return baseAmount;
+		return gc + +ss + +bp;
 	}
 
 	getPrice(priceValue: number): any {
