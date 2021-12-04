@@ -1,8 +1,9 @@
 ## Version 2.3.1
-* Fixes for WFRP CSS
-* 
-
-
+* #78 WFRP: CSS bug in other sheets
+* #77 WFRP: Not enough cash but still get item
+* #76 WFRP: Missing Names
+* #75 WFRP: Trappings Subcategories
+* #75 WFRP: Missing Trappings
 
 ## Version 2.3.0
 * Added support for WFRP
