@@ -171,10 +171,45 @@ export default class Wfrp4eCurrencyCalculator extends CurrencyCalculator {
                 items: [],
                 type: "spell"
             },
-            trapping: {
-                label: (<Game>game).i18n.localize("MERCHANTNPC.trapping"),
+			clothingAccessories: {
+                label: (<Game>game).i18n.localize("MERCHANTNPC.clothingAccessories"),
                 items: [],
-                type: "trapping"
+                type: "clothingAccessories"
+            },
+			foodAndDrink: {
+                label: (<Game>game).i18n.localize("MERCHANTNPC.foodAndDrink"),
+                items: [],
+                type: "foodAndDrink"
+            },
+			toolsAndKits: {
+                label: (<Game>game).i18n.localize("MERCHANTNPC.toolsAndKits"),
+                items: [],
+                type: "toolsAndKits"
+            },
+			booksAndDocuments: {
+                label: (<Game>game).i18n.localize("MERCHANTNPC.booksAndDocuments"),
+                items: [],
+                type: "booksAndDocuments"
+            },
+			tradeTools: {
+                label: (<Game>game).i18n.localize("MERCHANTNPC.tradeTools"),
+                items: [],
+                type: "tradeTools"
+            },
+			drugsPoisonsHerbsDraughts: {
+                label: (<Game>game).i18n.localize("MERCHANTNPC.drugsPoisonsHerbsDraughts"),
+                items: [],
+                type: "drugsPoisonsHerbsDraughts"
+            },
+			ingredient: {
+                label: (<Game>game).i18n.localize("MERCHANTNPC.ingredient"),
+                items: [],
+                type: "ingredient"
+            },
+            misc: {
+                label: (<Game>game).i18n.localize("MERCHANTNPC.misc"),
+                items: [],
+                type: "misc"
             },
 
         };
@@ -194,8 +229,32 @@ export default class Wfrp4eCurrencyCalculator extends CurrencyCalculator {
         features.spell.items = items.spell
         features.spell.items.sort(this.sort());
 
-        features.trapping.items = items.trapping
-        features.trapping.items.sort(this.sort());
+		let itemTrappings = items.trapping;
+		itemTrappings.sort(this.sort());
+		features.clothingAccessories.items = itemTrappings.filter((element: any) => {
+			return element.data.data.trappingType !== undefined && element.data.data.trappingType.value !== undefined && element.data.data.trappingType.value  === 'clothingAccessories';
+		});
+		features.foodAndDrink.items = itemTrappings.filter((element: any) => {
+			return element.data.data.trappingType !== undefined && element.data.data.trappingType.value !== undefined && element.data.data.trappingType.value  === 'foodAndDrink';
+		});
+		features.toolsAndKits.items = itemTrappings.filter((element: any) => {
+			return element.data.data.trappingType !== undefined && element.data.data.trappingType.value !== undefined && element.data.data.trappingType.value  === 'toolsAndKits';
+		});
+		features.booksAndDocuments.items = itemTrappings.filter((element: any) => {
+			return element.data.data.trappingType !== undefined && element.data.data.trappingType.value !== undefined && element.data.data.trappingType.value  === 'booksAndDocuments';
+		});
+		features.tradeTools.items = itemTrappings.filter((element: any) => {
+			return element.data.data.trappingType !== undefined && element.data.data.trappingType.value !== undefined && element.data.data.trappingType.value  === 'tradeTools';
+		});
+		features.misc.items = itemTrappings.filter((element: any) => {
+			return element.data.data.trappingType !== undefined && element.data.data.trappingType.value !== undefined && element.data.data.trappingType.value  === 'misc';
+		});
+		features.ingredient.items = itemTrappings.filter((element: any) => {
+			return element.data.data.trappingType !== undefined && element.data.data.trappingType.value !== undefined && element.data.data.trappingType.value  === 'ingredient';
+		});
+		features.drugsPoisonsHerbsDraughts.items = itemTrappings.filter((element: any) => {
+			return element.data.data.trappingType !== undefined && element.data.data.trappingType.value !== undefined && element.data.data.trappingType.value  === 'drugsPoisonsHerbsDraughts';
+		});
         return features;
     }
 
