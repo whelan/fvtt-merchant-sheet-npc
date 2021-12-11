@@ -117,4 +117,8 @@ export default class CurrencyCalculator {
 	editorStyle() {
 		return ""
 	}
+
+	isPermissionShown() {
+		return true;
+	}
 }

@@ -49,6 +49,9 @@ class MerchantSheet extends ActorSheet {
 			// @ts-ignore
 			return (arg1 != arg2) ? options.fn(this) : options.inverse(this);
 		});
+		Handlebars.registerHelper('isPermissionShown', function () {
+			return currencyCalculator.isPermissionShown();
+		});
 
 
 		Handlebars.registerHelper('itemSelected', function (key: string): string {
@@ -105,7 +108,7 @@ class MerchantSheet extends ActorSheet {
 		const options = super.defaultOptions;
 
 		mergeObject(options, {
-			classes: ["sheet actor npc npc-sheet merchant-sheet-npc"],
+			classes: ["sheet actor npc npc-sheet merchant-sheet-npc wfrp4e"],
 			width: 890,
 			height: 750
 		});

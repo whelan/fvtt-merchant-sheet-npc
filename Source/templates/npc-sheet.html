@@ -54,6 +54,7 @@
 
 
 			{{#if isGM}}
+			{{#if isPermissionShown}}
 
 			<h3 class="gm-section">{{localize "MERCHANTNPC.gm-section"}}</h3>
 
@@ -76,6 +77,7 @@
 					</li>
 					{{/each}}
 				</ol>
+				{{/if}}
 				{{/if}}
 				<div style="{{editorStyle}}" class="editor">
 					{{editor content=data.data.details.biography.value target="data.details.biography.value" button=true

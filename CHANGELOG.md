@@ -1,3 +1,7 @@
+## Version 2.3.2
+* Fixed CSS issues for merchant sheet #80
+* Fixed translations for German
+
 ## Version 2.3.1
 * #78 WFRP: CSS bug in other sheets
 * #77 WFRP: Not enough cash but still get item

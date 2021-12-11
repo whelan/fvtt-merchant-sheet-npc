@@ -332,7 +332,10 @@ export default class Wfrp4eCurrencyCalculator extends CurrencyCalculator {
 		return "color: white; background: black"
 	}
 	editorStyle(): string {
-		return "background: white"
+		return "background: none; color: white"
+	}
+	isPermissionShown() {
+		return false;
 	}
 
 }
