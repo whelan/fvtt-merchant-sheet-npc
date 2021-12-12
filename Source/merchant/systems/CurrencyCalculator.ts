@@ -121,4 +121,8 @@ export default class CurrencyCalculator {
 	isPermissionShown() {
 		return true;
 	}
+
+	sectionStyle() {
+		return ""
+	}
 }

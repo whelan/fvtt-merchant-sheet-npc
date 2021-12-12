@@ -26,6 +26,10 @@ class MerchantSheet extends ActorSheet {
 			return currencyCalculator.inputStyle();
 		});
 
+		Handlebars.registerHelper('sectionStyle', function (options) {
+			return currencyCalculator.sectionStyle();
+		});
+
 		Handlebars.registerHelper('editorStyle', function (options) {
 			return currencyCalculator.editorStyle();
 		});
