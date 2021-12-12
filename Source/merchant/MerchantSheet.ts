@@ -261,7 +261,6 @@ class MerchantSheet extends ActorSheet {
 		// @ts-ignore
 		html.find('.change-quantity-all').on('click',ev => this.changeQuantityForItems(ev));
 		html.find('.merchant-settings').on('click',ev => this.merchantSettingChange(ev));
-
 		// html.find('.merchant-settings').change(ev => this.merchantSettingChange(ev));
 		// html.find('.update-inventory').on('click',ev => this.merchantInventoryUpdate(ev));
 		//
@@ -958,14 +957,7 @@ class MerchantSheet extends ActorSheet {
 				// @ts-ignore
 				packet.quantity = stackModifier;
 			}
-			// if (allowNoTargetGM) {
-			// @ts-ignore
 			MerchantSheetNPCHelper.buyTransactionFromPlayer(packet)
-			// } else {
-			// 	console.log("MerchantSheet", "Sending buy request to " + targetGm.name, packet);
-			// 	(<Game>game).socket?.emit(Globals.Socket, packet);
-			// }
-			return;
 		} else if (service) {
 			packet.quantity = 1;
 			MerchantSheetNPCHelper.buyTransactionFromPlayer(packet)
@@ -973,12 +965,7 @@ class MerchantSheet extends ActorSheet {
 			// @ts-ignore
 			let d = new QuantityDialog((quantity) => {
 					packet.quantity = quantity;
-					// if (allowNoTargetGM) {
-						MerchantSheetNPCHelper.buyTransactionFromPlayer(packet)
-					// } else {
-					// 	console.log("MerchantSheet.ts", "Sending buy request to " + targetGm.name, packet);
-					// 	MerchantSheetNPCHelper.buyTransactionFromPlayer(packet);
-					// }
+					MerchantSheetNPCHelper.buyTransactionFromPlayer(packet)
 				},
 				{
 					acceptLabel: "Purchase"
@@ -1041,7 +1028,7 @@ class MerchantSheet extends ActorSheet {
 			itemQtyRoll.roll();
 			updateItems.push({
 				_id: item.id,
-				"data.quantity": itemQtyRoll.total
+				[currencyCalculator.getQuantityKey()]: itemQtyRoll.total
 			});
 		});
 		// @ts-ignore
