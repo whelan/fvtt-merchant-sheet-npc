@@ -17,6 +17,7 @@
   "MERCHANTNPC.permission-none-help": "None (cannot access sheet)",
   "MERCHANTNPC.permission-all-help": "Change all permissions",
   "MERCHANTNPC.buyText": "{buyer} purchases {quantity} x {itemName} for {chatPrice}.",
+  "MERCHANTNPC.sellText": "{seller} sells {quantity} x {itemName} for {chatPrice}.",
   "MERCHANTNPC.buyMerchantDialog-title": "Buy from merchant price modifier",
   "MERCHANTNPC.sellToMerchantDialog-title": "Sell to merchant price Modifier",
   "MERCHANTNPC.quantityDialog-text": "Enter the quantity for the item.",

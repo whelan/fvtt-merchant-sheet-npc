@@ -212,12 +212,13 @@ class MerchantSheetNPCHelper {
 		d.render(true);
 	}
 
-
 	public async sellItem(target: Actor, dragSource: any, sourceActor: Actor, quantity: number, totalItemsPrice: number) {
-		let sellerFunds = currencyCalculator.actorCurrency(sourceActor);
-		currencyCalculator.addAmountForActor(sourceActor,sellerFunds,totalItemsPrice)
+		  let sellerFunds = currencyCalculator.actorCurrency(sourceActor);
+      let chatPrice = currencyCalculator.priceInText(totalItemsPrice);
+		  currencyCalculator.addAmountForActor(sourceActor,sellerFunds,totalItemsPrice)
+      // @ts-ignore
+			this.chatMessage(sourceActor, target, (<Game>game).i18n.format('MERCHANTNPC.sellText', {seller: sourceActor.name, quantity: quantity, itemName: dragSource.data.name, chatPrice: chatPrice}), dragSource.data, false);
 	}
-
 
 	private async transaction(seller: Actor, buyer: Actor, itemId: string, quantity: number) {
 		console.log(`Buying item: ${seller}, ${buyer}, ${itemId}, ${quantity}`);
