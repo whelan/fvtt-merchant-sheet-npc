@@ -283,12 +283,11 @@ class MerchantSheetNPCHelper {
 	}
 
 	private chatMessage(speaker: Actor, owner: Actor, message: string, item: Item, service: Boolean) {
-		let image =  (service?'':'<div class= "merchant-item-image" style="background-image: url(${item.img})"></div>');
 		if ((<Game>game).settings.get(Globals.ModuleName, "buyChat")) {
 			message = `
             <div class="chat-card item-card" data-actor-id="${owner.id}" data-item-id="${item.id}">
                 <header class="card-header flexrow">
-            		${image}    
+            		<div class= "merchant-item-image" style="background-image: url(${item.img})"></div>
                     <h3 class="item-name">${item.name}</h3>
                 </header>
 
