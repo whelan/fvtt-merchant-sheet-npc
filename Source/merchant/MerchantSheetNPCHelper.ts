@@ -7,6 +7,7 @@ import PermissionPlayer from "./PermissionPlayer";
 import Globals from "../Globals";
 import CurrencyCalculator from "./systems/CurrencyCalculator";
 import Dnd5eCurrencyCalculator from "./systems/Dnd5eCurrencyCalculator";
+import World5eCurrencyCalculator from "./systems/World5eCurrencyCalculator";
 import MerchantSheet from "./MerchantSheet";
 import SfrpgCurrencyCalculator from "./systems/SfrpgCurrencyCalculator";
 import SwadeCurrencyCalculator from "./systems/SwadeCurrencyCalculator";
@@ -25,9 +26,12 @@ class MerchantSheetNPCHelper {
 		if (currencyCalculator === null || currencyCalculator === undefined) {
 			let currencyModuleImport = (<Game>game).system.id.charAt(0).toUpperCase() + (<Game>game).system.id.slice(1) + "CurrencyCalculator";
 			Logger.Log("System currency to get: " + currencyModuleImport);
-			if (currencyModuleImport === 'Dnd5eCurrencyCalculator') {
-				currencyCalculator = new Dnd5eCurrencyCalculator();
-				currencyCalculator.initSettings();
+        if ((<Game>game).modules.get("5e-custom-currency")?.active) {
+				    currencyCalculator = new World5eCurrencyCalculator();
+				    currencyCalculator.initSettings();
+      } else if (currencyModuleImport === 'Dnd5eCurrencyCalculator') {
+          currencyCalculator = new Dnd5eCurrencyCalculator();
+          currencyCalculator.initSettings();
 			} else if (currencyModuleImport === 'SfrpgCurrencyCalculator') {
 				// @ts-ignore
 				currencyCalculator = new SfrpgCurrencyCalculator();
@@ -160,7 +164,6 @@ class MerchantSheetNPCHelper {
 		}
 		li.toggleClass("expanded");
 	}
-
 
 	public async changeQuantity(event: JQuery.ClickEvent, actor: Actor) {
 		event.preventDefault();
