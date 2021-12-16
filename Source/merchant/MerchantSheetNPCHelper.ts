@@ -7,6 +7,7 @@ import PermissionPlayer from "./PermissionPlayer";
 import Globals from "../Globals";
 import CurrencyCalculator from "./systems/CurrencyCalculator";
 import Dnd5eCurrencyCalculator from "./systems/Dnd5eCurrencyCalculator";
+import World5eCurrencyCalculator from "./systems/World5eCurrencyCalculator";
 import MerchantSheet from "./MerchantSheet";
 import SfrpgCurrencyCalculator from "./systems/SfrpgCurrencyCalculator";
 import SwadeCurrencyCalculator from "./systems/SwadeCurrencyCalculator";
@@ -25,9 +26,12 @@ class MerchantSheetNPCHelper {
 		if (currencyCalculator === null || currencyCalculator === undefined) {
 			let currencyModuleImport = (<Game>game).system.id.charAt(0).toUpperCase() + (<Game>game).system.id.slice(1) + "CurrencyCalculator";
 			Logger.Log("System currency to get: " + currencyModuleImport);
-			if (currencyModuleImport === 'Dnd5eCurrencyCalculator') {
-				currencyCalculator = new Dnd5eCurrencyCalculator();
-				currencyCalculator.initSettings();
+        if ((<Game>game).modules.get("5e-custom-currency")?.active) {
+				    currencyCalculator = new World5eCurrencyCalculator();
+				    currencyCalculator.initSettings();
+      } else if (currencyModuleImport === 'Dnd5eCurrencyCalculator') {
+          currencyCalculator = new Dnd5eCurrencyCalculator();
+          currencyCalculator.initSettings();
 			} else if (currencyModuleImport === 'SfrpgCurrencyCalculator') {
 				// @ts-ignore
 				currencyCalculator = new SfrpgCurrencyCalculator();
@@ -161,7 +165,6 @@ class MerchantSheetNPCHelper {
 		li.toggleClass("expanded");
 	}
 
-
 	public async changeQuantity(event: JQuery.ClickEvent, actor: Actor) {
 		event.preventDefault();
 		console.log("Merchant sheet | Change quantity");
@@ -212,12 +215,13 @@ class MerchantSheetNPCHelper {
 		d.render(true);
 	}
 
-
 	public async sellItem(target: Actor, dragSource: any, sourceActor: Actor, quantity: number, totalItemsPrice: number) {
-		let sellerFunds = currencyCalculator.actorCurrency(sourceActor);
-		currencyCalculator.addAmountForActor(sourceActor,sellerFunds,totalItemsPrice)
+		  let sellerFunds = currencyCalculator.actorCurrency(sourceActor);
+      let chatPrice = currencyCalculator.priceInText(totalItemsPrice);
+		  currencyCalculator.addAmountForActor(sourceActor,sellerFunds,totalItemsPrice)
+      // @ts-ignore
+			this.chatMessage(sourceActor, target, (<Game>game).i18n.format('MERCHANTNPC.sellText', {seller: sourceActor.name, quantity: quantity, itemName: dragSource.data.name, chatPrice: chatPrice}), dragSource.data, false);
 	}
-
 
 	private async transaction(seller: Actor, buyer: Actor, itemId: string, quantity: number) {
 		console.log(`Buying item: ${seller}, ${buyer}, ${itemId}, ${quantity}`);
@@ -283,12 +287,11 @@ class MerchantSheetNPCHelper {
 	}
 
 	private chatMessage(speaker: Actor, owner: Actor, message: string, item: Item, service: Boolean) {
-		let image =  (service?'':'<div class= "merchant-item-image" style="background-image: url(${item.img})"></div>');
 		if ((<Game>game).settings.get(Globals.ModuleName, "buyChat")) {
 			message = `
             <div class="chat-card item-card" data-actor-id="${owner.id}" data-item-id="${item.id}">
                 <header class="card-header flexrow">
-            		${image}    
+            		<div class= "merchant-item-image" style="background-image: url(${item.img})"></div>
                     <h3 class="item-name">${item.name}</h3>
                 </header>
 
