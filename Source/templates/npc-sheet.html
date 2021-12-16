@@ -50,14 +50,8 @@
 			<div class="sheet-profile-img">
 				<img class="sheet-profile" src="{{actor.img}}" title="{{actor.name}}" data-edit="img"/>
 			</div>
-			{{log data}}
-
-
-			{{#if isGM}}
 			{{#if isPermissionShown}}
-
 			<h3 class="gm-section">{{localize "MERCHANTNPC.gm-section"}}</h3>
-
 			<!-- GM SETTINGS -->
 			<div class="gm-settings" data-group="sidebar" data-tab="gm-settings">
 				<h3 class="gm-header"><a class="permission-proficiency-bulk"
@@ -77,7 +71,6 @@
 					</li>
 					{{/each}}
 				</ol>
-				{{/if}}
 				{{/if}}
 				<div style="{{editorStyle}}" class="editor">
 					{{editor content=data.data.details.biography.value target="data.details.biography.value" button=true

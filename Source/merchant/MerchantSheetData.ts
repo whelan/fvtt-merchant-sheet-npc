@@ -7,6 +7,7 @@ import {ActorData} from "@league-of-foundry-developers/foundry-vtt-types/src/fou
 class MerchantSheetData implements ActorSheet.Data<ActorSheet.Options> {
 	isService: boolean = false
 	isGM: boolean = false
+	isPermissionShown: boolean = false;
 	owner: boolean = false
     merchant: any
     stackModifier: number = 20

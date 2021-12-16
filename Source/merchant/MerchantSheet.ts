@@ -141,6 +141,7 @@ class MerchantSheet extends ActorSheet {
 			sheetData.isGM = false;
 		}
 
+		sheetData.isPermissionShown = sheetData.isGM && currencyCalculator.isPermissionShown();
 
 		let priceModifier: number = 1.0;
 		let moduleName = "merchantsheetnpc";
