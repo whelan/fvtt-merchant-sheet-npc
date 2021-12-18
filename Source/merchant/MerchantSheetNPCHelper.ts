@@ -26,7 +26,7 @@ class MerchantSheetNPCHelper {
 		if (currencyCalculator === null || currencyCalculator === undefined) {
 			let currencyModuleImport = (<Game>game).system.id.charAt(0).toUpperCase() + (<Game>game).system.id.slice(1) + "CurrencyCalculator";
 			Logger.Log("System currency to get: " + currencyModuleImport);
-        if ((<Game>game).modules.get("5e-custom-currency")?.active) {
+        if ((<Game>game).modules.get("world-currency-5e")?.active) {
 				    currencyCalculator = new World5eCurrencyCalculator();
 				    currencyCalculator.initSettings();
       } else if (currencyModuleImport === 'Dnd5eCurrencyCalculator') {
