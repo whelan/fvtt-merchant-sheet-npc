@@ -79,7 +79,7 @@ export default class World5eCurrencyCalculator extends CurrencyCalculator {
 
     getStandard(): any {
         //@ts-ignore
-        return game.settings.get("5e-custom-currency", "Standard");
+        return game.settings.get("world-currency-5e", "Standard");
     }
 
     actorCurrency(actor: Actor) {
