@@ -1,3 +1,10 @@
+## Version 2.4.0 
+* Moved Japanese localization to foundryVTTja (Thanks @BrotherSharper)
+* Added support for World Currencies 5e (Thanks @cstby)
+* Adds a chat message that triggers when players sell an item. (Thanks @cstby)
+* Fixes images not displaying in chat message. This broke when support for services was added (Thanks @cstby)
+* Fixed support for 0.9
+
 ## Version 2.3.3
 * Add japanese localization
 * Fix WFRP CSS for category names #87

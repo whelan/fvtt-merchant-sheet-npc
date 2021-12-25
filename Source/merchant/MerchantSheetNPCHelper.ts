@@ -13,6 +13,7 @@ import SfrpgCurrencyCalculator from "./systems/SfrpgCurrencyCalculator";
 import SwadeCurrencyCalculator from "./systems/SwadeCurrencyCalculator";
 import Logger from "../Utils/Logger";
 import Wfrp4eCurrencyCalculator from "./systems/Wfrp4eCurrencyCalculator";
+import MoveItemsPacket from "./model/MoveItemsPacket";
 
 let currencyCalculator: CurrencyCalculator;
 
@@ -350,6 +351,7 @@ class MerchantSheetNPCHelper {
 		const additions = [];
 		const destUpdates = [];
 		const results = [];
+		let allowNoTargetGM = (<Game>game).settings.get(Globals.ModuleName, "allowNoGM")
 		for (let i of items) {
 			// @ts-ignore
 			let itemId = i.itemId;
@@ -367,7 +369,6 @@ class MerchantSheetNPCHelper {
 			let newItem = duplicate(item);
 			// @ts-ignore
 			const update = { _id: itemId, [currencyCalculator.getQuantityKey()]: currencyCalculator.getQuantity(item.data.data.quantity) >= Number.MAX_VALUE-10000 || infinity ? Number.MAX_VALUE : currencyCalculator.getQuantity(item.data.data.quantity) - quantity };
-			let allowNoTargetGM = (<Game>game).settings.get(Globals.ModuleName, "allowNoGM")
 
 			if (update[currencyCalculator.getQuantityKey()] === 0 && !allowNoTargetGM && deleteItemFromSource) {
 				deletes.push(itemId);
@@ -398,22 +399,60 @@ class MerchantSheetNPCHelper {
 				destUpdates.push(destUpdate);
 			}
 		}
+		let packet = null;
+		if (source.isOwner) {
+			if (deletes.length > 0) {
+				await source.deleteEmbeddedDocuments("Item", deletes);
+			}
+			if (updates.length > 0) {
+				await source.updateEmbeddedDocuments("Item", updates);
+			}
+		} else if (!allowNoTargetGM) {
+			packet = new MoveItemsPacket();
+			if (source.id) {
+				packet.actorId = source.id;
+			}
+			packet.deletes = deletes;
+			packet.updates = updates;
+			// @ts-ignore
+			let actorLink: boolean = source.data.actorLink;
+			if (!actorLink) {
+				if (source.parent) {
+					// @ts-ignore
+					let sceneId = source.parent.parent.id;
+					// @ts-ignore
+					Logger.Log("source parent", source.parent.parent)
+					if (sceneId) {
+						packet.sceneId = sceneId;
+					}
+					packet.tokenId = source.parent.id;
 
-		if (deletes.length > 0) {
 
-			await source.deleteEmbeddedDocuments("Item", deletes);
+				}
+				packet.actorLink = actorLink;
+			}
 		}
 
-		if (updates.length > 0) {
-			await source.updateEmbeddedDocuments("Item", updates);
-		}
+		if (destination.isOwner) {
+			if (additions.length > 0) {
+				await destination.createEmbeddedDocuments("Item", additions);
+			}
 
-		if (additions.length > 0) {
-			await destination.createEmbeddedDocuments("Item", additions);
-		}
+			if (destUpdates.length > 0) {
+				await destination.updateEmbeddedDocuments("Item", destUpdates);
+			}
+		} else if (!allowNoTargetGM) {
+			packet = new MoveItemsPacket();
+			if (destination.id) {
+				packet.actorId = destination.id;
+			}
+			packet.additions = additions;
+			packet.updates = destUpdates;
 
-		if (destUpdates.length > 0) {
-			await destination.updateEmbeddedDocuments("Item", destUpdates);
+		}
+		if (packet) {
+			// @ts-ignore
+			(<Game>game).socket.emit(Globals.Socket, packet);
 		}
 
 		return results;
@@ -436,6 +475,41 @@ class MerchantSheetNPCHelper {
 	}
 
 
+	static async updateActorWithPacket(packet: MoveItemsPacket) {
+		let actor: Actor | null = null;
+		if (packet.actorLink) {
+			// @ts-ignore
+			actor = await (<Game>game).actors.get(packet.actorId);
+		} else {
+			// @ts-ignore
+			let scene:Scene = await (<Game>game).scenes.get(packet.sceneId);
+			Logger.Log("Scene found", scene);
+
+			// @ts-ignore
+			let token: TokenDocument = await scene.tokens.get(packet.tokenId);
+			if (token.getActor()) {
+				actor = token.getActor();
+			}
+		}
+		if (!actor) {
+			return;
+		}
+		Logger.Log("Actor updating", actor);
+		if (packet.deletes.length > 0) {
+			await actor.deleteEmbeddedDocuments("Item", packet.deletes);
+			Logger.Log("delete Items ", packet.deletes)
+		}
+
+		if (packet.updates.length > 0) {
+			Logger.Log("delete Items ", packet.updates)
+			await actor.updateEmbeddedDocuments("Item", packet.updates);
+		}
+
+		if (packet.additions.length > 0) {
+			Logger.Log("delete Items ", packet.additions)
+			await actor.createEmbeddedDocuments("Item", packet.additions);
+		}
+	}
 }
 
 let helper = new MerchantSheetNPCHelper();

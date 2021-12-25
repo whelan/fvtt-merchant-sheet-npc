@@ -359,7 +359,7 @@ export default class Dnd5eCurrencyCalculator extends CurrencyCalculator {
             default: false,
             type: Boolean
         });
-$
+
 		conversionRates = {"pp": 1,
 			// @ts-ignore
 			"gp": CONFIG.DND5E.currencies.gp.conversion.each,

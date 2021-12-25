@@ -120,6 +120,7 @@ class MerchantSheet extends ActorSheet {
 	}
 
 	getData(options: any): any {
+
 		// @ts-ignore
 		const sheetData: MerchantSheetData = super.getData();
 		if (!isActorMerchant(sheetData.actor)) {
@@ -130,6 +131,7 @@ class MerchantSheet extends ActorSheet {
 		let g = game as Game;
 
 		// Prepare GM Settings
+
 		// @ts-ignore
 		let merchant = this.prepareGMSettings(sheetData.actor);
 
@@ -161,6 +163,8 @@ class MerchantSheet extends ActorSheet {
 		sheetData.merchant = merchant;
 		sheetData.owner = sheetData.isGM;
 		// Return data for rendering
+
+
 		// @ts-ignore
 		return sheetData;
 	}

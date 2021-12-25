@@ -6,6 +6,9 @@ import PreloadTemplates from "./PreloadTemplates";
 import Globals from "./Globals";
 import MerchantSheetNPCHelper from "./merchant/MerchantSheetNPCHelper";
 import csvParser from "csv-parse/lib/sync";
+import MoveItemsPacket from "./merchant/model/MoveItemsPacket";
+import merchantSheet from "./merchant/MerchantSheet";
+import merchantSheetNPCHelper from "./merchant/MerchantSheetNPCHelper";
 
 
 Hooks.once("init", async () => {
@@ -23,28 +26,24 @@ Hooks.once("setup", () => {
 		skip_empty_lines: true
 	});
 	console.log(records);
+	// @ts-ignore
+	socket.on('module.merchantsheetnpc', (packet: MoveItemsPacket) => {
+		// @ts-ignore
+		if (!(<Game>game).user.isGM) {
+			return;
+		}
+		merchantSheetNPCHelper.updateActorWithPacket(packet)
+		console.log("test", packet); // expected: "foo bar bat"
+	})
 
 	Logger.Log("Template module is being setup.")
 });
 
 Hooks.once("ready", () => {
 	MerchantSettings.Get().RegisterSettings();
-   Logger.Ok("Template module is now ready.");
-	const g = game as Game;
-	g.socket?.on(Globals.ModuleName,data => {
-		console.log("Merchant sheet | processing socket request", g.user?.isGM, data.processorId, g.user?.id)
-
-		if (g.user?.isGM && data.processorId === g.user?.id) {
-			console.log("Merchant Sheet | buy processing by GM ", data)
-			MerchantSheetNPCHelper.buyTransactionFromPlayer(data);
-		}
-		if (data.type === "error" && data.targetId === g.user?.character?.id) {
-			console.log("Merchant sheet | Transaction Error: ", data.message);
-			return ui.notifications?.error(data.message);
-		}
-	});
-
+	Logger.Ok("Template module is now ready.");
 });
+
 
 Actors.registerSheet("core", MerchantSheet, {
 	label: "merchant NPC",
