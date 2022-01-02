@@ -1,3 +1,8 @@
+## Version 2.4.1
+* Fix for CVS importer not appearing #91
+* Fixing problem with 9 way of handling scenes versus 0.8.
+This means this is only supported for 9 and upwards.
+
 ## Version 2.4.0 
 * Moved Japanese localization to foundryVTTja (Thanks @BrotherSharper)
 * Added support for World Currencies 5e (Thanks @cstby)
