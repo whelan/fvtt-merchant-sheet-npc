@@ -727,7 +727,7 @@ class MerchantSheet extends ActorSheet {
 
 		const template_file = "modules/"+Globals.ModuleName+"/templates/csv-import.html";
 
-		const template_data = {itemTypes: (<Game>game).system.entityTypes.Item , compendiums: MerchantSettings.getCompendiumnsChoices()};
+		const template_data = {itemTypes: (<Game>game).system.documentTypes.Item , compendiums: MerchantSettings.getCompendiumnsChoices()};
 		const rendered_html = await renderTemplate(template_file, template_data);
 
 

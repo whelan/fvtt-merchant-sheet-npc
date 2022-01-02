@@ -395,7 +395,7 @@ class MerchantSheetNPCHelper {
 					currencyCalculator.setQuantityForItemData(destItem.data.data,0)
 				}
 				// @ts-ignore
-				const destUpdate = { _id: destItem._id, [currencyCalculator.getQuantityKey()]: currencyCalculator.getQuantity(destItem.data.data.quantity) };
+				const destUpdate = { _id: destItem.id, [currencyCalculator.getQuantityKey()]: currencyCalculator.getQuantity(destItem.data.data.quantity) };
 				destUpdates.push(destUpdate);
 			}
 		}
@@ -419,9 +419,9 @@ class MerchantSheetNPCHelper {
 			if (!actorLink) {
 				if (source.parent) {
 					// @ts-ignore
-					let sceneId = source.parent.parent.id;
+					let sceneId = canvas.scene.id;
 					// @ts-ignore
-					Logger.Log("source parent", source.parent.parent)
+					Logger.Log("Scene", canvas.scene.id)
 					if (sceneId) {
 						packet.sceneId = sceneId;
 					}

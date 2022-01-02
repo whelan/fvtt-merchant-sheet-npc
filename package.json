@@ -1,6 +1,6 @@
 {
 	"name": "merchantsheetnpc",
-	"version": "2.4.0",
+	"version": "2.4.1",
 	"description": "",
 	"main": "index.js",
 	"scripts": {
@@ -14,7 +14,7 @@
 	"license": "GPLv3",
 	"devDependencies": {
 		"@babel/core": "^7.15.0",
-		"@league-of-foundry-developers/foundry-vtt-types": "^0.8.9-9",
+		"@league-of-foundry-developers/foundry-vtt-types": "^9.238.1",
 		"@types/archiver": "^5.1.1",
 		"@types/browserify": "^12.0.37",
 		"@types/color": "^3.0.2",
