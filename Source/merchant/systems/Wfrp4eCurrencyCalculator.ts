@@ -83,20 +83,14 @@ export default class Wfrp4eCurrencyCalculator extends CurrencyCalculator {
     }
 
     actorCurrency(actor: Actor) {
-		console.log("Actor", actor)
         // @ts-ignore
 		let moneyItemInventory = actor.getItemTypes("money").map(i => i.toObject())
         // @ts-ignore
-		console.log("Money inventory: ", moneyItemInventory);
-        // @ts-ignore
 		let charMoney = game.wfrp4e.market.getCharacterMoney(moneyItemInventory);
-		console.log("CharMoney",charMoney)
-
-
-		let price = this.getBPprice(this.getBasePriceFromItem(charMoney,moneyItemInventory))
-		console.log("Actor currency: ", price);
-		return price;
+        // @ts-ignore
+		return this.getBPprice(this.getBasePriceFromItem(charMoney,moneyItemInventory))
     }
+
  	getBasePriceFromItem(characterMoney: any, moneyItemInventory: any) {
 		return {
 			gc: moneyItemInventory[characterMoney.gc].data.quantity.value,
@@ -104,7 +98,6 @@ export default class Wfrp4eCurrencyCalculator extends CurrencyCalculator {
 			bp: moneyItemInventory[characterMoney.bp].data.quantity.value
 		}
 	}
-
 
     buyerHaveNotEnoughFunds(itemCostInGold:number, buyerFunds: number) {
 		Logger.Log("Cost and funds", itemCostInGold,buyerFunds)
