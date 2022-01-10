@@ -1,3 +1,6 @@
+## Version 2.4.2
+* Fix for not valid funds in WFRP and v9 #83
+
 ## Version 2.4.1
 * Fix for CVS importer not appearing #91
 * Fixing problem with 9 way of handling scenes versus 0.8.
