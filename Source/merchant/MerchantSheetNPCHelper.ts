@@ -414,8 +414,10 @@ class MerchantSheetNPCHelper {
 			}
 			packet.deletes = deletes;
 			packet.updates = updates;
+
+
 			// @ts-ignore
-			let actorLink: boolean = source.data.actorLink;
+			let actorLink: boolean = source.data.actorLink
 			if (!actorLink) {
 				if (source.parent) {
 					// @ts-ignore
@@ -426,10 +428,8 @@ class MerchantSheetNPCHelper {
 						packet.sceneId = sceneId;
 					}
 					packet.tokenId = source.parent.id;
-
-
+					packet.actorLink= false;
 				}
-				packet.actorLink = actorLink;
 			}
 		}
 
