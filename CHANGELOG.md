@@ -1,3 +1,7 @@
+## Version 2.4.3
+* Fixed the deducting when buying from an merchant with a linked actor #93
+* Fixed the roll formula update quantities on merchant
+
 ## Version 2.4.2
 * Fix for not valid funds in WFRP and v9 #83
 
