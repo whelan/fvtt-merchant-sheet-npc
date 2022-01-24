@@ -1021,25 +1021,20 @@ class MerchantSheet extends ActorSheet {
 		if (quantityChanger.infinity) {
 			return;
 		}
+
 		let itemQtyFormula = MerchantSheetNPCHelper.getElementById("quantity-value").value
 		if (!itemQtyFormula || /^\s*$/.test(itemQtyFormula)) {
 			return;
 		}
-		Logger.Log("Changing quantity")
 		let items = actor.items;
-		let updateItems: any[] = [];
+		let updates: Array<Record<string, unknown>> = [];
 		items.forEach(item => {
 			let itemQtyRoll = new Roll(itemQtyFormula);
-			itemQtyRoll.roll();
-			updateItems.push({
-				_id: item.id,
-				[currencyCalculator.getQuantityKey()]: itemQtyRoll.total
-			});
+			let itemId = item.id;
+			let total = itemQtyRoll.roll({async: false}).total;
+			updates.push({_id: itemId, [currencyCalculator.getQuantityKey()]: total});
 		});
-		// @ts-ignore
-		Logger.Log("Changing quantity for item: ", updateItems);
-		// @ts-ignore
-		actor.updateEmbeddedDocuments("Item",updateItems);
+		actor.updateEmbeddedDocuments("Item",updates);
 	}
 }
 class QuantityDialog extends Dialog {
