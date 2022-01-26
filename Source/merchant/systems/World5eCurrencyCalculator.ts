@@ -10,41 +10,37 @@ import Globals from "../../Globals";
 
 export default class World5eCurrencyCalculator extends CurrencyCalculator {
 
-    async onDropItemCreate(itemData: PropertiesToSource<ItemData>, caller: MerchantSheet) {
-        // Create a Consumable spell scroll on the Inventory tab
-        if ( (itemData.type === "spell")) {
-            const scroll = await this.createScroll(itemData);
-            itemData = scroll.data;
-        }
+	async onDropItemCreate(itemData: PropertiesToSource<ItemData>, caller: MerchantSheet) {
+		// Create a Consumable spell scroll on the Inventory tab
+		if ( (itemData.type === "spell")) {
+			const scroll = await this.createScroll(itemData);
+			// @ts-ignore
+			return caller.callSuperOnDropItemCreate(scroll);
+		}
 
-        return caller.callSuperOnDropItemCreate(itemData);
-    }
+		return caller.callSuperOnDropItemCreate(itemData);
+	}
 
-	async createScrollFromSpell(spell: any) {
-
-		// Get spell data
-		const itemData =  spell.toObject();
-		const {actionType, description, source, activation, duration, target, range, damage, save, level} = itemData.data;
+	async createScrollFromSpell(spell: PropertiesToSource<ItemData>): Promise<PropertiesToSource<ItemData>> {
+		const itemData =  spell;
+		// const {actionType, description, source, activation, duration, target, range, damage, save, level} = itemData.data;
+		// @ts-ignore
+		let level = spell.data.level;
+		// @ts-ignore
+		let description = spell.data.description;
+		// @ts-ignore
 
 		// Get scroll data
 		// @ts-ignore
 		const scrollUuid = `Compendium.${CONFIG.DND5E.sourcePacks.ITEMS}.${CONFIG.DND5E.spellScrollIds[level]}`;
-		const scrollItem = fromUuid(scrollUuid);
-		if (scrollItem === undefined) {
-			return undefined;
-		}
+		const scrollItem = await fromUuid(scrollUuid);
 		// @ts-ignore
-		const scrollData = scrollItem.data;
-		if (scrollData === undefined) {
-			return undefined;
-		}
+		const scrollData = scrollItem.toObject();
+		delete scrollData._id;
 
 		// Split the scroll description into an intro paragraph and the remaining details
-		let scrollDescription = '';
-		if (scrollData !== undefined && scrollData.data !== undefined && scrollData.data.description !== undefined) {
-			scrollDescription = scrollData.data.description.value;
-		}
-		const pdel = '</p>';
+		const scrollDescription = scrollData.data.description.value;
+		const pdel = "</p>";
 		const scrollIntroEnd = scrollDescription.indexOf(pdel);
 		const scrollIntro = scrollDescription.slice(0, scrollIntroEnd + pdel.length);
 		const scrollDetails = scrollDescription.slice(scrollIntroEnd + pdel.length);
@@ -52,30 +48,19 @@ export default class World5eCurrencyCalculator extends CurrencyCalculator {
 		// Create a composite description from the scroll description and the spell details
 		const desc = `${scrollIntro}<hr/><h3>${itemData.name} (Level ${level})</h3><hr/>${description.value}<hr/><h3>Scroll Details</h3><hr/>${scrollDetails}`;
 
-		// Create the spell scroll data
-		const spellScrollData = foundry.utils.mergeObject(scrollData, {
-			name: `${(<Game>game).i18n.localize("DND5E.SpellScroll")}: ${itemData.name}`,
-			img: itemData.img,
-			data: {
-				"description.value": desc.trim(),
-				source,
-				actionType,
-				activation,
-				duration,
-				target,
-				range,
-				damage,
-				save,
-				level
-			}
-		});
+		let clone = duplicate(itemData);
+		clone.name = `${(<Game>game).i18n.localize("DND5E.SpellScroll")}: ${itemData.name}`;
+		clone.img = scrollData.img
+		clone.type = "consumable";
 		// @ts-ignore
-		return new this(spellScrollData);
+		clone.data.description.value = desc.trim()
+		// @ts-ignore
+		return clone;
 	}
 
-	async createScroll(itemData: PropertiesToSource<ItemData>) {
-        return await this.createScrollFromSpell(itemData);
-  }
+	async createScroll(itemData: PropertiesToSource<ItemData>): Promise<PropertiesToSource<ItemData>> {
+		return this.createScrollFromSpell(itemData);
+	}
 
     getStandard(): any {
         //@ts-ignore

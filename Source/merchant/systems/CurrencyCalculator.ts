@@ -63,7 +63,7 @@ export default class CurrencyCalculator {
 		return caller.callSuperOnDropItemCreate(itemData);
 	}
 
-	async createScroll(itemData: PropertiesToSource<ItemData>) {
+	async createScroll(itemData: PropertiesToSource<ItemData>): Promise<PropertiesToSource<ItemData>> {
 		return itemData;
 	}
 

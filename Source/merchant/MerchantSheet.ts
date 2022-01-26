@@ -222,6 +222,9 @@ class MerchantSheet extends ActorSheet {
 		}
 	}
 
+	async _onDropItemCreate(itemData: PropertiesToSource<ItemData>) {
+		return currencyCalculator.onDropItemCreate(itemData,this);
+	}
 
 	async callSuperOnDropItemCreate(itemData: PropertiesToSource<ItemData>) {
 		// Create the owned item as normal
@@ -808,12 +811,10 @@ class MerchantSheet extends ActorSheet {
 					for (const spellItemElement of spellItem) {
 						let itemData = await spellPack.getDocument(spellItemElement._id);
 						// @ts-ignore
-						let itemFound = await currencyCalculator.createScroll(itemData)
+						let itemFound = await currencyCalculator.createScroll(itemData.data)
 						if (itemFound !== undefined) {
 							// @ts-ignore
-							itemFound.data.name = itemFound.name;
-							console.log("created item: ", itemFound)
-							storeItems.push(itemFound.data)
+							storeItems.push(itemFound)
 						}
 					}
 				} else {

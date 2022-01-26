@@ -1,3 +1,7 @@
+## Version 2.4.4
+* Create scroll if dropping a spell on Merchant in Dnd5e #92
+* Creating spell scrolls correctly using CSV import in DND5e
+
 ## Version 2.4.3
 * Fixed the deducting when buying from an merchant with a linked actor #93
 * Fixed the roll formula update quantities on merchant
