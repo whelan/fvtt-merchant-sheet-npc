@@ -266,6 +266,7 @@ class MerchantSheet extends ActorSheet {
 		html.find('.buy-modifier').on('click',ev => this.sellToMerchantModifier(ev));
 		html.find('.stack-modifier').on('click',ev => this.stackModifier(ev));
 		html.find('.csv-import').on('click',ev => this.csvImport(ev));
+		html.find('.generator').on('click',ev => this.generator(ev));
 		// @ts-ignore
 		html.find('.change-quantity-all').on('click',ev => this.changeQuantityForItems(ev));
 		html.find('.merchant-settings').on('click',ev => this.merchantSettingChange(ev));
@@ -723,6 +724,30 @@ class MerchantSheet extends ActorSheet {
 		d.render(true);
 	}
 
+
+	async generator(event: JQuery.ClickEvent) {
+		event.preventDefault();
+
+		const template_file = "modules/"+Globals.ModuleName+"/templates/generator.html";
+
+		const template_data = {itemTypes: (<Game>game).system.documentTypes.Item , compendiums: MerchantSettings.getCompendiumnsChoices()};
+		const rendered_html = await renderTemplate(template_file, template_data);
+		let d = new Dialog({
+			title: (<Game>game).i18n.localize('MERCHANTNPC.generator'),
+			content: rendered_html,
+			buttons: {
+				one: {
+					icon: '<i class="fas fa-check"></i>',
+					label: (<Game>game).i18n.localize('MERCHANTNPC.finished'),
+					callback: () => Logger.Log("Generator finished")
+				}
+			},
+			default: "one",
+			close: () => Logger.Log("Generator closed")
+		});
+		d.render(true);
+
+	}
 
 	async csvImport(event: JQuery.ClickEvent) {
 
