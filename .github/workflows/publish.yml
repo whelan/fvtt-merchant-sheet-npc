@@ -2,7 +2,7 @@ name: Update Release's
 
 on:
   release:
-    types: [published]
+    types: [push, published]
 
 jobs:
   build:
