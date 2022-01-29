@@ -113,5 +113,7 @@
   "MERCHANTNPC.tradeTools": "Trade Tools and Workshops",
   "MERCHANTNPC.drugsPoisonsHerbsDraughts": "Drugs, Poisons, Herbs and Draughts",
   "MERCHANTNPC.ingredient": "Ingredient",
-  "MERCHANTNPC.misc": "Miscellaneous"
+  "MERCHANTNPC.misc": "Miscellaneous",
+  "MERCHANTNPC.generator": "Generate items",
+  "MERCHANTNPC.generate": "Generate"
 }

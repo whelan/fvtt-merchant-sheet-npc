@@ -858,11 +858,12 @@ class MerchantSheet extends ActorSheet {
 	}
 
 	async generateItems(actor: Actor, generatorInput: MerchantGenerator) {
-		console.log(generatorInput.shopItemsRoll)
 		let shopQtyRoll = new Roll(generatorInput.shopItemsRoll);
-		console.log(shopQtyRoll)
 		let itemsToGenerate: number | undefined = shopQtyRoll.roll({async: false}).total;
-		console.log(itemsToGenerate);
+		if (generatorInput.clearShop) {
+			let ids = actor.items.map(i => this.getIdFromField(i));
+			await actor.deleteEmbeddedDocuments("Item", ids);
+		}
 		if(itemsToGenerate === undefined) {
 			return ui.notifications?.error("Could not roll a number")
 		}
@@ -877,107 +878,64 @@ class MerchantSheet extends ActorSheet {
 		let createItems: Item[] = [];
 		for (let i = 0; i < itemsToGenerate; i++) {
 			const rollResult = await rolltable.draw();
-			console.log(rollResult);
 
 			// @ts-ignore
 			let newItem: Item | undefined= null;
 			for (const drawItem of rollResult.results) {
-				console.log(drawItem)
 				let drawItemdata: TableResultData = drawItem.data;
 				let collection: string | undefined = drawItemdata.collection
 				// @ts-ignore
 				let drawItemBase = drawItem.text;
-				console.log("text for rollResult", drawItemBase, drawItemBase.startsWith("@Compendium"))
 
 				if (drawItemBase.startsWith("@Compendium")) {
 					if (collection === undefined) {
-						console.log("Collection not found: ", collection)
 						continue
 					}
 					let compendium = await (<Game>game).packs?.get(collection);
 					if (compendium === undefined) {
-						console.log("compendium not exist: ", compendium)
 						continue
 					}
 					// @ts-ignore
 					let item: Item = await compendium.getDocument(drawItemdata.resultId)
-					console.log("Item found: ", item)
 					let duplicatedItem = duplicate(item);
 					if (generatorInput.itemQuantityRoll) {
 						this.generateQuantity(duplicatedItem,generatorInput.itemQuantityRoll,generatorInput.itemQuantityMax);
+					}
+					if (generatorInput.itemPriceRoll) {
+						this.generatePrice(duplicatedItem,generatorInput.itemPriceRoll);
 					}
 					// @ts-ignore
 					createItems.push(duplicatedItem);
 				}
 			}
-
-			// @ts-ignore
-			// let rollTableItem = rollResult.results[0];
-			// if (rollTableItem.collection === "Item") {
-			// 	newItem = (<Game>game).items?.get(rollTableItem.resultId);
-			// }
-			// if (!newItem || newItem === null || newItem === undefined) {
-			// 	// console.log(`Merchant sheet | No item found "${rollResult.results[0].resultId}".`);
-			// 	return ui.notifications?.error(`No item found "${rollTableItem.resultId}".`);
-			// }
-			//
-			// if (newItem.type === "spell") {
-			// 	// @ts-ignore
-			// 	newItem = await currencyCalculator.createScroll(newItem);
-			// }
-
-			// let itemQtyRoll = new Roll(itemQtyFormula);
-			// itemQtyRoll.roll();
-			// console.log(`Merchant sheet | Adding ${itemQtyRoll.total} x ${newItem.name}`)
-			//
-			// // newitem.data.data.quantity = itemQtyRoll.result;
-			//
-			// let existingItem = this.actor.items.find(item => item.data.name == newItem.name);
-			//
-			// if (existingItem === undefined) {
-			// 	await this.actor.createEmbeddedDocuments("Item", newItem);
-			// 	console.log(`Merchant sheet | ${newItem.name} does not exist.`);
-			// 	existingItem = this.actor.items.find(item => item.data.name == newItem.name);
-			//
-			// 	if (itemQtyLimit > 0 && Number(itemQtyLimit) < Number(itemQtyRoll.total)) {
-			// 		await existingItem.update({"data.quantity": itemQtyLimit});
-			// 		if (!reducedVerbosity) ui.notifications.info(`Added new ${itemQtyLimit} x ${newItem.name}.`);
-			// 	} else {
-			// 		await existingItem.update({"data.quantity": itemQtyRoll.total});
-			// 		if (!reducedVerbosity) ui.notifications.info(`Added new ${itemQtyRoll.total} x ${newItem.name}.`);
-			// 	}
-			// } else {
-			// 	console.log(`Merchant sheet | Item ${newItem.name} exists.`);
-			//
-			// 	let newQty = Number(existingItem.data.data.quantity) + Number(itemQtyRoll.total);
-			//
-			// 	if (itemQtyLimit > 0 && Number(itemQtyLimit) === Number(existingItem.data.data.quantity)) {
-			// 		if (!reducedVerbosity) ui.notifications.info(`${newItem.name} already at maximum quantity (${itemQtyLimit}).`);
-			// 	} else if (itemQtyLimit > 0 && Number(itemQtyLimit) < Number(newQty)) {
-			// 		//console.log("Exceeds existing quantity, limiting");
-			// 		await existingItem.update({"data.quantity": itemQtyLimit});
-			// 		if (!reducedVerbosity) ui.notifications.info(`Added additional quantity to ${newItem.name} to the specified maximum of ${itemQtyLimit}.`);
-			// 	} else {
-			// 		await existingItem.update({"data.quantity": newQty});
-			// 		if (!reducedVerbosity) ui.notifications.info(`Added additional ${itemQtyRoll.total} quantity to ${newItem.name}.`);
-			// 	}
-			// }
 		}
-		console.log(createItems)
 		// @ts-ignore
 		await actor.createEmbeddedDocuments("Item", createItems)
 		await this.collapseInventory(actor)
 	}
 
+	private getIdFromField(i: Item): string {
+		if (i.id) {
+			return i.id;
+		}
+		return ""
+	}
+
+	private generatePrice(duplicatedItem: any, itemPriceRoll: string) {
+		let roll = new Roll(itemPriceRoll);
+		let price: number | undefined = roll.roll({async: false}).total;
+		if (price) {
+			duplicatedItem[currencyCalculator.getPriceItemKey()] = currencyCalculator.getPrice(price);
+		}
+
+	}
 	private generateQuantity(duplicatedItem: any, itemQuantityRoll: string, itemQuantityMax: number) {
 		let roll = new Roll(itemQuantityRoll);
 		let quantity: number | undefined = roll.roll({async: false}).total;
 		if (quantity !== undefined && itemQuantityMax < quantity) {
-			// @ts-ignore
-			duplicatedItem.data.quantity = itemQuantityMax;
+			currencyCalculator.setQuantityForItemData(duplicatedItem,itemQuantityMax);
 		} else if (quantity) {
-			// @ts-ignore
-			duplicatedItem.data.quantity = quantity;
+			currencyCalculator.setQuantityForItemData(duplicatedItem,quantity);
 		}
 
 	}
