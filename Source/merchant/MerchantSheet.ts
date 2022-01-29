@@ -903,6 +903,9 @@ class MerchantSheet extends ActorSheet {
 					let item: Item = await compendium.getDocument(drawItemdata.resultId)
 					console.log("Item found: ", item)
 					let duplicatedItem = duplicate(item);
+					if (generatorInput.itemQuantityRoll) {
+						this.generateQuantity(duplicatedItem,generatorInput.itemQuantityRoll,generatorInput.itemQuantityMax);
+					}
 					// @ts-ignore
 					createItems.push(duplicatedItem);
 				}
@@ -962,8 +965,21 @@ class MerchantSheet extends ActorSheet {
 		}
 		console.log(createItems)
 		// @ts-ignore
-		actor.createEmbeddedDocuments("Item", createItems)
+		await actor.createEmbeddedDocuments("Item", createItems)
 		await this.collapseInventory(actor)
+	}
+
+	private generateQuantity(duplicatedItem: any, itemQuantityRoll: string, itemQuantityMax: number) {
+		let roll = new Roll(itemQuantityRoll);
+		let quantity: number | undefined = roll.roll({async: false}).total;
+		if (quantity !== undefined && itemQuantityMax < quantity) {
+			// @ts-ignore
+			duplicatedItem.data.quantity = itemQuantityMax;
+		} else if (quantity) {
+			// @ts-ignore
+			duplicatedItem.data.quantity = quantity;
+		}
+
 	}
 
 	async createItemsFromCSV(actor: Actor, csvInput: any) {
