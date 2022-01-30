@@ -933,9 +933,9 @@ class MerchantSheet extends ActorSheet {
 		let roll = new Roll(itemQuantityRoll);
 		let quantity: number | undefined = roll.roll({async: false}).total;
 		if (quantity !== undefined && itemQuantityMax < quantity) {
-			currencyCalculator.setQuantityForItemData(duplicatedItem,itemQuantityMax);
+			duplicatedItem[currencyCalculator.getQuantityKey()] = itemQuantityMax
 		} else if (quantity) {
-			currencyCalculator.setQuantityForItemData(duplicatedItem,quantity);
+			duplicatedItem[currencyCalculator.getQuantityKey()] = quantity
 		}
 
 	}
