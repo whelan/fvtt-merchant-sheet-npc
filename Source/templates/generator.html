@@ -1,5 +1,5 @@
 <h3 class="gm-header"><i class="fas fa-balance-scale"></i> Merchant Generator <i class="fas fa-info-circle help" onclick="$('.merchant-settings-info').toggle();"></i></h3>
-<div class="merchant-settings-info">Replace this merchant's inventory with a random number of items from a Rollable Table. Specify the Rollable Table's name, along with how a formula for how many different items to add (Shop Qty Formula), and a formula for determining how many of each item to add (Item Qty Formula).</div>
+<div class="merchant-settings-info">Populate this merchant's inventory with a random number of items from a Rollable Table. Specify the Rollable Table's name, along with how a formula for how many times to roll on the table for items to add (Shop Qty Formula), and a formula for determining how many of each item to add (Item Qty Formula). If both are empty 1 will be used. It is also possible to add a formula for generating a price on every item (Price formula), if no formula is entered the default price on item is used</div>
 <div class="merchant-settings">
 	<div class="flexrow">
 		<div class="flexcol"><h4>Rollable Table: </h4></div>
@@ -28,7 +28,7 @@
 		<div class="flexcol"><input id="data.itemQtyLimit" type="text" data-dtype="String" placeholder="e.g. 10" value="{{data.itemQtyLimit}}"/></div>
 	</div>
 	<div class="flexrow">
-		<div class="flexcol"><h4>Price in gold: </h4></div>
+		<div class="flexcol"><h4>Price formula: </h4></div>
 		<div class="flexcol"><input id="data.itemPrice" type="text" data-dtype="String" placeholder="e.g. 1d100" value="{{data.itemQtyLimit}}"/></div>
 	</div>
 	<div class="flexrow">

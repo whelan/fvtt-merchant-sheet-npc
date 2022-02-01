@@ -749,10 +749,6 @@ class MerchantSheet extends ActorSheet {
 				ui.notifications?.error("For generating items a table needs to be selected")
 				return false;
 			}
-			if (!generatorInput.shopItemsRoll || !Roll.validate(generatorInput.shopItemsRoll)) {
-				ui.notifications?.error("A correct item roll formula needs to be used like 1d20 instead of " + generatorInput.shopItemsRoll)
-				return false;
-			}
 
 			return true;
 		}
@@ -765,7 +761,7 @@ class MerchantSheet extends ActorSheet {
 					icon: '<i class="fas fa-check"></i>',
 					label: (<Game>game).i18n.localize('MERCHANTNPC.generate'),
 
-					callback: () => {
+					callback: (element) => {
 						Logger.Log("Generator called")
 						let generatorInput = new MerchantGenerator(
 							MerchantSheet.getHtmlInputStringValue("data.rolltable", document),
@@ -779,7 +775,7 @@ class MerchantSheet extends ActorSheet {
 							this.generateItems(this.actor, generatorInput);
 						}
 						console.log("Generate: ", generatorInput);
-						d.render(true);
+						d.render()
 					}
 				},
 				two: {
@@ -796,6 +792,7 @@ class MerchantSheet extends ActorSheet {
 		d.render(true);
 
 	}
+
 
 	async csvImport(event: JQuery.ClickEvent) {
 
@@ -858,8 +855,11 @@ class MerchantSheet extends ActorSheet {
 	}
 
 	async generateItems(actor: Actor, generatorInput: MerchantGenerator) {
-		let shopQtyRoll = new Roll(generatorInput.shopItemsRoll);
-		let itemsToGenerate: number | undefined = shopQtyRoll.roll({async: false}).total;
+		let itemsToGenerate: number | undefined = 1;
+		if (generatorInput.shopItemsRoll) {
+			let shopQtyRoll = new Roll(generatorInput.shopItemsRoll);
+			itemsToGenerate = shopQtyRoll.roll({async: false}).total;
+		}
 		if (generatorInput.clearShop) {
 			let ids = actor.items.map(i => this.getIdFromField(i));
 			await actor.deleteEmbeddedDocuments("Item", ids);

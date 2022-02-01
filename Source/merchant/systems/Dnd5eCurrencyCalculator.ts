@@ -28,7 +28,6 @@ export default class Dnd5eCurrencyCalculator extends CurrencyCalculator {
 			// @ts-ignore
 			return caller.callSuperOnDropItemCreate(scroll);
         }
-
         return caller.callSuperOnDropItemCreate(itemData);
     }
 
