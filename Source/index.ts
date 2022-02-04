@@ -46,7 +46,7 @@ Hooks.once("ready", () => {
 
 
 Actors.registerSheet("core", MerchantSheet, {
-	label: "merchant NPC",
+	label: "Merchant NPC",
 	types: ["npc"],
 	makeDefault: false
 });

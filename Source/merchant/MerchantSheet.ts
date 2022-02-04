@@ -12,6 +12,7 @@ import CurrencyCalculator from "./systems/CurrencyCalculator";
 import MerchantSettings from "../Utils/MerchantSettings";
 import QuantityChanger from "./model/QuantityChanger";
 import MerchantGenerator from "./model/MerchantGenerator";
+import {Generator} from "./windows/apps";
 
 let currencyCalculator: CurrencyCalculator;
 let merchantSheetNPC = new MerchantSheetNPCHelper();
@@ -734,63 +735,7 @@ class MerchantSheet extends ActorSheet {
 
 	async generator(event: JQuery.ClickEvent) {
 		event.preventDefault();
-
-		const template_file = "modules/" + Globals.ModuleName + "/templates/generator.html";
-
-		const template_data = {
-			rolltables: (<Game>game).tables,
-			compendiums: MerchantSettings.getCompendiumnsChoices(),
-			data: {}
-		};
-		const rendered_html = await renderTemplate(template_file, template_data);
-
-		function validateInput(generatorInput: MerchantGenerator) {
-			if (!generatorInput.table) {
-				ui.notifications?.error("For generating items a table needs to be selected")
-				return false;
-			}
-
-			return true;
-		}
-
-		let d = new Dialog({
-			title: (<Game>game).i18n.localize('MERCHANTNPC.generator'),
-			content: rendered_html,
-			buttons: {
-				one: {
-					icon: '<i class="fas fa-check"></i>',
-					label: (<Game>game).i18n.localize('MERCHANTNPC.generate'),
-
-					callback: (element) => {
-						Logger.Log("Generator called")
-						let generatorInput = new MerchantGenerator(
-							MerchantSheet.getHtmlInputStringValue("data.rolltable", document),
-							MerchantSheet.getHtmlInputStringValue("data.shopQty", document),
-							MerchantSheet.getHtmlInputStringValue("data.itemQty", document),
-							MerchantSheet.getHtmlInputNumberValue("data.itemQtyLimit", document),
-							MerchantSheet.getHtmlInputStringValue("data.itemPrice", document),
-							MerchantSheet.getHtmlInputBooleanValue("data.clearInventory", document)
-						);
-						if (validateInput(generatorInput)) {
-							this.generateItems(this.actor, generatorInput);
-						}
-						console.log("Generate: ", generatorInput);
-						d.render()
-					}
-				},
-				two: {
-					icon: '<i class="fas fa-times"></i>',
-					label: (<Game>game).i18n.localize('MERCHANTNPC.cancel'),
-					callback: () => {
-						Logger.Log("Generator finished")
-					}
-				}
-
-			},
-			default: "one"
-		});
-		d.render(true);
-
+		new Generator(this.actor,{}).render(true);
 	}
 
 
@@ -842,26 +787,27 @@ class MerchantSheet extends ActorSheet {
 		d.render(true);
 	}
 
-	private static getHtmlInputStringValue(input: string, document: Document): string {
+	static getHtmlInputStringValue(input: string, document: Document): string {
 		return (<HTMLInputElement>document.getElementById(input)).value;
 	}
 
-	private static getHtmlInputNumberValue(input: string, document: Document): number {
+	static getHtmlInputNumberValue(input: string, document: Document): number {
 		return parseInt((<HTMLInputElement>document.getElementById(input)).value, 10);
 	}
 
-	private static getHtmlInputBooleanValue(input: string, document: Document): boolean {
+	static getHtmlInputBooleanValue(input: string, document: Document): boolean {
 		return (<HTMLInputElement>document.getElementById(input)).checked;
 	}
 
-	async generateItems(actor: Actor, generatorInput: MerchantGenerator) {
+	public static async generateItems(actor: Actor, generatorInput: MerchantGenerator) {
 		let itemsToGenerate: number | undefined = 1;
+
 		if (generatorInput.shopItemsRoll) {
 			let shopQtyRoll = new Roll(generatorInput.shopItemsRoll);
 			itemsToGenerate = shopQtyRoll.roll({async: false}).total;
 		}
 		if (generatorInput.clearShop) {
-			let ids = actor.items.map(i => this.getIdFromField(i));
+			let ids = actor.items.map(i => MerchantSheet.getIdFromField(i));
 			await actor.deleteEmbeddedDocuments("Item", ids);
 		}
 		if(itemsToGenerate === undefined) {
@@ -877,36 +823,40 @@ class MerchantSheet extends ActorSheet {
 		}
 		let createItems: Item[] = [];
 		for (let i = 0; i < itemsToGenerate; i++) {
-			const rollResult = await rolltable.draw();
+			let results: TableResult[]
+			if (generatorInput.importAllItems) {
+				results = rolltable.results.contents;
+			} else {
+				const rollResult = await rolltable.draw();
+				results = rollResult.results
+			}
 
 			// @ts-ignore
 			let newItem: Item | undefined= null;
-			for (const drawItem of rollResult.results) {
+			for (const drawItem of results) {
 				let drawItemdata: TableResultData = drawItem.data;
 				let collection: string | undefined = drawItemdata.collection
 				// @ts-ignore
 				let drawItemBase = drawItem.text;
 
-				if (drawItemBase.startsWith("@Compendium")) {
-					if (collection === undefined) {
-						continue
-					}
-					let compendium = await (<Game>game).packs?.get(collection);
-					if (compendium === undefined) {
-						continue
-					}
-					// @ts-ignore
-					let item: Item = await compendium.getDocument(drawItemdata.resultId)
-					let duplicatedItem = duplicate(item);
-					if (generatorInput.itemQuantityRoll) {
-						this.generateQuantity(duplicatedItem,generatorInput.itemQuantityRoll,generatorInput.itemQuantityMax);
-					}
-					if (generatorInput.itemPriceRoll) {
-						this.generatePrice(duplicatedItem,generatorInput.itemPriceRoll);
-					}
-					// @ts-ignore
-					createItems.push(duplicatedItem);
+				if (collection === undefined) {
+					continue
 				}
+				let compendium = await (<Game>game).packs?.get(collection);
+				if (compendium === undefined) {
+					continue
+				}
+				// @ts-ignore
+				let item: Item = await compendium.getDocument(drawItemdata.resultId)
+				let duplicatedItem = duplicate(item);
+				if (generatorInput.itemQuantityRoll) {
+					this.generateQuantity(duplicatedItem,generatorInput.itemQuantityRoll,generatorInput.itemQuantityMax);
+				}
+				if (generatorInput.itemPriceRoll) {
+					this.generatePrice(duplicatedItem,generatorInput.itemPriceRoll);
+				}
+				// @ts-ignore
+				createItems.push(duplicatedItem);
 			}
 		}
 		// @ts-ignore
@@ -914,14 +864,14 @@ class MerchantSheet extends ActorSheet {
 		await this.collapseInventory(actor)
 	}
 
-	private getIdFromField(i: Item): string {
+	private static getIdFromField(i: Item): string {
 		if (i.id) {
 			return i.id;
 		}
 		return ""
 	}
 
-	private generatePrice(duplicatedItem: any, itemPriceRoll: string) {
+	private static generatePrice(duplicatedItem: any, itemPriceRoll: string) {
 		let roll = new Roll(itemPriceRoll);
 		let price: number | undefined = roll.roll({async: false}).total;
 		if (price) {
@@ -929,7 +879,7 @@ class MerchantSheet extends ActorSheet {
 		}
 
 	}
-	private generateQuantity(duplicatedItem: any, itemQuantityRoll: string, itemQuantityMax: number) {
+	private static generateQuantity(duplicatedItem: any, itemQuantityRoll: string, itemQuantityMax: number) {
 		let roll = new Roll(itemQuantityRoll);
 		let quantity: number | undefined = roll.roll({async: false}).total;
 		if (quantity !== undefined && itemQuantityMax < quantity) {
@@ -1018,7 +968,7 @@ class MerchantSheet extends ActorSheet {
 				}
 			}
 		}
-		await this.collapseInventory(actor)
+		await MerchantSheet.collapseInventory(actor)
 		return undefined;
 	}
 
@@ -1040,7 +990,7 @@ class MerchantSheet extends ActorSheet {
 		return undefined;
 	}
 
-	async collapseInventory(actor: Actor) {
+	static async collapseInventory(actor: Actor) {
 		// @ts-ignore
 		var groupBy = function (xs, key) {
 			// @ts-ignore

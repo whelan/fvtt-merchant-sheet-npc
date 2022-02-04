@@ -5,7 +5,6 @@ import archiver from "archiver";
 import stringify from "json-stringify-pretty-compact";
 
 const sourcemaps = require('gulp-sourcemaps');
-const uglify = require('gulp-uglify');
 const buffer = require('vinyl-buffer');
 const source = require('vinyl-source-stream');
 
@@ -161,7 +160,6 @@ const bundleModule = () => {
         .pipe(source(path.join("dist", "bundle.js")))
         .pipe(buffer())
         .pipe(sourcemaps.init({loadMaps: true}))
-        .pipe(uglify())
         .pipe(sourcemaps.write('./'))
         .pipe(gulp.dest('./'));
 }
