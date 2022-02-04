@@ -1,3 +1,6 @@
+## Version 2.5.1
+* Added possibility to import whole table instead of rolling on table #106
+
 ## Version 2.5.0
 * Added generator feature using roll tables to populate merchant #100, the feature will be extended in the next releases. But for now it can only take items from the roll tables. I used https://www.reddit.com/r/FoundryVTT/comments/mnwzi4/as_promised_the_rolltables_for_every_type_of_shop/ as examples of roll tables.
 
