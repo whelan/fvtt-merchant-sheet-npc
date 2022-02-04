@@ -5,7 +5,8 @@ class MerchantGenerator {
     readonly itemQuantityRoll: string,
     readonly itemQuantityMax: number,
     readonly itemPriceRoll: string,
-	readonly clearShop: boolean) {
+	readonly clearShop: boolean,
+	readonly importAllItems: boolean) {
 	}
 }
 export default MerchantGenerator;

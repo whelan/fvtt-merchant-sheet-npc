@@ -1,6 +1,7 @@
 <h3 class="gm-header"><i class="fas fa-balance-scale"></i> Merchant Generator <i class="fas fa-info-circle help" onclick="$('.merchant-settings-info').toggle();"></i></h3>
 <div class="merchant-settings-info">Populate this merchant's inventory with a random number of items from a Rollable Table. Specify the Rollable Table's name, along with how a formula for how many times to roll on the table for items to add (Shop Qty Formula), and a formula for determining how many of each item to add (Item Qty Formula). If both are empty 1 will be used. It is also possible to add a formula for generating a price on every item (Price formula), if no formula is entered the default price on item is used</div>
 <div class="merchant-settings">
+<div class="merchant-settings">
 	<div class="flexrow">
 		<div class="flexcol"><h4>Rollable Table: </h4></div>
 		<div class="flexcol">
@@ -15,24 +16,39 @@
 			</select>
 		</div>
 	</div>
+	<script type="text/javascript">
+		$(document).ready(function(){
+			$('input[type="checkbox"]').click(function(){
+				var val = $(this).attr("value");
+				$("." + val).toggle();
+			});
+		});
+	</script>
 	<div class="flexrow">
-		<div class="flexcol"><h4>Shop Qty Formula: </h4></div>
-		<div class="flexcol"><input id="data.shopQty" type="text" data-dtype="String" placeholder="e.g. 1d20" value="{{data.shopQty}}"/></div>
+		<div class="flexcol"><h4>Shop Qty (import all: <input id="data.importAll" type="checkbox" data-dtype="boolean" value="shop-formula"/>)</h4></div>
+		<div class="shop-formula flexcol"><h4> Formula: </h4></div>
+		<div  class="shop-formula flexcol"><input id="data.shopQty" type="text" data-dtype="String" placeholder="e.g. 1d20" value="{{data.shopQty}}"/></div>
 	</div>
 	<div class="flexrow">
 		<div class="flexcol"><h4>Item Qty Formula: </h4></div>
+		<div class="flexcol"></div>
 		<div class="flexcol"><input id="data.itemQty" type="text" data-dtype="String" placeholder="e.g. 1d4" value="{{data.itemQty}}"/></div>
 	</div>
 	<div class="flexrow">
 		<div class="flexcol"><h4>Limit Qty: </h4></div>
+		<div class="flexcol"></div>
 		<div class="flexcol"><input id="data.itemQtyLimit" type="text" data-dtype="String" placeholder="e.g. 10" value="{{data.itemQtyLimit}}"/></div>
 	</div>
 	<div class="flexrow">
 		<div class="flexcol"><h4>Price formula: </h4></div>
+		<div class="flexcol"></div>
 		<div class="flexcol"><input id="data.itemPrice" type="text" data-dtype="String" placeholder="e.g. 1d100" value="{{data.itemQtyLimit}}"/></div>
 	</div>
 	<div class="flexrow">
 		<div class="flexcol"><h4>Clear Inventory: </h4></div>
+		<div class="flexcol"></div>
 		<div class="flexcol"><input id="data.clearInventory" type="checkbox" data-dtype="boolean" {{#if data.clearInventory}}checked{{/if}}/></div>
 	</div>
+</div>
+<button type="button" id="generate-items" class="generate-items" type="generate-items" name="generate-items" value="1"><i class="fas fa-balance-scale"></i> Generate</button>
 </div>
