@@ -3,7 +3,7 @@ import Logger from "../../Utils/Logger";
 import MerchantGenerator from "../model/MerchantGenerator";
 import MerchantSheet from "../MerchantSheet";
 
-export class Generator extends Application {
+export class GeneratorWindow extends Application {
 	actor
 	constructor(object: Actor, options: any) {
 		super();

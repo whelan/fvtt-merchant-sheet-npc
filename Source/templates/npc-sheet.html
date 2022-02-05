@@ -58,7 +58,7 @@
 			{{#if isPermissionShown}}
 			<h3 class="gm-section">{{localize "MERCHANTNPC.gm-section"}}</h3>
 			<!-- GM SETTINGS -->
-			<div class="gm-settings" data-group="sidebar" data-tab="gm-settings">
+			<div class="gm-settings expanded" data-group="sidebar" data-tab="gm-settings">
 				<h3 class="gm-header"><a class="permission-proficiency-bulk"
 										 title="{{merchant.playersPermissionDescription}}">{{{merchant.playersPermissionIcon}}}</a>
 					{{localize "MERCHANTNPC.permissions"}} <i class="fas fa-info-circle help"
@@ -77,10 +77,10 @@
 					{{/each}}
 				</ol>
 				{{/if}}
-				<div style="{{editorStyle}}" class="editor">
-					{{editor content=data.data.details.biography.value target="data.details.biography.value" button=true
-					owner=owner editable=isGM}}
-				</div>
+			</div>
+			<div style="{{editorStyle}}" class="editor">
+				{{editor content=data.data.details.biography.value target="data.details.biography.value" button=true
+				owner=owner editable=isGM}}
 			</div>
 		</section>
 
@@ -106,6 +106,7 @@
 					{{/if}}
 				</li>
 				{{/if}}
+				<div class="merchant-items expanded">
 				{{#each section.items as |item iid| }}
 				{{#if ../../isService}}
 				<li class="merchant-item flexrow" data-item-id="{{item.data._id}}"
@@ -196,6 +197,7 @@
 				{{/if}}
 				{{/each}}
 				{{/if}}
+				</div>
 				{{/each}}
 			</ol>
 		</section>
