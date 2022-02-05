@@ -1,3 +1,9 @@
+## Version 2.5.2
+* Added npc2 to register actor sheet as well for starfinder system. 
+* Added possibility to fold GM settings permissions #96 and also folding categories #72
+
+![Folding options](images/Merchant-Folding.gif)
+
 ## Version 2.5.1
 * Added possibility to import whole table instead of rolling on table #106
 
