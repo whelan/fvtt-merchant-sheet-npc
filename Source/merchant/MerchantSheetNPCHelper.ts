@@ -166,6 +166,19 @@ class MerchantSheetNPCHelper {
 		li.toggleClass("expanded");
 	}
 
+	public onSectionSummary(event: JQuery.ClickEvent) {
+		event.preventDefault();
+		let div = event.currentTarget.nextElementSibling;
+		// Toggle summary
+		if ( div.classList.contains("expanded") ) {
+			div.hidden = true;
+			div.classList.remove("expanded")
+		} else {
+			div.hidden = false;
+			div.classList.add("expanded")
+		}
+	}
+
 	public async changeQuantity(event: JQuery.ClickEvent, actor: Actor) {
 		event.preventDefault();
 		console.log("Merchant sheet | Change quantity");
@@ -510,6 +523,7 @@ class MerchantSheetNPCHelper {
 			await actor.createEmbeddedDocuments("Item", packet.additions);
 		}
 	}
+
 }
 
 let helper = new MerchantSheetNPCHelper();

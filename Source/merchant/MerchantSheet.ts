@@ -12,12 +12,11 @@ import CurrencyCalculator from "./systems/CurrencyCalculator";
 import MerchantSettings from "../Utils/MerchantSettings";
 import QuantityChanger from "./model/QuantityChanger";
 import MerchantGenerator from "./model/MerchantGenerator";
-import {Generator} from "./windows/apps";
+import {GeneratorWindow} from "./windows/GeneratorWindow";
 
 let currencyCalculator: CurrencyCalculator;
 let merchantSheetNPC = new MerchantSheetNPCHelper();
 const csvParser = require('csv-parse/lib/sync');
-
 
 class MerchantSheet extends ActorSheet {
 
@@ -287,6 +286,8 @@ class MerchantSheet extends ActorSheet {
 		html.find('.change-item-quantity').on('click', ev => merchantSheetNPC.changeQuantity(ev, this.actor));
 		html.find('.change-item-price').on('click', ev => merchantSheetNPC.changePrice(ev, this.actor));
 		html.find('.merchant-item .item-name').on('click', event => merchantSheetNPC.onItemSummary(event, this.actor));
+		html.find('.items-list .items-header').on('click', event => merchantSheetNPC.onSectionSummary(event));
+		html.find('.gm-section').on('click', event => merchantSheetNPC.onSectionSummary(event));
 		html.find(".item-add").on('click', this.onItemCreate.bind(this));
 		html.find(".item-edit").on('click', this.onItemEdit.bind(this));
 	}
@@ -735,7 +736,7 @@ class MerchantSheet extends ActorSheet {
 
 	async generator(event: JQuery.ClickEvent) {
 		event.preventDefault();
-		new Generator(this.actor,{}).render(true);
+		new GeneratorWindow(this.actor,{}).render(true);
 	}
 
 
