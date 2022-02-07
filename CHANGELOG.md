@@ -1,3 +1,6 @@
+## Version 2.5.3
+* Fixes a problem with World Currency 5e #109
+
 ## Version 2.5.2
 * Added npc2 to register actor sheet as well for starfinder system. 
 * Added possibility to fold GM settings permissions #96 and also folding categories #72
