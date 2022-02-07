@@ -524,6 +524,20 @@ class MerchantSheetNPCHelper {
 		}
 	}
 
+	onGeneratorSelectorChanged(event: JQuery.ChangeEvent<any, null, any, any>) {
+		let expandedElement: HTMLElement | null= document.getElementById('merchant-table');
+		let hideElement: HTMLElement | null = document.getElementById('merchant-compendium');
+		if (event.currentTarget.value !== 'table') {
+			hideElement = document.getElementById('merchant-table');
+			expandedElement = document.getElementById('merchant-compendium');
+		}
+		if (expandedElement != null && hideElement != null) {
+			expandedElement.hidden = false
+			expandedElement.classList.add("expanded")
+			hideElement.hidden = true
+			hideElement.classList.remove("expanded")
+		}
+	}
 }
 
 let helper = new MerchantSheetNPCHelper();
