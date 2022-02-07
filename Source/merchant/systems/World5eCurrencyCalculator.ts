@@ -79,8 +79,10 @@ export default class World5eCurrencyCalculator extends CurrencyCalculator {
     }
 
     updateActorWithNewFunds(buyer: Actor, buyerFunds: any) {
+         // @ts-ignore
+        let standardKey = "data.currency." + this.getStandard();
         console.log("Merchant sheet | buyer and funds", buyer,buyerFunds)
-        buyer.update({ "data.currency.cp": buyerFunds });
+        buyer.update({[standardKey]: buyerFunds });
     }
 
     subtractAmountFromActor(buyer: Actor, buyerFunds: any, itemCostInGold: number) {
