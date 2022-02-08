@@ -856,13 +856,17 @@ class MerchantSheet extends ActorSheet {
 				return ui.notifications?.error(`No Compendium found with name "${compendium}".`);
 			}
 
-			console.log("Compendium", compendium)
-			console.log("Compendium size", compendium.index.size)
 			// console.log("Compendium", compendium.getData())
-				if (generatorInput.importAllItems) {
+				if (generatorInput.importAllItems ) {
+					for (const itemId of compendium.index.contents) {
+						let item: any = await compendium.getDocument(itemId._id)
+						if (this.determineIfObjectIsItem(item)) {
+							this.addItemToCollection(item, generatorInput, createItems);
+						}
+					}
 				} else {
 					for (let i = 0; i < itemsToGenerate; i++) {
-						let itemIndex = Math.floor(Math.random() * (compendium.index.size + 1));
+						let itemIndex = Math.floor(Math.random() * (compendium.index.size));
 						let itemId = compendium.index.contents[itemIndex]._id;
 
 						let item: any = await compendium.getDocument(itemId)
