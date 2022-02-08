@@ -1,3 +1,6 @@
+## Version 2.5.4
+* Added a compendium generator as well. It is now possible to switch between a table importer or compendium importer. Please come with feedback on it. 
+
 ## Version 2.5.3
 * Fixes a problem with World Currency 5e #109
 
