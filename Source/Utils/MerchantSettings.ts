@@ -34,7 +34,7 @@ class MerchantSettings {
 			}],
 			["allowNoGM", {
 				name: "Allow transactions without GM",
-				hint: "If enabled, transactions can happen even without the GM is active.",
+				hint: "If enabled, transactions can happen even without the GM is active, but quantity on items will not be modified",
 				scope: "world",
 				config: true,
 				default: false,
