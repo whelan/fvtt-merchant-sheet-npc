@@ -814,55 +814,113 @@ class MerchantSheet extends ActorSheet {
 		if(itemsToGenerate === undefined) {
 			return ui.notifications?.error("Could not roll a number")
 		}
-		//
-		// @ts-ignore
-		let rolltable = (<Game>game).tables.getName(generatorInput.table);
-
-		if (!rolltable) {
-			console.log(`Merchant sheet | No Rollable Table found with name "${generatorInput.table}".`);
-			return ui.notifications?.error(`No Rollable Table found with name "${generatorInput.table}".`);
-		}
 		let createItems: Item[] = [];
-		for (let i = 0; i < itemsToGenerate; i++) {
-			let results: TableResult[]
-			if (generatorInput.importAllItems) {
-				results = rolltable.results.contents;
-			} else {
-				const rollResult = await rolltable.draw();
-				results = rollResult.results
-			}
-
+		if (generatorInput.selected === 'table') {
 			// @ts-ignore
-			let newItem: Item | undefined= null;
-			for (const drawItem of results) {
-				let drawItemdata: TableResultData = drawItem.data;
-				let collection: string | undefined = drawItemdata.collection
-				// @ts-ignore
-				let drawItemBase = drawItem.text;
+			let rolltable = (<Game>game).tables.getName(generatorInput.table);
 
-				if (collection === undefined) {
-					continue
-				}
-				let compendium = await (<Game>game).packs?.get(collection);
-				if (compendium === undefined) {
-					continue
-				}
-				// @ts-ignore
-				let item: Item = await compendium.getDocument(drawItemdata.resultId)
-				let duplicatedItem = duplicate(item);
-				if (generatorInput.itemQuantityRoll) {
-					this.generateQuantity(duplicatedItem,generatorInput.itemQuantityRoll,generatorInput.itemQuantityMax);
-				}
-				if (generatorInput.itemPriceRoll) {
-					this.generatePrice(duplicatedItem,generatorInput.itemPriceRoll);
-				}
-				// @ts-ignore
-				createItems.push(duplicatedItem);
+			if (!rolltable) {
+				console.log(`Merchant sheet | No Rollable Table found with name "${generatorInput.table}".`);
+				return ui.notifications?.error(`No Rollable Table found with name "${generatorInput.table}".`);
 			}
+			for (let i = 0; i < itemsToGenerate; i++) {
+				let results: TableResult[]
+				if (generatorInput.importAllItems) {
+					results = rolltable.results.contents;
+				} else {
+					const rollResult = await rolltable.draw();
+					results = rollResult.results
+				}
+
+				for (const drawItem of results) {
+					let drawItemdata: TableResultData = drawItem.data;
+					let collection: string | undefined = drawItemdata.collection
+
+					if (collection === undefined) {
+						continue
+					}
+					let compendium = await (<Game>game).packs?.get(collection);
+					if (compendium === undefined) {
+						continue
+					}
+					// @ts-ignore
+					let item: Item = await compendium.getDocument(drawItemdata.resultId)
+					this.addItemToCollection(item, generatorInput, createItems);
+				}
+			}
+		} else if (generatorInput.selected === 'compendium') {
+			let compendium: CompendiumCollection<CompendiumCollection.Metadata> | undefined = await MerchantSheet.findSpellPack(generatorInput.compendium);
+
+			if (!compendium) {
+				console.log(`Merchant sheet | No Compendium found with name "${compendium}".`);
+				return ui.notifications?.error(`No Compendium found with name "${compendium}".`);
+			}
+
+			// console.log("Compendium", compendium.getData())
+				if (generatorInput.importAllItems ) {
+					for (const itemId of compendium.index.contents) {
+						let item: any = await compendium.getDocument(itemId._id)
+						if (this.determineIfObjectIsItem(item)) {
+							this.addItemToCollection(item, generatorInput, createItems);
+						}
+					}
+				} else {
+					for (let i = 0; i < itemsToGenerate; i++) {
+						let itemIndex = Math.floor(Math.random() * (compendium.index.size));
+						let itemId = compendium.index.contents[itemIndex]._id;
+
+						let item: any = await compendium.getDocument(itemId)
+						if (this.determineIfObjectIsItem(item)) {
+							this.addItemToCollection(item, generatorInput, createItems);
+						}
+					}
+					// 		results = rolltable.results.contents;
+					// 	} else {
+					// 		const rollResult = await rolltable.draw();
+					// 		results = rollResult.results
+					// 	}
+					//
+					// 	for (const drawItem of results) {
+					// 		let drawItemdata: TableResultData = drawItem.data;
+					// 		let collection: string | undefined = drawItemdata.collection
+					//
+					// 		if (collection === undefined) {
+					// 			continue
+					// 		}
+					// 		let compendium = await (<Game>game).packs?.get(collection);
+					// 		if (compendium === undefined) {
+					// 			continue
+					// 		}
+					// 		// @ts-ignore
+					// 		let item: Item = await compendium.getDocument(drawItemdata.resultId)
+					// 		this.addItemToCollection(item, generatorInput, createItems);
+					// 	}
+					// }
+
+				}
+
 		}
 		// @ts-ignore
 		await actor.createEmbeddedDocuments("Item", createItems)
 		await this.collapseInventory(actor)
+	}
+	private static determineIfObjectIsItem(toBeDetermined: any): toBeDetermined is Item {
+		if((toBeDetermined as Item).type){
+			return true
+		}
+		return false
+	}
+
+	private static addItemToCollection(item: Item, generatorInput: MerchantGenerator, createItems: Item[]) {
+		let duplicatedItem = duplicate(item);
+		if (generatorInput.itemQuantityRoll) {
+			this.generateQuantity(duplicatedItem, generatorInput.itemQuantityRoll, generatorInput.itemQuantityMax);
+		}
+		if (generatorInput.itemPriceRoll) {
+			this.generatePrice(duplicatedItem, generatorInput.itemPriceRoll);
+		}
+		// @ts-ignore
+		createItems.push(duplicatedItem);
 	}
 
 	private static getIdFromField(i: Item): string {
@@ -903,8 +961,8 @@ class MerchantSheet extends ActorSheet {
 			from_line: startLine
 		});
 
-		let itemPack = await this.findSpellPack(csvInput.itemPack);
-		let spellPack = await this.findSpellPack(csvInput.pack)
+		let itemPack = await MerchantSheet.findSpellPack(csvInput.itemPack);
+		let spellPack = await MerchantSheet.findSpellPack(csvInput.pack)
 		let nameCol = Number(csvInput.nameCol) - 1
 		let priceCol = -1
 		if (csvInput.priceCol !== undefined) {
@@ -984,7 +1042,7 @@ class MerchantSheet extends ActorSheet {
 		storeItems.push(itemData);
 	}
 
-	async findSpellPack(pack: any) {
+	static async findSpellPack(pack: any) {
 		if (pack !== 'none') {
 			return (await (<Game>game).packs.filter(s => s.metadata.name === pack))[0]
 		}
