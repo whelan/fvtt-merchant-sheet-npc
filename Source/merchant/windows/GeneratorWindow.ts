@@ -39,7 +39,9 @@ export class GeneratorWindow extends Application {
 		html.find('.generate-items').on('click', () => {
 			Logger.Log("Generator called")
 			let generatorInput = new MerchantGenerator(
+				MerchantSheet.getHtmlInputStringValue("data.selector", document),
 				MerchantSheet.getHtmlInputStringValue("data.rolltable", document),
+				MerchantSheet.getHtmlInputStringValue("data.compendium", document),
 				MerchantSheet.getHtmlInputStringValue("data.shopQty", document),
 				MerchantSheet.getHtmlInputStringValue("data.itemQty", document),
 				MerchantSheet.getHtmlInputNumberValue("data.itemQtyLimit", document),
@@ -58,8 +60,12 @@ export class GeneratorWindow extends Application {
 		super.activateListeners(html);
 
 		function validateInput(generatorInput: MerchantGenerator) {
-			if (!generatorInput.table) {
+			if (generatorInput.selected === 'table' && !generatorInput.table) {
 				ui.notifications?.error("For generating items a table needs to be selected")
+				return false;
+			}
+			if (generatorInput.selected === 'compendium' && !generatorInput.compendium) {
+				ui.notifications?.error("For generating items a compendium needs to be selected")
 				return false;
 			}
 
