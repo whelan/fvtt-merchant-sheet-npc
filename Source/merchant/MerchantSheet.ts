@@ -859,36 +859,52 @@ class MerchantSheet extends ActorSheet {
 			console.log("Compendium", compendium)
 			console.log("Compendium size", compendium.index.size)
 			// console.log("Compendium", compendium.getData())
-			// for (let i = 0; i < itemsToGenerate; i++) {
-			// 	let results: TableResult[]
-			// 	if (generatorInput.importAllItems) {
-			// 		results = rolltable.results.contents;
-			// 	} else {
-			// 		const rollResult = await rolltable.draw();
-			// 		results = rollResult.results
-			// 	}
-			//
-			// 	for (const drawItem of results) {
-			// 		let drawItemdata: TableResultData = drawItem.data;
-			// 		let collection: string | undefined = drawItemdata.collection
-			//
-			// 		if (collection === undefined) {
-			// 			continue
-			// 		}
-			// 		let compendium = await (<Game>game).packs?.get(collection);
-			// 		if (compendium === undefined) {
-			// 			continue
-			// 		}
-			// 		// @ts-ignore
-			// 		let item: Item = await compendium.getDocument(drawItemdata.resultId)
-			// 		this.addItemToCollection(item, generatorInput, createItems);
-			// 	}
-			// }
+				if (generatorInput.importAllItems) {
+				} else {
+					for (let i = 0; i < itemsToGenerate; i++) {
+						let itemIndex = Math.floor(Math.random() * (compendium.index.size + 1));
+						let itemId = compendium.index.contents[itemIndex]._id;
+
+						let item: any = await compendium.getDocument(itemId)
+						if (this.determineIfObjectIsItem(item)) {
+							this.addItemToCollection(item, generatorInput, createItems);
+						}
+					}
+					// 		results = rolltable.results.contents;
+					// 	} else {
+					// 		const rollResult = await rolltable.draw();
+					// 		results = rollResult.results
+					// 	}
+					//
+					// 	for (const drawItem of results) {
+					// 		let drawItemdata: TableResultData = drawItem.data;
+					// 		let collection: string | undefined = drawItemdata.collection
+					//
+					// 		if (collection === undefined) {
+					// 			continue
+					// 		}
+					// 		let compendium = await (<Game>game).packs?.get(collection);
+					// 		if (compendium === undefined) {
+					// 			continue
+					// 		}
+					// 		// @ts-ignore
+					// 		let item: Item = await compendium.getDocument(drawItemdata.resultId)
+					// 		this.addItemToCollection(item, generatorInput, createItems);
+					// 	}
+					// }
+
+				}
 
 		}
 		// @ts-ignore
 		await actor.createEmbeddedDocuments("Item", createItems)
 		await this.collapseInventory(actor)
+	}
+	private static determineIfObjectIsItem(toBeDetermined: any): toBeDetermined is Item {
+		if((toBeDetermined as Item).type){
+			return true
+		}
+		return false
 	}
 
 	private static addItemToCollection(item: Item, generatorInput: MerchantGenerator, createItems: Item[]) {
