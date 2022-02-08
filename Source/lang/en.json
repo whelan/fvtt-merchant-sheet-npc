@@ -115,5 +115,6 @@
   "MERCHANTNPC.ingredient": "Ingredient",
   "MERCHANTNPC.misc": "Miscellaneous",
   "MERCHANTNPC.generator": "Generate items",
-  "MERCHANTNPC.generate": "Generate"
+  "MERCHANTNPC.generate": "Generate",
+  "MERCHANTNPC.info-noGM": "The quantity is not changed as the No-GM option is set"
 }
