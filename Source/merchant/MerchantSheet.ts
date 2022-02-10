@@ -110,6 +110,10 @@ class MerchantSheet extends ActorSheet {
 			return infinity || (qty === Number.MAX_VALUE)
 		});
 
+		Handlebars.registerHelper('merchantNotInfinity', function (infinity) {
+			return !infinity
+		});
+
 		return getSheetTemplateName();
 	}
 
@@ -1094,6 +1098,8 @@ class MerchantSheet extends ActorSheet {
 			return ui.notifications.error((<Game>game).i18n.localize("MERCHANTNPC.error-noGM"));
 		} else if (!allowNoTargetGM) {
 			gmId = targetGm.data._id;
+		} else if (allowNoTargetGM) {
+			ui.notifications?.info((<Game>game).i18n.localize("MERCHANTNPC.info-noGM"));
 		}
 
 		if (this.token === null) {

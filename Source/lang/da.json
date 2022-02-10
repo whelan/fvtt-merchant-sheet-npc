@@ -9,7 +9,7 @@
   "MERCHANTNPC.stack-modifier": "stak Modifikator",
   "MERCHANTNPC.item-delete": "Fjern element",
   "MERCHANTNPC.item-buy": "Køb vare",
-  "MERCHANTNPC.stack-buy": "Køb stak",
+  "MERCHANTNPC.stack-buy": "Køb stak af ",
   "MERCHANTNPC.change-item-amount-help": "Rediger antal styks af varen",
   "MERCHANTNPC.change-price-help": "Ændre varens grundpris",
   "MERCHANTNPC.permission-observer-help": "Observatør (adgang til ark, men kan kun købe varer, hvis typen er merchant)",

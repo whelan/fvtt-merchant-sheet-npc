@@ -10,7 +10,7 @@
   "MERCHANTNPC.stack-modifier": "Stack Modifier",
   "MERCHANTNPC.item-delete": "Remove item",
   "MERCHANTNPC.item-buy": "Buy item",
-  "MERCHANTNPC.stack-buy": "Buy stack",
+  "MERCHANTNPC.stack-buy": "Buy stack of ",
   "MERCHANTNPC.change-item-quantity-help": "Change the quantity of the item",
   "MERCHANTNPC.change-price-help": "Change the base price of the item",
   "MERCHANTNPC.permission-observer-help": "Observer (access to sheet but can only purchase items if merchant sheet type)",
@@ -115,5 +115,6 @@
   "MERCHANTNPC.ingredient": "Ingredient",
   "MERCHANTNPC.misc": "Miscellaneous",
   "MERCHANTNPC.generator": "Generate items",
-  "MERCHANTNPC.generate": "Generate"
+  "MERCHANTNPC.generate": "Generate",
+  "MERCHANTNPC.info-noGM": "The quantity is not changed as the No-GM option is set"
 }
