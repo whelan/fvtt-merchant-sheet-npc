@@ -110,6 +110,10 @@ class MerchantSheet extends ActorSheet {
 			return infinity || (qty === Number.MAX_VALUE)
 		});
 
+		Handlebars.registerHelper('merchantNotInfinity', function (infinity) {
+			return !infinity
+		});
+
 		return getSheetTemplateName();
 	}
 

@@ -141,6 +141,7 @@
 					data-item-stack="{{../../stackModifier}}">
 					<div class="merchant-item-image" style="background-image: url('{{item.img}}')"></div>
 					<div class="item-name">{{item.name}}</div>
+					{{#if (merchantNotInfinity ../../infinity)}}
 					<div class="item-quantity">
 						{{#if ../../isGM}}
 						<a class="item-control change-item-quantity"
@@ -159,10 +160,10 @@
 						{{else}}
 						{{getItemQuantity item.data.data.quantity}}
 						{{/if}}
-
 						{{/if}}
 
 					</div>
+					{{/if}}
 					<div class="item-weight">
 						<i class="fas fa-weight-hanging" title="{{localize 'MERCHANTNPC.weight'}}"></i>
 						{{merchantsheetweight
