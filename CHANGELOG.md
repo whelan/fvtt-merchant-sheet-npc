@@ -1,6 +1,10 @@
 ## Version 2.5.5
 * Added more explicit information if the No GM option is set.
 * Fixed problem with images on items not shown correct when using special characters #118
+* Removed color for description text, so it uses default text #120
+* Removed quantity if merchant have infinite stock of all items. Fix for #98
+* Better space between buy stack and buy
+* Fixed #34 with a hover of how many there are in the stack
 
 ## Version 2.5.4
 * Added a compendium generator as well. It is now possible to switch between a table importer or compendium importer. Please come with feedback on it. 
