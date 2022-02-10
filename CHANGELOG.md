@@ -1,6 +1,6 @@
 ## Version 2.5.5
 * Added more explicit information if the No GM option is set.
-* 
+* Fixed problem with images on items not shown correct when using special characters #118
 
 ## Version 2.5.4
 * Added a compendium generator as well. It is now possible to switch between a table importer or compendium importer. Please come with feedback on it. 
