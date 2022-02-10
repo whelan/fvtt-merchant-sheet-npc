@@ -9,7 +9,7 @@
   "MERCHANTNPC.stack-modifier": "Stapelgröße ändern",
   "MERCHANTNPC.item-delete": "Gegenstand entfernen",
   "MERCHANTNPC.item-buy": "Gegenstand kaufen",
-  "MERCHANTNPC.stack-buy": "Stapel kaufen",
+  "MERCHANTNPC.stack-buy": "Stapel kaufen von ",
   "MERCHANTNPC.change-item-quantity-help": "Menge ändern",
   "MERCHANTNPC.change-price-help": "Grundpreis des Gegenstands ändern",
   "MERCHANTNPC.permission-observer-help": "Beobachter (Ermöglicht Zugriff auf den Händler. Gegenstände können allerdings nur ge- oder verkauft werden, wenn das Merchant-Sheet für den NSC ausgewählt ist)",
