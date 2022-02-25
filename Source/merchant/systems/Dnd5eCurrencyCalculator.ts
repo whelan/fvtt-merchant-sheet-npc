@@ -21,6 +21,8 @@ const convertFromHigherCurrency: {[key:string]: string} = {"cp": "sp", "sp": "ep
 
 export default class Dnd5eCurrencyCalculator extends CurrencyCalculator {
 
+	useEP: unknown = true;
+
     async onDropItemCreate(itemData: PropertiesToSource<ItemData>, caller: MerchantSheet) {
         // Create a Consumable spell scroll on the Inventory tab
         if ( (itemData.type === "spell")) {
@@ -116,13 +118,12 @@ export default class Dnd5eCurrencyCalculator extends CurrencyCalculator {
 		if (buyerFunds["pp"]) {
 			buyerFundsAsCopper += buyerFunds["pp"] * conversionRates["gp"] * conversionRates["ep"] * conversionRates["sp"] * conversionRates["cp"];
 		}
-		return buyerFundsAsCopper
+		return Math.floor(buyerFundsAsCopper)
 	}
 
     subtractAmountFromActor(buyer: Actor, buyerFunds: any, itemCostInGold: number) {
-		let useEP = (<Game>game).settings.get(Globals.ModuleName, "useEP");
 		buyerFunds = this.calculateNewBuyerFunds(itemCostInGold, buyerFunds);
-		if (!useEP) {
+		if (!this.useEP) {
 			this.convertEP(buyerFunds);
 		}
 		// buyerFunds = buyerFunds - itemCostInGold;
@@ -214,18 +215,43 @@ export default class Dnd5eCurrencyCalculator extends CurrencyCalculator {
 		sellerFunds["ep"] += convertToHigherFund["ep"]
 		sellerFunds["gp"] += convertToHigherFund["gp"]
 		sellerFunds["pp"] += convertToHigherFund["pp"]
-		let useEP = (<Game>game).settings.get(Globals.ModuleName, "useEP");
-		if (!useEP) {
+		if (!this.useEP) {
 			this.convertEP(sellerFunds);
 		}
 		this.updateActorWithNewFunds(seller,sellerFunds);
     }
+	getPriceOutputWithModifier(basePrice: number, modifier: number) {
+		return this.priceInText((basePrice * modifier * 100) / 100)
+	}
 
-    priceInText(itemCostInGold: number): string {
-        return itemCostInGold + " gp";
+
+	priceInText(itemCostInGold: number): string {
+		let priceToBuyerFunds = this.calculatePriceToBuyerFunds(itemCostInGold);
+		let returnValue: string = '';
+		returnValue += this.getValueIfPresent(priceToBuyerFunds, 'pp');
+		returnValue += this.getValueIfPresent(priceToBuyerFunds, 'gp');
+		if (this.useEP) {
+			returnValue += this.getValueIfPresent(priceToBuyerFunds, 'ep');
+			returnValue += this.getValueIfPresent(priceToBuyerFunds, 'sp');
+		} else if (priceToBuyerFunds['ep'] > 0 || priceToBuyerFunds['sp'] > 0) {
+			let sp = priceToBuyerFunds['sp'];
+			if (priceToBuyerFunds['ep'] > 0) {
+				sp += (priceToBuyerFunds['ep']* conversionRates['sp'])
+			}
+			returnValue += ' ' + sp +'sp';
+		}
+		returnValue += this.getValueIfPresent(priceToBuyerFunds, 'cp');
+		return returnValue.trim();
     }
 
-    public prepareItems(items: any) {
+	private getValueIfPresent(priceToBuyerFunds: any, currency: string): string {
+		if (priceToBuyerFunds[currency]) {
+			return ' ' + priceToBuyerFunds[currency] + currency;
+		}
+		return '';
+	}
+
+	public prepareItems(items: any) {
 
         console.log("Merchant Sheet | Prepare Features");
         // Actions
@@ -304,6 +330,8 @@ export default class Dnd5eCurrencyCalculator extends CurrencyCalculator {
 			// @ts-ignore
 			"cp": CONFIG.DND5E.currencies.cp.conversion.each
 		};
+		this.registerSystemSettings();
+		this.useEP = (<Game>game).settings.get(Globals.ModuleName, "useEP");
 		super.initSettings();
     }
 
