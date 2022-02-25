@@ -6,6 +6,7 @@ import Logger from "../../Utils/Logger";
 export default class CurrencyCalculator {
 
 	initialized = false;
+
 	/**
 	 * Base class for calculation for currencies. .
 	 *
@@ -124,5 +125,8 @@ export default class CurrencyCalculator {
 
 	sectionStyle() {
 		return ""
+	}
+	public registerSystemSettings() {
+
 	}
 }

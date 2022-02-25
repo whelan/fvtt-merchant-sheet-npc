@@ -1,3 +1,9 @@
+## Version 2.5.6
+* DND5e Added setting for skip EP in transactions
+* DND5e Show prices currencies
+* DND5e Calculate trades to lowest first and then go up instead of calculating in decimals
+
+
 ## Version 2.5.5
 * Added more explicit information if the No GM option is set.
 * Fixed problem with images on items not shown correct when using special characters #118

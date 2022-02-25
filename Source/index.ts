@@ -3,13 +3,9 @@ import MerchantSettings from "./Utils/MerchantSettings";
 import MerchantSheet from "./merchant/MerchantSheet";
 
 import PreloadTemplates from "./PreloadTemplates";
-import Globals from "./Globals";
-import MerchantSheetNPCHelper from "./merchant/MerchantSheetNPCHelper";
-import csvParser from "csv-parse/lib/sync";
-import MoveItemsPacket from "./merchant/model/MoveItemsPacket";
-import merchantSheet from "./merchant/MerchantSheet";
 import merchantSheetNPCHelper from "./merchant/MerchantSheetNPCHelper";
-import SfrpgMerchantSheet from "./merchant/MerchantSheet";
+import MoveItemsPacket from "./merchant/model/MoveItemsPacket";
+import MerchantSheetNPCHelper from "./merchant/MerchantSheetNPCHelper";
 
 
 function getTypesForSheet() {
@@ -64,6 +60,7 @@ Hooks.once("setup", () => {
 Hooks.once("ready", () => {
 	console.log("MERCHANT SHEET SYSTEM: " + (<Game>game).system.id);
 	MerchantSettings.Get().RegisterSettings();
+	new MerchantSheetNPCHelper().systemCurrencyCalculator().registerSystemSettings();
 	Logger.Ok("Template module is now ready.");
 });
 

@@ -538,6 +538,7 @@ class MerchantSheetNPCHelper {
 			hideElement.classList.remove("expanded")
 		}
 	}
+
 }
 
 let helper = new MerchantSheetNPCHelper();

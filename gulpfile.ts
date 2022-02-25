@@ -42,6 +42,7 @@ import tsify = require("tsify");
 
 const ts = require("gulp-typescript");
 const git = require("gulp-git");
+const jest = require('gulp-jest').default;
 
 const argv = require("yargs").argv;
 
@@ -167,6 +168,8 @@ const bundleModule = () => {
 const buildLess = () => {
     return gulp.src("Source/Style/*.less").pipe(less()).pipe(gulp.dest("dist"));
 }
+
+
 
 const copyFiles = async() => {
     const statics = ["lang", "fonts", "assets", "templates", "packs", "module.json"];
@@ -504,6 +507,14 @@ const updateManifest = (cb: any) => {
     } catch (err) {
         cb(err);
     }
+}
+const test = () => {
+    return gulp.src('Source/__tests__').pipe(jest({
+        "preprocessorIgnorePatterns": [
+            "dist/", "node_modules/"
+        ],
+        "automock": false
+    }));
 }
 
 const gitAdd = () => {
