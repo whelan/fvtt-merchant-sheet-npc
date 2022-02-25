@@ -4,7 +4,7 @@ const calculator = new Dnd5eCurrencyCalculator()
 
 describe('Calc', () => {
 	test('should return 10 gp', () => {
-		expect(calculator.priceInText(10)).toBe("10 gp");
+		expect(calculator.priceInText(10)).toBe("1 pp");
 	});
 	test('should return 1000', () => {
 		expect(calculator.convertCurrencyToLowest({pp: 0, gp: 10, ep: 0, sp: 0, cp: 0})).toBe(1000);
