@@ -832,7 +832,8 @@ class MerchantSheet extends ActorSheet {
 				if (generatorInput.importAllItems) {
 					results = rolltable.results.contents;
 				} else {
-					const rollResult = await rolltable.draw();
+					// @ts-ignore
+					const rollResult = await rolltable.draw({ displayChat: false });
 					results = rollResult.results
 				}
 
