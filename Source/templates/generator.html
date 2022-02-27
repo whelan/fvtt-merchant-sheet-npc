@@ -11,7 +11,7 @@
 	<div class="flexrow">
 		<div class="flexcol"><h4>Rolltable or compendium: </h4></div>
 		<div class="flexcol">
-			<select class="generator-selector" id="data.selector">
+			<select class="generator-selector" style="{{inputStyle}}" id="data.selector">
 				<option value="table" selected>Rollable Table</option>
 				<option value="compendium">Compendium</option>
 			</select>
@@ -24,7 +24,7 @@
 				<div class="flexrow">
 					<div class="flexcol"><h4>Rollable Table: </h4></div>
 					<div class="flexcol">
-						<select class="sheet-rolltable" id="data.rolltable">
+						<select class="sheet-rolltable" style="{{inputStyle}}" id="data.rolltable">
 
 							{{#select data.rolltable}}
 							<option value="">None</option>
