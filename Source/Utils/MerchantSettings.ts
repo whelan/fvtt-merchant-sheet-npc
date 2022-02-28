@@ -9,32 +9,32 @@ class MerchantSettings {
 		const g = game as Game;
 		this.SettingsList = [
 			["buyChat", {
-				name: "Display chat message for purchases?",
-				hint: "If enabled, a chat message will display purchases of items from the Merchant sheet.",
+				name: g.i18n.format("MERCHANTNPC.global-settings.buy-name"),
+				hint: g.i18n.format("MERCHANTNPC.global-settings.buy-hint"),
 				scope: "world",
 				config: true,
 				default: true,
 				type: Boolean
 			}],
-				["showStackWeight", {
-				name: "Show Stack Weight?",
-				hint: "If enabled, shows the weight of the entire stack next to the item weight",
+			["showStackWeight", {
+				name: g.i18n.format("MERCHANTNPC.global-settings.show-stack-name"),
+				hint: g.i18n.format("MERCHANTNPC.global-settings.show-stack-hint"),
 				scope: "world",
 				config: true,
 				default: false,
 				type: Boolean
 			}],
 			["reduceUpdateVerbosity", {
-				name: "Reduce Update Shop Verbosity",
-				hint: "If enabled, no notifications will be created every time an item is added to the shop.",
+				name: g.i18n.format("MERCHANTNPC.global-settings.reduce-update-name"),
+				hint: g.i18n.format("MERCHANTNPC.global-settings.reduce-update-hint"),
 				scope: "world",
 				config: true,
 				default: true,
 				type: Boolean
 			}],
 			["allowNoGM", {
-				name: "Allow transactions without GM",
-				hint: "If enabled, transactions can happen even without the GM is active, but quantity on items will not be modified",
+				name: g.i18n.format("MERCHANTNPC.global-settings.no-gm-name"),
+				hint: g.i18n.format("MERCHANTNPC.global-settings.no-gm-hint"),
 				scope: "world",
 				config: true,
 				default: false,

@@ -337,8 +337,8 @@ export default class Dnd5eCurrencyCalculator extends CurrencyCalculator {
 
 	public registerSystemSettings() {
 		(<Game>game).settings.register(Globals.ModuleName, "useEP", {
-			name: "Use EP in currency conversion?",
-			hint: "If disabled, EP will not be used and will remove any EP in the purchase or selling .",
+			name: g.i18n.format("MERCHANTNPC.global-settings.use-ep-name"),
+			hint: g.i18n.format("MERCHANTNPC.global-settings.use-ep-hint"),
 			scope: "world",
 			config: true,
 			default: true,
