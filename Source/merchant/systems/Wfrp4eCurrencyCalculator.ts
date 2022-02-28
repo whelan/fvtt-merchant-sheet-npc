@@ -60,7 +60,10 @@ export default class Wfrp4eCurrencyCalculator extends CurrencyCalculator {
 		let priceAmount = game.wfrp4e.market.makeSomeChange(priceCalculated,false);
 
 		// @ts-ignore
-		let money = game.wfrp4e.market.payCommand(priceAmount.gc+'gc '+priceAmount.ss+'ss ' + priceAmount.bp+'bp',buyer,{'suppressMessage':true});
+		let gc = game.i18n.localize("MARKET.Abbrev.GC").toLowerCase();
+		let ss = game.i18n.localize("MARKET.Abbrev.SS").toLowerCase();
+		let bp = game.i18n.localize("MARKET.Abbrev.BP").toLowerCase();
+		let money = game.wfrp4e.market.payCommand(priceAmount.gc + gc + priceAmount.ss + ss + priceAmount.bp + bp, buyer, { 'suppressMessage': true });
 		if (money) {
 			buyer.updateEmbeddedDocuments("Item", money);
 		}
