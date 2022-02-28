@@ -3,6 +3,7 @@
 * WFRP Changed currency to localized currency
 * Added french translations
 * Added more translation keys
+
 ## Version 2.5.6
 * Drawtables not show the roll result in chat anymore
 * DND5e Added setting for skip EP in transactions
