@@ -1,3 +1,6 @@
+## Version 2.5.8
+* Added missing translation keys
+* 
 ## Version 2.5.7
 * WFRP fixed generator text
 * WFRP Changed currency to localized currency

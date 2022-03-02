@@ -17,7 +17,7 @@ export class GeneratorWindow extends Application {
 	static get defaultOptions() {
 		const options = super.defaultOptions;
 		options.id = "generate-items";
-		options.title = "Generate Items";
+		options.title = (<Game>game).i18n.localize("MERCHANTNPC.generator-page.window-title");
 		options.template = "modules/" + Globals.ModuleName + "/templates/generator.html";
 		options.width = 600;
 		options.height = "auto";
