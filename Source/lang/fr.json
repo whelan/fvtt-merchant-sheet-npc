@@ -144,5 +144,8 @@
     "MERCHANTNPC.global-settings.no-gm-hint": "Si cette option est activée, aucune notification ne sera créée lors de l'ajout d'un article à la boutique.",
     "MERCHANTNPC.global-settings.use-ep-name": "Utiliser EP dans la conversion des devises ?",
     "MERCHANTNPC.global-settings.use-ep-hint": "S'il est désactivé, l'EP ne sera pas utilisé et supprimera tout EP dans l'achat ou la vente.",
-    "MERCHANTNPC.quantity-items": "Définir la quantité d'articles"
+    "MERCHANTNPC.quantity-items": "Définir la quantité d'articles",
+    "MERCHANTNPC.csv-skip-fields": "Sautez la première ligne",
+    "MERCHANTNPC.generator-page.window-title": "Générer des articles",
+    "MERCHANTNPC.generator-page.title": "Générateur d'articles"
 }
