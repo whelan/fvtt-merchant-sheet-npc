@@ -1,6 +1,8 @@
 ## Version 2.5.8
-* Added missing translation keys
-* 
+* Fixed missing translation keys
+* Added hide buy stack in merchant settings
+* Added option to change max value for buy from merchant in merchant settings
+
 ## Version 2.5.7
 * WFRP fixed generator text
 * WFRP Changed currency to localized currency
