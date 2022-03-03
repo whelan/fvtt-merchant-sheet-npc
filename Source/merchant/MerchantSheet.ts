@@ -496,7 +496,8 @@ class MerchantSheet extends ActorSheet {
 			disableSell: this.actor.getFlag(Globals.ModuleName, "disableSell") ? "checked" : "",
 			keepDepleted: this.actor.getFlag(Globals.ModuleName, "keepDepleted") ? "checked" : "",
 			service: this.actor.getFlag(Globals.ModuleName, "service") ? "checked" : "",
-			hideBuyStack: this.actor.getFlag(Globals.ModuleName, "hideBuyStack") ? "checked" : ""
+			hideBuyStack: this.actor.getFlag(Globals.ModuleName, "hideBuyStack") ? "checked" : "",
+			maxBuyPercentage: this.actor.getFlag(Globals.ModuleName, "maxBuyPercentage")
 		};
 		const rendered_html = await renderTemplate(template_file, template_data);
 
@@ -513,6 +514,7 @@ class MerchantSheet extends ActorSheet {
 						this.actor.setFlag(Globals.ModuleName, "keepDepleted", MerchantSheetNPCHelper.getElementById("keep-depleted").checked);
 						this.actor.setFlag(Globals.ModuleName, "service", MerchantSheetNPCHelper.getElementById("service").checked);
 						this.actor.setFlag(Globals.ModuleName, "hideBuyStack", MerchantSheetNPCHelper.getElementById("hide-buy-stack").checked);
+						this.actor.setFlag(Globals.ModuleName, "maxBuyPercentage", MerchantSheetNPCHelper.getElementById("max-buy-percentage").value);
 
 					}
 				},
@@ -617,12 +619,17 @@ class MerchantSheet extends ActorSheet {
 		event.preventDefault();
 
 		let priceModifier = await this.actor.getFlag(Globals.ModuleName, "priceModifier");
+		let maxValue = await this.actor.getFlag(Globals.ModuleName, "maxBuyPercentage");
+		if (maxValue === undefined) {
+			maxValue = 200;
+		}
+		console.log("maxValue",maxValue)
 		if (priceModifier === 'undefined') priceModifier = 1.0;
 
 		// @ts-ignore
 		priceModifier = Math.round(priceModifier * 100);
 		const template_file = "modules/" + Globals.ModuleName + "/templates/buy_from_merchant.html";
-		const template_data = {priceModifier: priceModifier};
+		const template_data = {priceModifier: priceModifier, maxValue: maxValue};
 		const rendered_html = await renderTemplate(template_file, template_data);
 
 		let d = new Dialog({

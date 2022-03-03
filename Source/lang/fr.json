@@ -147,5 +147,7 @@
     "MERCHANTNPC.quantity-items": "Définir la quantité d'articles",
     "MERCHANTNPC.csv-skip-fields": "Sautez la première ligne",
     "MERCHANTNPC.generator-page.window-title": "Générer des articles",
-    "MERCHANTNPC.generator-page.title": "Générateur d'articles"
+    "MERCHANTNPC.generator-page.title": "Générateur d'articles",
+    "MERCHANTNPC.settings-page.hide-buy-stack": "Cacher le bouton d'achat par lot",
+    "MERCHANTNPC.settings-page.max-buy-percentage": "Modificateur du prix d'achat maximum"
 }
