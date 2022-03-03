@@ -154,15 +154,12 @@ class MerchantSheet extends ActorSheet {
 
 		sheetData.isPermissionShown = sheetData.isGM && currencyCalculator.isPermissionShown();
 
-		let priceModifier: number = 1.0;
 		let moduleName = "merchantsheetnpc";
-		priceModifier = <number>this.actor.getFlag(moduleName, "priceModifier");
+		let priceModifier: number = <number>this.actor.getFlag(moduleName, "priceModifier");
 		sheetData.infinity = <boolean>this.actor.getFlag(moduleName, "infinity");
 		sheetData.isService = <boolean>this.actor.getFlag(moduleName, "service");
-
-		let stackModifier: number = 20;
-		stackModifier = <number>this.actor.getFlag(moduleName, "stackModifier");
-		let totalWeight = 0;
+		sheetData.isBuyStack = !(<boolean>this.actor.getFlag(moduleName, "hideBuyStack"));
+		let stackModifier: number = <number>this.actor.getFlag(moduleName, "stackModifier");
 
 		sheetData.totalItems = this.actor.data.items.size;
 		sheetData.priceModifier = priceModifier;
@@ -498,7 +495,8 @@ class MerchantSheet extends ActorSheet {
 		const template_data = {
 			disableSell: this.actor.getFlag(Globals.ModuleName, "disableSell") ? "checked" : "",
 			keepDepleted: this.actor.getFlag(Globals.ModuleName, "keepDepleted") ? "checked" : "",
-			service: this.actor.getFlag(Globals.ModuleName, "service") ? "checked" : ""
+			service: this.actor.getFlag(Globals.ModuleName, "service") ? "checked" : "",
+			hideBuyStack: this.actor.getFlag(Globals.ModuleName, "hideBuyStack") ? "checked" : ""
 		};
 		const rendered_html = await renderTemplate(template_file, template_data);
 
@@ -514,6 +512,7 @@ class MerchantSheet extends ActorSheet {
 						this.actor.setFlag(Globals.ModuleName, "disableSell", MerchantSheetNPCHelper.getElementById("disable-sell").checked);
 						this.actor.setFlag(Globals.ModuleName, "keepDepleted", MerchantSheetNPCHelper.getElementById("keep-depleted").checked);
 						this.actor.setFlag(Globals.ModuleName, "service", MerchantSheetNPCHelper.getElementById("service").checked);
+						this.actor.setFlag(Globals.ModuleName, "hideBuyStack", MerchantSheetNPCHelper.getElementById("hide-buy-stack").checked);
 
 					}
 				},

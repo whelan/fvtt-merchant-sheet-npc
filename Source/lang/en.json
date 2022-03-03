@@ -147,5 +147,6 @@
   "MERCHANTNPC.quantity-items": "Set quantity for items",
   "MERCHANTNPC.csv-skip-fields": "Skip first line",
   "MERCHANTNPC.generator-page.window-title": "Generate items",
-  "MERCHANTNPC.generator-page.title": "Merchant Generator"
+  "MERCHANTNPC.generator-page.title": "Merchant Generator",
+  "MERCHANTNPC.settings-page.hide-buy-stack": "Hide buy stack button"
 }
