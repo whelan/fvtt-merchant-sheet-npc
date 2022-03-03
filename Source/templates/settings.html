@@ -16,4 +16,15 @@
 		<input type=checkbox {{service}} id="service">
 	</div>
 </div>
+<div class="form-group">
+	<label>{{localize "MERCHANTNPC.settings-page.hide-buy-stack"}}:</label>
+	<div class="form-fields">
+		<input type=checkbox {{hideBuyStack}} id="hide-buy-stack">
+	</div>
+</div>
+<div class="form-group">
+	<label>{{localize "MERCHANTNPC.settings-page.max-buy-percentage"}}:</label>
+	<div class="form-fields"><input id="max-buy-percentage" type="text" data-dtype="String"
+											 placeholder="e.g. 200 like 200%" value="{{maxBuyPercentage}}"/></div>
+</div>
 

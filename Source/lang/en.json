@@ -144,5 +144,10 @@
   "MERCHANTNPC.global-settings.no-gm-hint": "If enabled, no notifications will be created every time an item is added to the shop.",
   "MERCHANTNPC.global-settings.use-ep-name": "Use EP in currency conversion?",
   "MERCHANTNPC.global-settings.use-ep-hint": "If disabled, EP will not be used and will remove any EP in the purchase or selling.",
-  "MERCHANTNPC.quantity-items": "Set quantity for items"
+  "MERCHANTNPC.quantity-items": "Set quantity for items",
+  "MERCHANTNPC.csv-skip-fields": "Skip first line",
+  "MERCHANTNPC.generator-page.window-title": "Generate items",
+  "MERCHANTNPC.generator-page.title": "Merchant Generator",
+  "MERCHANTNPC.settings-page.hide-buy-stack": "Hide buy stack button",
+  "MERCHANTNPC.settings-page.max-buy-percentage": "Max buy price modifier"
 }

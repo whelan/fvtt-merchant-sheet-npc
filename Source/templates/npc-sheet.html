@@ -18,11 +18,13 @@
 					class="fa fa-balance-scale"></i>{{localize "MERCHANTNPC.buy-modifier"}}
 				</button>
 			</div>
+			{{#if isBuyStack}}
 			<div class="charbutton">
 				<button type="button" class="stack-modifier" type="stack-modifier" name="stack-modifier" value=""><i
 					class="fa fa-coins"></i>{{localize "MERCHANTNPC.stack-modifier"}}
 				</button>
 			</div>
+			{{/if}}
 			<div class="charbutton">
 				<button type="button" class="csv-import" type="csv-import" name="csv-import" value=""><i
 					class="fa fa-file-csv"></i>{{localize "MERCHANTNPC.csv-import"}}
@@ -183,8 +185,10 @@
 					</div>
 
 					<div class="item-controls">
-						<a class="item-control item-buystack" title="{{localize 'MERCHANTNPC.stack-buy'}}{{../../stackModifier}}"><i
-							class="fas fa-coins"></i></a>
+						{{#if ../../isBuyStack}}
+							<a class="item-control item-buystack" title="{{localize 'MERCHANTNPC.stack-buy'}}{{../../stackModifier}}"><i
+								class="fas fa-coins"></i></a>
+						{{/if}}
 						&nbsp;&nbsp;
 						<a class="item-control item-buy" title="{{localize 'MERCHANTNPC.item-buy'}}"><i
 							class="fas fa-dollar-sign"></i></a>
