@@ -539,6 +539,19 @@ class MerchantSheetNPCHelper {
 		}
 	}
 
+	showItemToPlayers(event: JQuery.ClickEvent, actor: Actor, toggle: boolean) {
+		let li = $(event.currentTarget).parents(".merchant-item"),
+			item = actor.items.get(li.data("item-id"))
+		let moduleName = "merchantsheetnpc";
+		item?.setFlag(moduleName, "showItem",toggle);
+	}
+
+	isItemShown(item: Item) {
+		let moduleName = "merchantsheetnpc";
+		let showItem: boolean | undefined = <boolean | undefined>item.getFlag(moduleName, "showItem")
+		return (showItem === undefined || showItem)
+	}
+
 }
 
 let helper = new MerchantSheetNPCHelper();

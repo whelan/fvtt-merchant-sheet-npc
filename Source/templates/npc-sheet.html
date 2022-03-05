@@ -138,7 +138,7 @@
 				</li>
 
 				{{else}}
-				{{#if (shouldItemBeVisible (getItemQuantity item.data.data.quantity) ../../isGM)}}
+				{{#if (shouldItemBeVisible item (getItemQuantity item.data.data.quantity) ../../isGM)}}
 				<li class="merchant-item flexrow" data-item-id="{{item.data._id}}"
 					data-item-stack="{{../../stackModifier}}">
 					<div class="merchant-item-image" style="background-image: url('{{item.img}}')"></div>
@@ -192,11 +192,18 @@
 						&nbsp;&nbsp;
 						<a class="item-control item-buy" title="{{localize 'MERCHANTNPC.item-buy'}}"><i
 							class="fas fa-dollar-sign"></i></a>
+
 						{{#if ../../isGM}}
 						&nbsp;&nbsp;
-						<a class="item-control item-edit" title='{{localize "MERCHANTNPC.Item-edit"}}'><i class="fas fa-edit"></i></a>
+						{{#if (isItemShow item)}}
+						<a class="item-control item-hide" title='{{localize "MERCHANTNPC.Item-hide"}}'><i class="fas fa-eye"></i></a>
+						{{else}}
+						<a class="item-control item-show" title='{{localize "MERCHANTNPC.Item-show"}}'><i class="fas fa-eye-slash"></i></a>
+						{{/if}}
 						<a class="item-control item-delete" title="{{localize 'MERCHANTNPC.item-delete'}}"><i
 							class="fas fa-trash"></i></a>
+						{{else}}
+						<a class="item-control item-edit" title='{{localize "MERCHANTNPC.Item-edit"}}'><i class="fas fa-info"></i></a>
 						{{/if}}
 					</div>
 				</li>
