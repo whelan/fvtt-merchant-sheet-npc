@@ -1,3 +1,7 @@
+## Version 2.5.9
+* Added an info button for players. This just opens the edit item view Fixes #104
+* Added possibility to hide items for players. So the GM can show it if they ask the correct questions.
+
 ## Version 2.5.8
 * Fixed missing translation keys
 * Added hide buy stack in merchant settings
