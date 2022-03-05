@@ -545,6 +545,13 @@ class MerchantSheetNPCHelper {
 		let moduleName = "merchantsheetnpc";
 		item?.setFlag(moduleName, "showItem",toggle);
 	}
+
+	isItemShown(item: Item) {
+		let moduleName = "merchantsheetnpc";
+		let showItem: boolean | undefined = <boolean | undefined>item.getFlag(moduleName, "showItem")
+		return (showItem === undefined || showItem)
+	}
+
 }
 
 let helper = new MerchantSheetNPCHelper();

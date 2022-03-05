@@ -40,9 +40,7 @@ class MerchantSheet extends ActorSheet {
 		});
 
 		Handlebars.registerHelper('shouldItemBeVisible', function (item, quantity: number, isGM: boolean, options) {
-			let moduleName = "merchantsheetnpc";
-			let showItem: boolean | undefined = <boolean | undefined>item.getFlag(moduleName, "showItem")
-			return isGM || ((showItem === undefined || showItem) && quantity > 0);
+			return isGM || (merchantSheetNPC.isItemShown(item) && quantity > 0);
 		});
 
 		Handlebars.registerHelper('getItemQuantity', function (quantity, options) {
@@ -109,9 +107,7 @@ class MerchantSheet extends ActorSheet {
 		});
 
 		Handlebars.registerHelper('isItemShow', function (item: Item) {
-			let moduleName = "merchantsheetnpc";
-			let showItem: boolean | undefined = <boolean | undefined>item.getFlag(moduleName, "showItem")
-			return (showItem === undefined || showItem)
+			return merchantSheetNPC.isItemShown(item);
 		});
 
 		Handlebars.registerHelper('itemInfinity', function (qty, infinity) {
@@ -124,6 +120,7 @@ class MerchantSheet extends ActorSheet {
 
 		return getSheetTemplateName();
 	}
+
 
 	static get defaultOptions() {
 		const options = super.defaultOptions;
