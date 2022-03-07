@@ -517,37 +517,6 @@ const test = () => {
     }));
 }
 
-const gitAdd = () => {
-    return gulp.src("package").pipe(git.add({ args: "--no-all" }));
-}
-
-const gitCommit = () => {
-    const manifest = getManifest();
-    if (manifest === null)
-    {
-        throw Error("Could not load manifest.");
-    }
-    return gulp.src("./*").pipe(
-        git.commit(`v${manifest.file.version}`, {
-            args: "-a",
-            disableAppendPaths: true,
-        })
-    );
-}
-
-const gitTag = () => {
-    const manifest = getManifest();
-    if (manifest === null)
-    {
-        throw Error("Could not load manifest.");
-    }
-    return git.tag(`v${manifest.file.version}`, `Updated to ${manifest.file.version}`, (err: Error | undefined) => {
-        if (err)
-            throw err;
-    });
-}
-
-const execGit = gulp.series(gitAdd, gitCommit, gitTag);
 
 const execBuild = gulp.parallel(buildTS, buildLess, copyFiles);
 
@@ -557,4 +526,4 @@ exports.clean = clean;
 exports.link = linkUserData;
 exports.package = packageBuild;
 exports.update = updateManifest;
-exports.publish = gulp.series(clean, updateManifest, execBuild, bundleModule, cleanDist, packageBuild, execGit);
+exports.publish = gulp.series(clean, updateManifest, execBuild, bundleModule, cleanDist, packageBuild);

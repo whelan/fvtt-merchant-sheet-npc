@@ -1,3 +1,6 @@
+## Version 2.5.10
+* Changed return on dialog from cancel to ok. #126 
+* 
 ## Version 2.5.9
 * Added an info button for players. This just opens the edit item view Fixes #104
 * Added possibility to hide items for players. So the GM can show it if they ask the correct questions.

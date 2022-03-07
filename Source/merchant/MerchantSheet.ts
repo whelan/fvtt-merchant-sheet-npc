@@ -337,7 +337,7 @@ class MerchantSheet extends ActorSheet {
 					callback: () => console.log("Merchant sheet | Stack Modifier Cancelled")
 				}
 			},
-			default: "two",
+			default: "one",
 			close: () => console.log("Merchant sheet | Stack Modifier Closed")
 		});
 		d.render(true);
@@ -469,7 +469,7 @@ class MerchantSheet extends ActorSheet {
 					callback: () => Logger.Log("Price Modifier Cancelled")
 				}
 			},
-			default: "two",
+			default: "one",
 			close: () => Logger.Log("Price Modifier Closed")
 		});
 		d.render(true);
@@ -514,7 +514,7 @@ class MerchantSheet extends ActorSheet {
 					callback: () => console.log("Merchant sheet | Buy Modifier Cancelled")
 				}
 			},
-			default: "two",
+			default: "one",
 			close: () => console.log("Merchant sheet | Buy Modifier Closed")
 		});
 		d.render(true);
@@ -550,7 +550,7 @@ class MerchantSheet extends ActorSheet {
 					callback: () => console.log("Merchant sheet | Stack Modifier Cancelled")
 				}
 			},
-			default: "two",
+			default: "one",
 			close: () => console.log("Merchant sheet | Stack Modifier Closed")
 		});
 		d.render(true);
@@ -605,7 +605,7 @@ class MerchantSheet extends ActorSheet {
 					callback: () => console.log("Merchant sheet | Stack Modifier Cancelled")
 				}
 			},
-			default: "two",
+			default: "one",
 			close: () => console.log("Merchant sheet | Stack Modifier Closed")
 		});
 		d.render(true);
@@ -698,29 +698,6 @@ class MerchantSheet extends ActorSheet {
 							this.addItemToCollection(item, generatorInput, createItems);
 						}
 					}
-					// 		results = rolltable.results.contents;
-					// 	} else {
-					// 		const rollResult = await rolltable.draw();
-					// 		results = rollResult.results
-					// 	}
-					//
-					// 	for (const drawItem of results) {
-					// 		let drawItemdata: TableResultData = drawItem.data;
-					// 		let collection: string | undefined = drawItemdata.collection
-					//
-					// 		if (collection === undefined) {
-					// 			continue
-					// 		}
-					// 		let compendium = await (<Game>game).packs?.get(collection);
-					// 		if (compendium === undefined) {
-					// 			continue
-					// 		}
-					// 		// @ts-ignore
-					// 		let item: Item = await compendium.getDocument(drawItemdata.resultId)
-					// 		this.addItemToCollection(item, generatorInput, createItems);
-					// 	}
-					// }
-
 				}
 
 		}
@@ -1007,7 +984,7 @@ class MerchantSheet extends ActorSheet {
 					callback: () => console.log("Merchant sheet | Stack Modifier Cancelled")
 				}
 			},
-			default: "two",
+			default: "one",
 			close: () => console.log("Merchant sheet | Stack Modifier Closed")
 		});
 		d.render(true);
@@ -1225,7 +1202,7 @@ Hooks.on('dropActorSheetData', async function (target: Actor, sheet: any, dragSo
 						callback: () => console.log("Merchant sheet | Price Modifier Cancelled")
 					}
 				},
-				default: "two",
+				default: "one",
 				close: () => console.log("Merchant sheet | Price Modifier Closed")
 			});
 			d.render(true);
