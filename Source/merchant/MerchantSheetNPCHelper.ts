@@ -132,7 +132,7 @@ class MerchantSheetNPCHelper {
 					callback: () => console.log("Merchant sheet | Change price Cancelled")
 				}
 			},
-			default: "two",
+			default: "one",
 			close: () => console.log("Merchant sheet | Change price Closed")
 		});
 		d.render(true);
@@ -223,7 +223,7 @@ class MerchantSheetNPCHelper {
 					callback: () => console.log("Merchant sheet | Change quantity Cancelled")
 				}
 			},
-			default: "two",
+			default: "one",
 			close: () => console.log("Merchant sheet | Change quantity Closed")
 		});
 		d.render(true);
@@ -542,13 +542,11 @@ class MerchantSheetNPCHelper {
 	showItemToPlayers(event: JQuery.ClickEvent, actor: Actor, toggle: boolean) {
 		let li = $(event.currentTarget).parents(".merchant-item"),
 			item = actor.items.get(li.data("item-id"))
-		let moduleName = "merchantsheetnpc";
-		item?.setFlag(moduleName, "showItem",toggle);
+		item?.setFlag(Globals.ModuleName, "showItem",toggle);
 	}
 
 	isItemShown(item: Item) {
-		let moduleName = "merchantsheetnpc";
-		let showItem: boolean | undefined = <boolean | undefined>item.getFlag(moduleName, "showItem")
+		let showItem: boolean | undefined = <boolean | undefined>item.getFlag(Globals.ModuleName, "showItem")
 		return (showItem === undefined || showItem)
 	}
 
