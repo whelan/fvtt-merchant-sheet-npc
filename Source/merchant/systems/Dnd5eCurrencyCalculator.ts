@@ -7,6 +7,8 @@ import {PropertiesToSource} from "@league-of-foundry-developers/foundry-vtt-type
 import {ItemData} from "@league-of-foundry-developers/foundry-vtt-types/src/foundry/common/data/data.mjs";
 import * as Console from "console";
 import Globals from "../../Globals";
+import MerchantCurrency from "../model/MerchantCurrency";
+import Logger from "../../Utils/Logger";
 
 let conversionRates: {[key:string]: number} = {"pp": 1,
 	"gp": 10,
@@ -23,18 +25,18 @@ export default class Dnd5eCurrencyCalculator extends CurrencyCalculator {
 
 	useEP: unknown = true;
 
-    async onDropItemCreate(itemData: PropertiesToSource<ItemData>, caller: MerchantSheet) {
-        // Create a Consumable spell scroll on the Inventory tab
-        if ( (itemData.type === "spell")) {
-            const scroll = await this.createScroll(itemData);
+	async onDropItemCreate(itemData: PropertiesToSource<ItemData>, caller: MerchantSheet) {
+		// Create a Consumable spell scroll on the Inventory tab
+		if ((itemData.type === "spell")) {
+			const scroll = await this.createScroll(itemData);
 			// @ts-ignore
 			return caller.callSuperOnDropItemCreate(scroll);
-        }
-        return caller.callSuperOnDropItemCreate(itemData);
-    }
+		}
+		return caller.callSuperOnDropItemCreate(itemData);
+	}
 
 	async createScrollFromSpell(spell: PropertiesToSource<ItemData>): Promise<PropertiesToSource<ItemData>> {
-		const itemData =  spell;
+		const itemData = spell;
 		// const {actionType, description, source, activation, duration, target, range, damage, save, level} = itemData.data;
 		// @ts-ignore
 		let level = spell.data.level;
@@ -70,36 +72,61 @@ export default class Dnd5eCurrencyCalculator extends CurrencyCalculator {
 	}
 
 	async createScroll(itemData: PropertiesToSource<ItemData>): Promise<PropertiesToSource<ItemData>> {
-        return this.createScrollFromSpell(itemData);
-    }
+		return this.createScrollFromSpell(itemData);
+	}
 
-    actorCurrency(actor: Actor) {
-        // @ts-ignore
+	actorCurrency(actor: Actor) {
+		// @ts-ignore
 		return actor.data.data.currency;
-    }
+	}
 
-    buyerHaveNotEnoughFunds(itemCostInGold:number, buyerFunds: any) {
+	merchantCurrency(actor: Actor): MerchantCurrency[] {
+		return [
+			{
+				name: "pp",
+				value: this.actorCurrency(actor).pp
+			},
+			{
+				name: "gp",
+				value: this.actorCurrency(actor).gp
+			},
+			{
+				name: "ep",
+				value: this.actorCurrency(actor).ep
+			},
+			{
+				name: "sp",
+				value: this.actorCurrency(actor).sp
+			},
+			{
+				name: "cp",
+				value: this.actorCurrency(actor).cp
+			}
+		];
+	}
 
-        let itemCostInCopper = this.convertCurrencyToLowest({gp: itemCostInGold})
-        let buyerFundsAsCopper = this.convertCurrencyToLowest(buyerFunds);
+	buyerHaveNotEnoughFunds(itemCostInGold: number, buyerFunds: any) {
 
-        return itemCostInCopper > buyerFundsAsCopper;
-    }
+		let itemCostInCopper = this.convertCurrencyToLowest({gp: itemCostInGold})
+		let buyerFundsAsCopper = this.convertCurrencyToLowest(buyerFunds);
+		console.log("item price > buyerFundsInCopper", itemCostInCopper, buyerFundsAsCopper)
+		return itemCostInCopper > buyerFundsAsCopper;
+	}
 
-    convertToPlatinum(buyerFunds: any) {
-        let buyerFundsAsPlatinum = buyerFunds["pp"];
-        buyerFundsAsPlatinum += buyerFunds["gp"] / conversionRates["gp"];
-        buyerFundsAsPlatinum += buyerFunds["ep"] / conversionRates["gp"] / conversionRates["ep"];
-        buyerFundsAsPlatinum += buyerFunds["sp"] / conversionRates["gp"] / conversionRates["ep"] / conversionRates["sp"];
-        buyerFundsAsPlatinum += buyerFunds["cp"] / conversionRates["gp"] / conversionRates["ep"] / conversionRates["sp"] / conversionRates["cp"];
+	convertToPlatinum(buyerFunds: any) {
+		let buyerFundsAsPlatinum = buyerFunds["pp"];
+		buyerFundsAsPlatinum += buyerFunds["gp"] / conversionRates["gp"];
+		buyerFundsAsPlatinum += buyerFunds["ep"] / conversionRates["gp"] / conversionRates["ep"];
+		buyerFundsAsPlatinum += buyerFunds["sp"] / conversionRates["gp"] / conversionRates["ep"] / conversionRates["sp"];
+		buyerFundsAsPlatinum += buyerFunds["cp"] / conversionRates["gp"] / conversionRates["ep"] / conversionRates["sp"] / conversionRates["cp"];
 
 
-        return buyerFundsAsPlatinum;
-    }
+		return buyerFundsAsPlatinum;
+	}
 
-    updateActorWithNewFunds(buyer: Actor, buyerFunds: any) {
-        buyer.update({ "data.currency": buyerFunds });
-    }
+	updateActorWithNewFunds(buyer: Actor, buyerFunds: any) {
+		buyer.update({"data.currency": buyerFunds});
+	}
 
 	convertCurrencyToLowest(buyerFunds: any): number {
 		let buyerFundsAsCopper = 0;
@@ -121,15 +148,15 @@ export default class Dnd5eCurrencyCalculator extends CurrencyCalculator {
 		return Math.floor(buyerFundsAsCopper)
 	}
 
-    subtractAmountFromActor(buyer: Actor, buyerFunds: any, itemCostInGold: number) {
+	subtractAmountFromActor(buyer: Actor, buyerFunds: any, itemCostInGold: number) {
 		buyerFunds = this.calculateNewBuyerFunds(itemCostInGold, buyerFunds);
 		if (!this.useEP) {
 			this.convertEP(buyerFunds);
 		}
 		// buyerFunds = buyerFunds - itemCostInGold;
-        this.updateActorWithNewFunds(buyer,buyerFunds);
-        console.log(`Merchant sheet | Funds after purchase: ${buyerFunds}`);
-    }
+		this.updateActorWithNewFunds(buyer, buyerFunds);
+		console.log(`Merchant sheet | Funds after purchase: ${buyerFunds}`);
+	}
 
 	public convertEP(buyerFunds: any): any {
 		if (buyerFunds["ep"] > 0) {
@@ -169,7 +196,7 @@ export default class Dnd5eCurrencyCalculator extends CurrencyCalculator {
 		return buyerFunds;
 	}
 
-	private convertToHigherFund(buyerFunds:any, currency: string) {
+	private convertToHigherFund(buyerFunds: any, currency: string) {
 		let higherCurrency: string = convertFromHigherCurrency[currency];
 		if (higherCurrency) {
 			let higherCurrencyNeeded = Math.floor((buyerFunds[currency]) / conversionRates[currency])
@@ -181,7 +208,7 @@ export default class Dnd5eCurrencyCalculator extends CurrencyCalculator {
 			}
 			if (higherCurrencyNeeded > 0) {
 				buyerFunds[higherCurrency] = higherCurrencyNeeded;
-				this.convertToHigherFund(buyerFunds,higherCurrency);
+				this.convertToHigherFund(buyerFunds, higherCurrency);
 			}
 		}
 		return buyerFunds;
@@ -209,17 +236,19 @@ export default class Dnd5eCurrencyCalculator extends CurrencyCalculator {
 	addAmountForActor(seller: Actor, sellerFunds: any, itemCostInGold: number) {
 		let itemCostInCopper = this.convertCurrencyToLowest({gp: itemCostInGold})
 
-		let convertToHigherFund = this.convertToHigherFund({pp:0,gp:0,ep:0,sp:0,cp:itemCostInCopper},"cp");
+		let convertToHigherFund = this.convertToHigherFund({pp: 0, gp: 0, ep: 0, sp: 0, cp: itemCostInCopper}, "cp");
 		sellerFunds["cp"] += convertToHigherFund["cp"]
 		sellerFunds["sp"] += convertToHigherFund["sp"]
 		sellerFunds["ep"] += convertToHigherFund["ep"]
 		sellerFunds["gp"] += convertToHigherFund["gp"]
 		sellerFunds["pp"] += convertToHigherFund["pp"]
 		if (!this.useEP) {
-			this.convertEP(sellerFunds);
+			sellerFunds["sp"] += sellerFunds["ep"] * conversionRates["sp"];
+			sellerFunds["ep"] = 0;
 		}
-		this.updateActorWithNewFunds(seller,sellerFunds);
-    }
+		this.updateActorWithNewFunds(seller, sellerFunds);
+	}
+
 	getPriceOutputWithModifier(basePrice: number, modifier: number) {
 		return this.priceInText((basePrice * modifier * 100) / 100)
 	}
@@ -236,13 +265,13 @@ export default class Dnd5eCurrencyCalculator extends CurrencyCalculator {
 		} else if (priceToBuyerFunds['ep'] > 0 || priceToBuyerFunds['sp'] > 0) {
 			let sp = priceToBuyerFunds['sp'];
 			if (priceToBuyerFunds['ep'] > 0) {
-				sp += (priceToBuyerFunds['ep']* conversionRates['sp'])
+				sp += (priceToBuyerFunds['ep'] * conversionRates['sp'])
 			}
-			returnValue += ' ' + sp +'sp';
+			returnValue += ' ' + sp + 'sp';
 		}
 		returnValue += this.getValueIfPresent(priceToBuyerFunds, 'cp');
 		return returnValue.trim();
-    }
+	}
 
 	private getValueIfPresent(priceToBuyerFunds: any, currency: string): string {
 		if (priceToBuyerFunds[currency]) {
@@ -253,63 +282,63 @@ export default class Dnd5eCurrencyCalculator extends CurrencyCalculator {
 
 	public prepareItems(items: any) {
 
-        console.log("Merchant Sheet | Prepare Features");
-        // Actions
-        const features = {
-            weapons: {
-                label: (<Game>game).i18n.localize("MERCHANTNPC.weapons"),
-                items: [],
-                type: "weapon"
-            },
-            equipment: {
-                label: (<Game>game).i18n.localize("MERCHANTNPC.equipment"),
-                items: [],
-                type: "equipment"
-            },
-            consumables: {
-                label: (<Game>game).i18n.localize("MERCHANTNPC.consumables"),
-                items: [],
-                type: "consumable"
-            },
-            tools: {
-                label: (<Game>game).i18n.localize("MERCHANTNPC.tools"),
-                items: [],
-                type: "tool"
-            },
-            containers: {
-                label: (<Game>game).i18n.localize("MERCHANTNPC.containers"),
-                items: [],
-                type: "container"
-            },
-            loot: {
-                label: (<Game>game).i18n.localize("MERCHANTNPC.loot"),
-                items: [],
-                type: "loot"
-            },
+		console.log("Merchant Sheet | Prepare Features");
+		// Actions
+		const features = {
+			weapons: {
+				label: (<Game>game).i18n.localize("MERCHANTNPC.weapons"),
+				items: [],
+				type: "weapon"
+			},
+			equipment: {
+				label: (<Game>game).i18n.localize("MERCHANTNPC.equipment"),
+				items: [],
+				type: "equipment"
+			},
+			consumables: {
+				label: (<Game>game).i18n.localize("MERCHANTNPC.consumables"),
+				items: [],
+				type: "consumable"
+			},
+			tools: {
+				label: (<Game>game).i18n.localize("MERCHANTNPC.tools"),
+				items: [],
+				type: "tool"
+			},
+			containers: {
+				label: (<Game>game).i18n.localize("MERCHANTNPC.containers"),
+				items: [],
+				type: "container"
+			},
+			loot: {
+				label: (<Game>game).i18n.localize("MERCHANTNPC.loot"),
+				items: [],
+				type: "loot"
+			},
 
-        };
+		};
 		// @ts-ignore
-        features.weapons.items = items.weapon
-        features.weapons.items.sort(this.sort());
+		features.weapons.items = items.weapon
+		features.weapons.items.sort(this.sort());
 		// @ts-ignore
-        features.equipment.items = items.equipment
-        features.equipment.items.sort(this.sort());
+		features.equipment.items = items.equipment
+		features.equipment.items.sort(this.sort());
 
 		// @ts-ignore
 		features.consumables.items = items.consumable
-        features.consumables.items.sort(this.sort());
+		features.consumables.items.sort(this.sort());
 		// @ts-ignore
-        features.tools.items = items.tool
-        features.tools.items.sort(this.sort());
+		features.tools.items = items.tool
+		features.tools.items.sort(this.sort());
 
 		// @ts-ignore
 		features.containers.items = items.backpack
-        features.containers.items.sort(this.sort());
+		features.containers.items.sort(this.sort());
 		// @ts-ignore
-        features.loot.items = items.loot
-        features.loot.items.sort(this.sort());
-        return features;
-    }
+		features.loot.items = items.loot
+		features.loot.items.sort(this.sort());
+		return features;
+	}
 
 
 	public sort() {
@@ -320,7 +349,8 @@ export default class Dnd5eCurrencyCalculator extends CurrencyCalculator {
 
 	public initSettings() {
 
-		conversionRates = {"pp": 1,
+		conversionRates = {
+			"pp": 1,
 			// @ts-ignore
 			"gp": CONFIG.DND5E.currencies.gp.conversion.each,
 			// @ts-ignore
@@ -333,7 +363,7 @@ export default class Dnd5eCurrencyCalculator extends CurrencyCalculator {
 		this.registerSystemSettings();
 		this.useEP = (<Game>game).settings.get(Globals.ModuleName, "useEP");
 		super.initSettings();
-    }
+	}
 
 	public registerSystemSettings() {
 		(<Game>game).settings.register(Globals.ModuleName, "useEP", {
@@ -347,17 +377,24 @@ export default class Dnd5eCurrencyCalculator extends CurrencyCalculator {
 	}
 
 	getPriceFromItem(item: Item) {
-        // @ts-ignore
+		// @ts-ignore
 		return item.data.price;
-    }
+	}
 
-    getPriceItemKey() {
-        return "data.price";
-    }
+	getPriceItemKey() {
+		return "data.price";
+	}
 
 	currency(): string {
 		return 'GP';
 	}
 
-
+	updateMerchantCurrency(actor: Actor) {
+		let pp: number = MerchantSheet.getHtmlInputNumberValue("currency-pp", document);
+		let gp: number = MerchantSheet.getHtmlInputNumberValue("currency-gp", document);
+		let ep: number = MerchantSheet.getHtmlInputNumberValue("currency-ep", document);
+		let sp: number = MerchantSheet.getHtmlInputNumberValue("currency-sp", document);
+		let cp: number = MerchantSheet.getHtmlInputNumberValue("currency-cp", document);
+		this.updateActorWithNewFunds(actor, {pp, gp, ep, sp, cp});
+	}
 }

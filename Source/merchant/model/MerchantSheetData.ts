@@ -3,6 +3,7 @@ import {
 	ToObjectFalseType
 } from "@league-of-foundry-developers/foundry-vtt-types/src/types/helperTypes";
 import {ActorData} from "@league-of-foundry-developers/foundry-vtt-types/src/foundry/common/data/data.mjs";
+import MerchantCurrency from "./MerchantCurrency";
 
 class MerchantSheetData implements ActorSheet.Data<ActorSheet.Options> {
 	isBuyStack: boolean = true
@@ -39,6 +40,7 @@ class MerchantSheetData implements ActorSheet.Data<ActorSheet.Options> {
 	// @ts-ignore
 	sections: {};
 	infinity: boolean = false;
-
+	limitedCurrency: boolean = false;
+	currencies: MerchantCurrency[]
 }
 export default MerchantSheetData

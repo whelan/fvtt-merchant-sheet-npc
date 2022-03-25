@@ -2,6 +2,9 @@ import {PropertiesToSource} from "@league-of-foundry-developers/foundry-vtt-type
 import {ItemData} from "@league-of-foundry-developers/foundry-vtt-types/src/foundry/common/data/data.mjs";
 import MerchantSheet from "../MerchantSheet";
 import Logger from "../../Utils/Logger";
+import MerchantCurrency from "../model/MerchantCurrency";
+import MerchantSheetNPCHelper from "../MerchantSheetNPCHelper";
+
 
 export default class CurrencyCalculator {
 
@@ -128,5 +131,14 @@ export default class CurrencyCalculator {
 	}
 	public registerSystemSettings() {
 
+	}
+
+	merchantCurrency(actor: Actor): MerchantCurrency[] {
+		return [{"Currency": this.actorCurrency(actor)}];
+	}
+
+	updateMerchantCurrency(actor: Actor) {
+		let currency: number = MerchantSheet.getHtmlInputNumberValue("currency-Currency", document);
+		this.updateActorWithNewFunds(actor,currency);
 	}
 }

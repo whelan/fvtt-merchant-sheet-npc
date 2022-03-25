@@ -1,6 +1,6 @@
 import Globals from "../Globals";
 import Logger from "../Utils/Logger";
-import MerchantSheetData from "./MerchantSheetData";
+import MerchantSheetData from "./model/MerchantSheetData";
 import MerchantSheetNPCHelper from "./MerchantSheetNPCHelper";
 import PermissionPlayer from "./PermissionPlayer";
 import {
@@ -159,6 +159,7 @@ class MerchantSheet extends ActorSheet {
 
 		sheetData.isPermissionShown = sheetData.isGM && currencyCalculator.isPermissionShown();
 
+		sheetData.limitedCurrency = <boolean>this.actor.getFlag(Globals.ModuleName, "limitedCurrency");
 		let priceModifier: number = <number>this.actor.getFlag(Globals.ModuleName, "priceModifier");
 		sheetData.infinity = <boolean>this.actor.getFlag(Globals.ModuleName, "infinity");
 		sheetData.isService = <boolean>this.actor.getFlag(Globals.ModuleName, "service");
@@ -168,7 +169,7 @@ class MerchantSheet extends ActorSheet {
 		sheetData.totalItems = this.actor.data.items.size;
 		sheetData.priceModifier = priceModifier;
 		sheetData.stackModifier = stackModifier;
-
+		sheetData.currencies = currencyCalculator.merchantCurrency(this.actor);
 		sheetData.sections = currencyCalculator.prepareItems(this.actor.itemTypes);
 		sheetData.merchant = merchant;
 		sheetData.owner = sheetData.isGM;
@@ -281,6 +282,8 @@ class MerchantSheet extends ActorSheet {
 		// @ts-ignore
 		html.find('.change-quantity-all').on('click', ev => this.changeQuantityForItems(ev));
 		html.find('.merchant-settings').on('click', ev => this.merchantSettingChange(ev));
+
+		html.find('.currency-update').on('click', ev => this.updateMerchantCurrencies(ev));
 		// html.find('.merchant-settings').change(ev => this.merchantSettingChange(ev));
 		// html.find('.update-inventory').on('click',ev => this.merchantInventoryUpdate(ev));
 		//
@@ -306,6 +309,7 @@ class MerchantSheet extends ActorSheet {
 		Logger.Log("infinity: ", this.actor.getFlag(Globals.ModuleName, "infinity"), this.actor)
 		const template_data = {
 			disableSell: this.actor.getFlag(Globals.ModuleName, "disableSell") ? "checked" : "",
+			limitedCurrency: this.actor.getFlag(Globals.ModuleName, "limitedCurrency") ? "checked" : "",
 			keepDepleted: this.actor.getFlag(Globals.ModuleName, "keepDepleted") ? "checked" : "",
 			service: this.actor.getFlag(Globals.ModuleName, "service") ? "checked" : "",
 			hideBuyStack: this.actor.getFlag(Globals.ModuleName, "hideBuyStack") ? "checked" : "",
@@ -323,6 +327,7 @@ class MerchantSheet extends ActorSheet {
 					label: (<Game>game).i18n.localize('MERCHANTNPC.update'),
 					callback: () => {
 						this.actor.setFlag(Globals.ModuleName, "disableSell", MerchantSheetNPCHelper.getElementById("disable-sell").checked);
+						this.actor.setFlag(Globals.ModuleName, "limitedCurrency", MerchantSheetNPCHelper.getElementById("limited-currency").checked);
 						this.actor.setFlag(Globals.ModuleName, "keepDepleted", MerchantSheetNPCHelper.getElementById("keep-depleted").checked);
 						this.actor.setFlag(Globals.ModuleName, "service", MerchantSheetNPCHelper.getElementById("service").checked);
 						this.actor.setFlag(Globals.ModuleName, "hideBuyStack", MerchantSheetNPCHelper.getElementById("hide-buy-stack").checked);
@@ -986,6 +991,10 @@ class MerchantSheet extends ActorSheet {
 		actor.updateEmbeddedDocuments("Item", updates);
 	}
 
+	private updateMerchantCurrencies(ev: JQuery.ClickEvent<any, undefined, any, any>) {
+		currencyCalculator.updateMerchantCurrency(this.actor);
+
+	}
 }
 
 class QuantityDialog extends Dialog {
@@ -1105,6 +1114,7 @@ Hooks.on('createActor', async function (actor: Actor, options: any, data: any) {
 })
 
 
+// @ts-ignore
 Hooks.on('dropActorSheetData', async function (target: Actor, sheet: any, dragSource: any, user: any) {
 	let disableSell = target.getFlag(Globals.ModuleName, "disableSell");
 	if (disableSell !== undefined && disableSell) {
@@ -1163,11 +1173,15 @@ Hooks.on('dropActorSheetData', async function (target: Actor, sheet: any, dragSo
 							// @ts-ignore
 							let quantity = MerchantSheet.getHtmlInputStringValue("quantity-modifier", document);
 							let itemId = dragSource.data._id
-							merchantSheetNPC.moveItems(actor, target, [{itemId, quantity}], true);
 							// @ts-ignore
 							let value: number = MerchantSheet.getHtmlInputStringValue("quantity-modifier-total", document);
 							// @ts-ignore
-							merchantSheetNPC.sellItem(target, dragSource, sourceActor, quantity, value)
+							merchantSheetNPC.sellItem(target, dragSource, sourceActor, quantity, value).then(() => {
+								merchantSheetNPC.moveItems(actor, target, [{itemId, quantity}], true);
+							}).catch(reason => {
+								ui.notifications?.error(reason)
+								console.error(reason, reason.stack);
+							})
 						}
 					},
 					two: {

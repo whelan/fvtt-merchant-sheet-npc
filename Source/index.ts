@@ -4,8 +4,10 @@ import MerchantSheet from "./merchant/MerchantSheet";
 
 import PreloadTemplates from "./PreloadTemplates";
 import merchantSheetNPCHelper from "./merchant/MerchantSheetNPCHelper";
-import MoveItemsPacket from "./merchant/model/MoveItemsPacket";
 import MerchantSheetNPCHelper from "./merchant/MerchantSheetNPCHelper";
+import MoveItemsPacket from "./merchant/model/MoveItemsPacket";
+import MerchantCurrencyPacket from "./merchant/model/MerchantCurrencyPacket";
+import PacketType from "./merchant/model/PacketType";
 
 
 function getTypesForSheet() {
@@ -45,13 +47,20 @@ Hooks.once("setup", () => {
 	});
 	console.log(records);
 	// @ts-ignore
-	socket.on('module.merchantsheetnpc', (packet: MoveItemsPacket) => {
+	socket.on('module.merchantsheetnpc', (packet: MoveItemsPacket | MerchantCurrencyPacket) => {
 		// @ts-ignore
-		if (!(<Game>game).user.isGM) {
+		if (!(<Game>game).user?.isGM || packet === undefined) {
 			return;
 		}
-		merchantSheetNPCHelper.updateActorWithPacket(packet)
-		console.log("test", packet); // expected: "foo bar bat"
+
+		if (packet.type === PacketType.MERCHANT_CURRENCY) {
+			let merchantPacket = packet as MerchantCurrencyPacket;
+			console.log("currency packet", packet); // expected: "foo bar bat"
+			MerchantSheetNPCHelper.updateCurrencyWithPacket(merchantPacket);
+		} else if (packet.type === PacketType.MOVE_ITEMS) {
+			let moveItemsPacket = packet as MoveItemsPacket;
+			merchantSheetNPCHelper.updateActorWithPacket(moveItemsPacket)
+		}
 	})
 
 	Logger.Log("Template module is being setup.")
