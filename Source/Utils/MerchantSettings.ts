@@ -48,8 +48,7 @@ class MerchantSettings {
 				config: true,
 				type: String,
 				choices: MerchantSettings.getCompendiumnsChoices(),
-				default: "none",
-				onChange: val => this.changeCompendium(val),
+				default: "none"
 
 			}]
 		];
@@ -93,7 +92,7 @@ class MerchantSettings {
 		this.SettingsInit = true;
 	}
 
-	readonly SettingsList: ReadonlyArray<Pair<ClientSettings.PartialSetting>>;
+	readonly SettingsList: any[];
 }
 
 export default MerchantSettings;
