@@ -1,6 +1,8 @@
-## Version 2.5.10
-* Changed return on dialog from cancel to ok. #126 
-* 
+## Version 2.6.0
+* Changed return on dialog from cancel to ok. #126
+* Dnd5e: Show values in GP as highest value in merchant screen #130
+* Dnd5e: Made a limited version of money the merchant has. #128 
+
 ## Version 2.5.9
 * Added an info button for players. This just opens the edit item view Fixes #104
 * Added possibility to hide items for players. So the GM can show it if they ask the correct questions.
