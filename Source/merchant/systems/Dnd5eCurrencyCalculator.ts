@@ -257,8 +257,11 @@ export default class Dnd5eCurrencyCalculator extends CurrencyCalculator {
 	priceInText(itemCostInGold: number): string {
 		let priceToBuyerFunds = this.calculatePriceToBuyerFunds(itemCostInGold);
 		let returnValue: string = '';
-		returnValue += this.getValueIfPresent(priceToBuyerFunds, 'pp');
-		returnValue += this.getValueIfPresent(priceToBuyerFunds, 'gp');
+		let gp = priceToBuyerFunds['gp'];
+		if (priceToBuyerFunds['pp'] > 0) {
+			gp += (priceToBuyerFunds['pp'] * conversionRates['gp'])
+		}
+		returnValue += gp + 'gp';
 		if (this.useEP) {
 			returnValue += this.getValueIfPresent(priceToBuyerFunds, 'ep');
 			returnValue += this.getValueIfPresent(priceToBuyerFunds, 'sp');
