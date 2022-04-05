@@ -14,6 +14,8 @@ import SwadeCurrencyCalculator from "./systems/SwadeCurrencyCalculator";
 import Logger from "../Utils/Logger";
 import Wfrp4eCurrencyCalculator from "./systems/Wfrp4eCurrencyCalculator";
 import MoveItemsPacket from "./model/MoveItemsPacket";
+import MerchantCurrencyPacket from "./model/MerchantCurrencyPacket";
+import CurrencyAction from "./model/CurrencyAction";
 
 let currencyCalculator: CurrencyCalculator;
 
@@ -27,12 +29,12 @@ class MerchantSheetNPCHelper {
 		if (currencyCalculator === null || currencyCalculator === undefined) {
 			let currencyModuleImport = (<Game>game).system.id.charAt(0).toUpperCase() + (<Game>game).system.id.slice(1) + "CurrencyCalculator";
 			Logger.Log("System currency to get: " + currencyModuleImport);
-        if ((<Game>game).modules.get("world-currency-5e")?.active) {
-				    currencyCalculator = new World5eCurrencyCalculator();
-				    currencyCalculator.initSettings();
-      } else if (currencyModuleImport === 'Dnd5eCurrencyCalculator') {
-          currencyCalculator = new Dnd5eCurrencyCalculator();
-          currencyCalculator.initSettings();
+			if ((<Game>game).modules.get("world-currency-5e")?.active) {
+				currencyCalculator = new World5eCurrencyCalculator();
+				currencyCalculator.initSettings();
+			} else if (currencyModuleImport === 'Dnd5eCurrencyCalculator') {
+				currencyCalculator = new Dnd5eCurrencyCalculator();
+				currencyCalculator.initSettings();
 			} else if (currencyModuleImport === 'SfrpgCurrencyCalculator') {
 				// @ts-ignore
 				currencyCalculator = new SfrpgCurrencyCalculator();
@@ -60,8 +62,7 @@ class MerchantSheetNPCHelper {
 		if (player.data._id in actorData.permission) {
 			// @ts-ignore
 			return actorData.permission[player.data._id];
-		}
-		else if (typeof defaultPermission !== "undefined") {
+		} else if (typeof defaultPermission !== "undefined") {
 			return defaultPermission;
 		}
 
@@ -79,7 +80,7 @@ class MerchantSheetNPCHelper {
 	}
 
 	public getPermissionDescription(merchantPermission: number): string {
-		const description  = {
+		const description = {
 			0: (<Game>game).i18n.localize("MERCHANTNPC.permission-none-help"),
 			2: (<Game>game).i18n.localize("MERCHANTNPC.permission-observer-help"),
 			999: (<Game>game).i18n.localize("MERCHANTNPC.permission-all-help")
@@ -90,15 +91,15 @@ class MerchantSheetNPCHelper {
 
 	public updatePermissions(actorData: Actor, playerId: string, newLevel: number, event: JQuery.ClickEvent) {
 		// Read player permission on this actor and adjust to new level
-		console.log("Merchant sheet | _updatePermission ",actorData, playerId, newLevel, event)
+		console.log("Merchant sheet | _updatePermission ", actorData, playerId, newLevel, event)
 		let currentPermissions = duplicate(actorData.data.permission);
 		// @ts-ignore
 		currentPermissions[playerId] = newLevel;
 		// Save updated player permissions
-		console.log("Merchant sheet | _updatePermission ",currentPermissions, actorData.data.permission)
+		console.log("Merchant sheet | _updatePermission ", currentPermissions, actorData.data.permission)
 		// @ts-ignore
 		const merchantPermissions: PermissionControl = new PermissionControl(actorData.data);
-		console.log("Merchant sheet | _updatePermission merchantPermissions",merchantPermissions)
+		console.log("Merchant sheet | _updatePermission merchantPermissions", merchantPermissions)
 		// @ts-ignore
 		merchantPermissions._updateObject(event, currentPermissions);
 	}
@@ -110,8 +111,8 @@ class MerchantSheetNPCHelper {
 
 		// @ts-ignore
 		const item: Item = actor.getEmbeddedDocument("Item", itemId);
-		const template_file = "modules/"+Globals.ModuleName+"/templates/change_price.html";
-		const template_data = { price: currencyCalculator.getPriceFromItem(item.data)};
+		const template_file = "modules/" + Globals.ModuleName + "/templates/change_price.html";
+		const template_data = {price: currencyCalculator.getPriceFromItem(item.data)};
 		const rendered_html = await renderTemplate(template_file, template_data);
 
 		let d = new Dialog({
@@ -132,7 +133,7 @@ class MerchantSheetNPCHelper {
 					callback: () => console.log("Merchant sheet | Change price Cancelled")
 				}
 			},
-			default: "two",
+			default: "one",
 			close: () => console.log("Merchant sheet | Change price Closed")
 		});
 		d.render(true);
@@ -154,7 +155,7 @@ class MerchantSheetNPCHelper {
 			// @ts-ignore
 			chatData = item.getChatData({secrets: actor.isOwner});
 		// Toggle summary
-		if ( li.hasClass("expanded") ) {
+		if (li.hasClass("expanded")) {
 			let summary = li.children(".merchant-item-summary");
 			summary.slideUp(200, () => summary.remove());
 		} else {
@@ -170,7 +171,7 @@ class MerchantSheetNPCHelper {
 		event.preventDefault();
 		let div = event.currentTarget.nextElementSibling;
 		// Toggle summary
-		if ( div.classList.contains("expanded") ) {
+		if (div.classList.contains("expanded")) {
 			div.hidden = true;
 			div.classList.remove("expanded")
 		} else {
@@ -186,12 +187,13 @@ class MerchantSheetNPCHelper {
 
 		// @ts-ignore
 		const item: Item = actor.getEmbeddedDocument("Item", itemId);
-		const template_file = "modules/"+Globals.ModuleName+"/templates/change_quantity.html";
+		const template_file = "modules/" + Globals.ModuleName + "/templates/change_quantity.html";
 		// @ts-ignore
 		const quantity = currencyCalculator.getQuantity(item.data.data.quantity);
-		const infinityActivated = (quantity === Number.MAX_VALUE?'checked':'');
+		const infinityActivated = (quantity === Number.MAX_VALUE ? 'checked' : '');
 		// @ts-ignore
-		const template_data = { quantity: quantity,
+		const template_data = {
+			quantity: quantity,
 			infinity: infinityActivated
 		};
 		const rendered_html = await renderTemplate(template_file, template_data);
@@ -206,11 +208,14 @@ class MerchantSheetNPCHelper {
 						// @ts-ignore
 						if (document.getElementById("quantity-infinity").checked) {
 
-							actor.updateEmbeddedDocuments("Item",[{_id: itemId, [currencyCalculator.getQuantityKey()]: Number.MAX_VALUE}])
+							actor.updateEmbeddedDocuments("Item", [{
+								_id: itemId,
+								[currencyCalculator.getQuantityKey()]: Number.MAX_VALUE
+							}])
 						} else {
 							// @ts-ignore
 							let newQuantity: number = document.getElementById("quantity-value").value;
-							actor.updateEmbeddedDocuments("Item",[{
+							actor.updateEmbeddedDocuments("Item", [{
 								_id: itemId,
 								[currencyCalculator.getQuantityKey()]: newQuantity
 							}])
@@ -223,19 +228,12 @@ class MerchantSheetNPCHelper {
 					callback: () => console.log("Merchant sheet | Change quantity Cancelled")
 				}
 			},
-			default: "two",
+			default: "one",
 			close: () => console.log("Merchant sheet | Change quantity Closed")
 		});
 		d.render(true);
 	}
 
-	public async sellItem(target: Actor, dragSource: any, sourceActor: Actor, quantity: number, totalItemsPrice: number) {
-		  let sellerFunds = currencyCalculator.actorCurrency(sourceActor);
-      let chatPrice = currencyCalculator.priceInText(totalItemsPrice);
-		  currencyCalculator.addAmountForActor(sourceActor,sellerFunds,totalItemsPrice)
-      // @ts-ignore
-			this.chatMessage(sourceActor, target, (<Game>game).i18n.format('MERCHANTNPC.sellText', {seller: sourceActor.name, quantity: quantity, itemName: dragSource.data.name, chatPrice: chatPrice}), dragSource.data, false);
-	}
 
 	private async transaction(seller: Actor, buyer: Actor, itemId: string, quantity: number) {
 		console.log(`Buying item: ${seller}, ${buyer}, ${itemId}, ${quantity}`);
@@ -274,29 +272,41 @@ class MerchantSheetNPCHelper {
 
 		let buyerFunds = duplicate(currency);
 
-		if (currencyCalculator.buyerHaveNotEnoughFunds(itemCostInGold,buyerFunds)) {
+		if (currencyCalculator.buyerHaveNotEnoughFunds(itemCostInGold, buyerFunds)) {
 			this.errorMessageToActor(buyer, (<Game>game).i18n.localize("MERCHANTNPC.error-noFunds"));
 			return;
 		}
 
-		currencyCalculator.subtractAmountFromActor(buyer,buyerFunds,itemCostInGold);
+		currencyCalculator.subtractAmountFromActor(buyer, buyerFunds, itemCostInGold);
 		let chatPrice = currencyCalculator.priceInText(itemCostInGold);
 		let service = seller.getFlag(Globals.ModuleName, "service");
 		if (!service) {
 			// Update buyer's funds
 			// @ts-ignore
-			let keepItem: Boolean = seller.getFlag(Globals.ModuleName,"keepDepleted");
-			Logger.Log("keepDepleted",keepItem)
-			let moved = await helper.moveItems(seller, buyer, [{ itemId, quantity }],!keepItem);
+			let keepItem: Boolean = seller.getFlag(Globals.ModuleName, "keepDepleted");
+			Logger.Log("keepDepleted", keepItem)
+			let moved = await helper.moveItems(seller, buyer, [{itemId, quantity}], !keepItem);
 			for (let m of moved) {
 				this.chatMessage(
 					seller, buyer,
-					(<Game>game).i18n.format('MERCHANTNPC.buyText', {buyer: buyer.name, quantity: quantity, itemName: m.item.name, chatPrice: chatPrice}),
-					m.item,false);
+					(<Game>game).i18n.format('MERCHANTNPC.buyText', {
+						buyer: buyer.name,
+						quantity: quantity,
+						itemName: m.item.name,
+						chatPrice: chatPrice
+					}),
+					m.item, false);
 			}
 		} else {
 			// @ts-ignore
-			this.chatMessage(seller, buyer, (<Game>game).i18n.format('MERCHANTNPC.buyText', {buyer: buyer.name, quantity: quantity, itemName: sellItem.name, chatPrice: chatPrice}), sellItem,service);
+			this.chatMessage(seller, buyer, (<Game>game).i18n.format('MERCHANTNPC.buyText', {
+				buyer: buyer.name,
+				quantity: quantity,
+				// @ts-ignore
+				itemName: sellItem.name,
+				chatPrice: chatPrice
+				// @ts-ignore
+			}), sellItem, service);
 		}
 	}
 
@@ -330,7 +340,7 @@ class MerchantSheetNPCHelper {
 	public errorMessageToActor(target: Actor, message: string) {
 		// let allowNoTargetGM = (<Game>game).settings.get(Globals.ModuleName, "allowNoGM")
 		// if (allowNoTargetGM) {
-			ui.notifications?.error(message);
+		ui.notifications?.error(message);
 		// } else {
 		// 	// @ts-ignore
 		// 	(<Game>game).socket.emit(Globals.Socket, {
@@ -358,6 +368,63 @@ class MerchantSheetNPCHelper {
 		}
 	}
 
+	public async sellItem(target: Actor, dragSource: any, sourceActor: Actor, quantity: number, totalItemsPrice: number) {
+		let sellerFunds = currencyCalculator.actorCurrency(sourceActor);
+		let chatPrice = currencyCalculator.priceInText(totalItemsPrice);
+		if (target.getFlag(Globals.ModuleName, "limitedCurrency")) {
+			let buyerFunds = duplicate(currencyCalculator.actorCurrency(target));
+			console.log("merchant currency", target, currencyCalculator.actorCurrency(target))
+			if (currencyCalculator.buyerHaveNotEnoughFunds(totalItemsPrice, buyerFunds)) {
+				let message = (<Game>game).i18n.localize('MERCHANTNPC.merchantNotEnoughMoney');
+				throw message
+			} else {
+				let allowNoTargetGM = (<Game>game).settings.get(Globals.ModuleName, "allowNoGM")
+				let packet: MerchantCurrencyPacket | undefined;
+				if (!allowNoTargetGM) {
+					packet = new MerchantCurrencyPacket();
+					packet.action = CurrencyAction.Subtract
+					if (target.id) {
+						packet.actorId = target.id;
+					}
+					console.log("Target: ", target)
+					// @ts-ignore
+					let tokenActor = target.parent;
+					if (tokenActor) {
+						let actorLink: boolean = tokenActor.data.actorLink
+						if (!actorLink) {
+							if (tokenActor.parent) {
+								// @ts-ignore
+								let sceneId = canvas.scene.id;
+								// @ts-ignore
+								Logger.Log("Scene", canvas.scene.id)
+								if (sceneId) {
+									packet.sceneId = sceneId;
+								}
+								packet.tokenId = tokenActor.id;
+								packet.actorLink = false;
+							}
+						}
+					}
+					packet.currency = buyerFunds;
+					packet.price = totalItemsPrice;
+					if (packet) {
+						// @ts-ignore
+						(<Game>game).socket.emit(Globals.Socket, packet);
+					}
+				}
+
+			}
+		}
+		currencyCalculator.addAmountForActor(sourceActor, sellerFunds, totalItemsPrice)
+		// @ts-ignore
+		this.chatMessage(sourceActor, target, (<Game>game).i18n.format('MERCHANTNPC.sellText', {
+			seller: sourceActor.name,
+			quantity: quantity,
+			itemName: dragSource.data.name,
+			chatPrice: chatPrice
+		}), dragSource.data, false);
+	}
+
 	public async moveItems(source: Actor, destination: Actor, items: any[], deleteItemFromSource: Boolean) {
 		const updates = [];
 		const deletes = [];
@@ -371,7 +438,7 @@ class MerchantSheetNPCHelper {
 			// @ts-ignore
 			let quantity = Number(i.quantity);
 			let item = source.getEmbeddedDocument("Item", itemId);
-			let infinity = source.getFlag(Globals.ModuleName,"infinity");
+			let infinity = source.getFlag(Globals.ModuleName, "infinity");
 			// Move all items if we select more than the quantity.
 			// @ts-ignore
 			if (item !== undefined && currencyCalculator.getQuantity(item.data.data.quantity) < quantity) {
@@ -381,15 +448,18 @@ class MerchantSheetNPCHelper {
 
 			let newItem = duplicate(item);
 			// @ts-ignore
-			const update = { _id: itemId, [currencyCalculator.getQuantityKey()]: currencyCalculator.getQuantity(item.data.data.quantity) >= Number.MAX_VALUE-10000 || infinity ? Number.MAX_VALUE : currencyCalculator.getQuantity(item.data.data.quantity) - quantity };
+			const update = {
+				_id: itemId,
+				// @ts-ignore
+				[currencyCalculator.getQuantityKey()]: currencyCalculator.getQuantity(item.data.data.quantity) >= Number.MAX_VALUE - 10000 || infinity ? Number.MAX_VALUE : currencyCalculator.getQuantity(item.data.data.quantity) - quantity
+			};
 
 			if (update[currencyCalculator.getQuantityKey()] === 0 && !allowNoTargetGM && deleteItemFromSource) {
 				deletes.push(itemId);
-			}
-			else {
+			} else {
 				updates.push(update);
 			}
-			currencyCalculator.setQuantityForItemData(newItem.data,quantity)
+			currencyCalculator.setQuantityForItemData(newItem.data, quantity)
 			results.push({
 				item: newItem,
 				quantity: quantity
@@ -400,15 +470,19 @@ class MerchantSheetNPCHelper {
 			} else {
 				//console.log("Existing Item");
 				// @ts-ignore
-				currencyCalculator.setQuantityForItemData(destItem.data.data,Number(currencyCalculator.getQuantity(destItem.data.data.quantity)) + Number(currencyCalculator.getQuantity(newItem.data.quantity)))
+				currencyCalculator.setQuantityForItemData(destItem.data.data, Number(currencyCalculator.getQuantity(destItem.data.data.quantity)) + Number(currencyCalculator.getQuantity(newItem.data.quantity)))
 
 				// @ts-ignore
 				if (currencyCalculator.getQuantity(destItem.data.data.quantity) < 0) {
-				// @ts-ignore
-					currencyCalculator.setQuantityForItemData(destItem.data.data,0)
+					// @ts-ignore
+					currencyCalculator.setQuantityForItemData(destItem.data.data, 0)
 				}
 				// @ts-ignore
-				const destUpdate = { _id: destItem.id, [currencyCalculator.getQuantityKey()]: currencyCalculator.getQuantity(destItem.data.data.quantity) };
+				const destUpdate = {
+					_id: destItem.id,
+					// @ts-ignore
+					[currencyCalculator.getQuantityKey()]: currencyCalculator.getQuantity(destItem.data.data.quantity)
+				};
 				destUpdates.push(destUpdate);
 			}
 		}
@@ -441,7 +515,7 @@ class MerchantSheetNPCHelper {
 						packet.sceneId = sceneId;
 					}
 					packet.tokenId = source.parent.id;
-					packet.actorLink= false;
+					packet.actorLink = false;
 				}
 			}
 		}
@@ -495,7 +569,7 @@ class MerchantSheetNPCHelper {
 			actor = await (<Game>game).actors.get(packet.actorId);
 		} else {
 			// @ts-ignore
-			let scene:Scene = await (<Game>game).scenes.get(packet.sceneId);
+			let scene: Scene = await (<Game>game).scenes.get(packet.sceneId);
 			Logger.Log("Scene found", scene);
 
 			// @ts-ignore
@@ -525,7 +599,7 @@ class MerchantSheetNPCHelper {
 	}
 
 	onGeneratorSelectorChanged(event: JQuery.ChangeEvent<any, null, any, any>) {
-		let expandedElement: HTMLElement | null= document.getElementById('merchant-table');
+		let expandedElement: HTMLElement | null = document.getElementById('merchant-table');
 		let hideElement: HTMLElement | null = document.getElementById('merchant-compendium');
 		if (event.currentTarget.value !== 'table') {
 			hideElement = document.getElementById('merchant-table');
@@ -542,20 +616,42 @@ class MerchantSheetNPCHelper {
 	showItemToPlayers(event: JQuery.ClickEvent, actor: Actor, toggle: boolean) {
 		let li = $(event.currentTarget).parents(".merchant-item"),
 			item = actor.items.get(li.data("item-id"))
-		let moduleName = "merchantsheetnpc";
-		item?.setFlag(moduleName, "showItem",toggle);
+		item?.setFlag(Globals.ModuleName, "showItem", toggle);
 	}
 
 	isItemShown(item: Item) {
-		let moduleName = "merchantsheetnpc";
-		let showItem: boolean | undefined = <boolean | undefined>item.getFlag(moduleName, "showItem")
+		let showItem: boolean | undefined = <boolean | undefined>item.getFlag(Globals.ModuleName, "showItem")
 		return (showItem === undefined || showItem)
 	}
 
+	static async updateCurrencyWithPacket(packet: MerchantCurrencyPacket) {
+		let actor: Actor | null = null;
+		Logger.Log("Packet updating currency", packet);
+		if (packet.actorLink) {
+			// @ts-ignore
+			actor = await (<Game>game).actors.get(packet.actorId);
+		} else {
+			// @ts-ignore
+			let scene: Scene = await (<Game>game).scenes.get(packet.sceneId);
+
+			// @ts-ignore
+			let token: TokenDocument = await scene.tokens.get(packet.tokenId);
+			if (token.getActor()) {
+				actor = token.getActor();
+			}
+		}
+		if (!actor) {
+			return;
+		}
+		if (packet.action === CurrencyAction.Subtract) {
+			currencyCalculator.subtractAmountFromActor(actor, packet.currency, packet.price);
+		} else if (packet.action === CurrencyAction.Add) {
+			currencyCalculator.addAmountForActor(actor, packet.currency, packet.price);
+		}
+	}
 }
 
 let helper = new MerchantSheetNPCHelper();
-
 
 
 export default MerchantSheetNPCHelper;

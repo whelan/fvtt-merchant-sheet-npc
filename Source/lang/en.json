@@ -149,5 +149,8 @@
   "MERCHANTNPC.generator-page.window-title": "Generate items",
   "MERCHANTNPC.generator-page.title": "Merchant Generator",
   "MERCHANTNPC.settings-page.hide-buy-stack": "Hide buy stack button",
-  "MERCHANTNPC.settings-page.max-buy-percentage": "Max buy price modifier"
+  "MERCHANTNPC.settings-page.max-buy-percentage": "Max buy price modifier",
+  "MERCHANTNPC.merchantNotEnoughMoney": "Unfortunatly the shop don't have enough money to buy this item",
+  "MERCHANTNPC.settings-page.limited-currency": "Limit the merhcant to a specific amount of money to have",
+  "MERCHANTNPC.currency": "Amount of money the merchant has"
 }

@@ -1,6 +1,6 @@
 import Globals from "../Globals";
 import Logger from "../Utils/Logger";
-import MerchantSheetData from "./MerchantSheetData";
+import MerchantSheetData from "./model/MerchantSheetData";
 import MerchantSheetNPCHelper from "./MerchantSheetNPCHelper";
 import PermissionPlayer from "./PermissionPlayer";
 import {
@@ -159,17 +159,17 @@ class MerchantSheet extends ActorSheet {
 
 		sheetData.isPermissionShown = sheetData.isGM && currencyCalculator.isPermissionShown();
 
-		let moduleName = "merchantsheetnpc";
-		let priceModifier: number = <number>this.actor.getFlag(moduleName, "priceModifier");
-		sheetData.infinity = <boolean>this.actor.getFlag(moduleName, "infinity");
-		sheetData.isService = <boolean>this.actor.getFlag(moduleName, "service");
-		sheetData.isBuyStack = !(<boolean>this.actor.getFlag(moduleName, "hideBuyStack"));
-		let stackModifier: number = <number>this.actor.getFlag(moduleName, "stackModifier");
+		sheetData.limitedCurrency = <boolean>this.actor.getFlag(Globals.ModuleName, "limitedCurrency");
+		let priceModifier: number = <number>this.actor.getFlag(Globals.ModuleName, "priceModifier");
+		sheetData.infinity = <boolean>this.actor.getFlag(Globals.ModuleName, "infinity");
+		sheetData.isService = <boolean>this.actor.getFlag(Globals.ModuleName, "service");
+		sheetData.isBuyStack = !(<boolean>this.actor.getFlag(Globals.ModuleName, "hideBuyStack"));
+		let stackModifier: number = <number>this.actor.getFlag(Globals.ModuleName, "stackModifier");
 
 		sheetData.totalItems = this.actor.data.items.size;
 		sheetData.priceModifier = priceModifier;
 		sheetData.stackModifier = stackModifier;
-
+		sheetData.currencies = currencyCalculator.merchantCurrency(this.actor);
 		sheetData.sections = currencyCalculator.prepareItems(this.actor.itemTypes);
 		sheetData.merchant = merchant;
 		sheetData.owner = sheetData.isGM;
@@ -282,6 +282,8 @@ class MerchantSheet extends ActorSheet {
 		// @ts-ignore
 		html.find('.change-quantity-all').on('click', ev => this.changeQuantityForItems(ev));
 		html.find('.merchant-settings').on('click', ev => this.merchantSettingChange(ev));
+
+		html.find('.currency-update').on('click', ev => this.updateMerchantCurrencies(ev));
 		// html.find('.merchant-settings').change(ev => this.merchantSettingChange(ev));
 		// html.find('.update-inventory').on('click',ev => this.merchantInventoryUpdate(ev));
 		//
@@ -307,6 +309,7 @@ class MerchantSheet extends ActorSheet {
 		Logger.Log("infinity: ", this.actor.getFlag(Globals.ModuleName, "infinity"), this.actor)
 		const template_data = {
 			disableSell: this.actor.getFlag(Globals.ModuleName, "disableSell") ? "checked" : "",
+			limitedCurrency: this.actor.getFlag(Globals.ModuleName, "limitedCurrency") ? "checked" : "",
 			keepDepleted: this.actor.getFlag(Globals.ModuleName, "keepDepleted") ? "checked" : "",
 			service: this.actor.getFlag(Globals.ModuleName, "service") ? "checked" : "",
 			hideBuyStack: this.actor.getFlag(Globals.ModuleName, "hideBuyStack") ? "checked" : "",
@@ -324,6 +327,7 @@ class MerchantSheet extends ActorSheet {
 					label: (<Game>game).i18n.localize('MERCHANTNPC.update'),
 					callback: () => {
 						this.actor.setFlag(Globals.ModuleName, "disableSell", MerchantSheetNPCHelper.getElementById("disable-sell").checked);
+						this.actor.setFlag(Globals.ModuleName, "limitedCurrency", MerchantSheetNPCHelper.getElementById("limited-currency").checked);
 						this.actor.setFlag(Globals.ModuleName, "keepDepleted", MerchantSheetNPCHelper.getElementById("keep-depleted").checked);
 						this.actor.setFlag(Globals.ModuleName, "service", MerchantSheetNPCHelper.getElementById("service").checked);
 						this.actor.setFlag(Globals.ModuleName, "hideBuyStack", MerchantSheetNPCHelper.getElementById("hide-buy-stack").checked);
@@ -337,37 +341,12 @@ class MerchantSheet extends ActorSheet {
 					callback: () => console.log("Merchant sheet | Stack Modifier Cancelled")
 				}
 			},
-			default: "two",
+			default: "one",
 			close: () => console.log("Merchant sheet | Stack Modifier Closed")
 		});
 		d.render(true);
 	}
 
-	// private async merchantSettingChange(event: JQuery.ChangeEvent<any, null, any, any>) {
-	// 	event.preventDefault();
-	// 	console.log("Merchant sheet | Merchant settings changed");
-	//
-	// 	const expectedKeys = ["rolltable", "shopQty", "itemQty", "itemQtyLimit", "clearInventory", "itemOnlyOnce"];
-	//
-	// 	let targetKey = event.target.name.split('.')[3];
-	//
-	//
-	// 	if (expectedKeys.indexOf(targetKey) === -1) {
-	// 		console.log(`Merchant sheet | Error changing stettings for "${targetKey}".`);
-	// 		return ui.notifications?.error((<Game>game).i18n.format("MERCHANTNPC.error-changeSettings", {target: targetKey}))
-	// 	}
-	//
-	// 	if (targetKey == "clearInventory" || targetKey == "itemOnlyOnce") {
-	// 		console.log(targetKey + " set to " + event.target.checked);
-	// 		await this.actor.setFlag(Globals.ModuleName, targetKey, event.target.checked);
-	// 	} else if (event.target.value) {
-	// 		console.log(targetKey + " set to " + event.target.value);
-	// 		await this.actor.setFlag(Globals.ModuleName, targetKey, event.target.value);
-	// 	} else {
-	// 		console.log(targetKey + " set to " + event.target.value);
-	// 		await this.actor.unsetFlag(Globals.ModuleName, targetKey);
-	// 	}
-	// }
 
 	private onCyclePermissionProficiency(event: JQuery.ClickEvent) {
 
@@ -469,7 +448,7 @@ class MerchantSheet extends ActorSheet {
 					callback: () => Logger.Log("Price Modifier Cancelled")
 				}
 			},
-			default: "two",
+			default: "one",
 			close: () => Logger.Log("Price Modifier Closed")
 		});
 		d.render(true);
@@ -478,7 +457,7 @@ class MerchantSheet extends ActorSheet {
 	async sellToMerchantModifier(event: JQuery.ClickEvent) {
 		event.preventDefault();
 
-		let buyModifier = await this.actor.getFlag("merchantsheetnpc", "buyModifier");
+		let buyModifier = await this.actor.getFlag(Globals.ModuleName, "buyModifier");
 		if (buyModifier === 'undefined') {
 			buyModifier = 0.5;
 		}
@@ -514,7 +493,7 @@ class MerchantSheet extends ActorSheet {
 					callback: () => console.log("Merchant sheet | Buy Modifier Cancelled")
 				}
 			},
-			default: "two",
+			default: "one",
 			close: () => console.log("Merchant sheet | Buy Modifier Closed")
 		});
 		d.render(true);
@@ -550,7 +529,7 @@ class MerchantSheet extends ActorSheet {
 					callback: () => console.log("Merchant sheet | Stack Modifier Cancelled")
 				}
 			},
-			default: "two",
+			default: "one",
 			close: () => console.log("Merchant sheet | Stack Modifier Closed")
 		});
 		d.render(true);
@@ -605,7 +584,7 @@ class MerchantSheet extends ActorSheet {
 					callback: () => console.log("Merchant sheet | Stack Modifier Cancelled")
 				}
 			},
-			default: "two",
+			default: "one",
 			close: () => console.log("Merchant sheet | Stack Modifier Closed")
 		});
 		d.render(true);
@@ -698,29 +677,6 @@ class MerchantSheet extends ActorSheet {
 							this.addItemToCollection(item, generatorInput, createItems);
 						}
 					}
-					// 		results = rolltable.results.contents;
-					// 	} else {
-					// 		const rollResult = await rolltable.draw();
-					// 		results = rollResult.results
-					// 	}
-					//
-					// 	for (const drawItem of results) {
-					// 		let drawItemdata: TableResultData = drawItem.data;
-					// 		let collection: string | undefined = drawItemdata.collection
-					//
-					// 		if (collection === undefined) {
-					// 			continue
-					// 		}
-					// 		let compendium = await (<Game>game).packs?.get(collection);
-					// 		if (compendium === undefined) {
-					// 			continue
-					// 		}
-					// 		// @ts-ignore
-					// 		let item: Item = await compendium.getDocument(drawItemdata.resultId)
-					// 		this.addItemToCollection(item, generatorInput, createItems);
-					// 	}
-					// }
-
 				}
 
 		}
@@ -905,12 +861,13 @@ class MerchantSheet extends ActorSheet {
 
 		let targetGm: any = null;
 		(<Game>game).users?.forEach((u) => {
-			if (u.isGM && u.active && u.viewedScene === (<Game>game).user?.viewedScene) {
+			if (u.isGM && u.active) {
 				targetGm = u;
 			}
 		});
-		let allowNoTargetGM = (<Game>game).settings.get("merchantsheetnpc", "allowNoGM")
+		let allowNoTargetGM = (<Game>game).settings.get(Globals.ModuleName, "allowNoGM")
 		let gmId = null;
+		
 
 		if (!allowNoTargetGM && !targetGm) {
 			Logger.Log("No Valid GM", allowNoTargetGM)
@@ -1007,7 +964,7 @@ class MerchantSheet extends ActorSheet {
 					callback: () => console.log("Merchant sheet | Stack Modifier Cancelled")
 				}
 			},
-			default: "two",
+			default: "one",
 			close: () => console.log("Merchant sheet | Stack Modifier Closed")
 		});
 		d.render(true);
@@ -1034,6 +991,10 @@ class MerchantSheet extends ActorSheet {
 		actor.updateEmbeddedDocuments("Item", updates);
 	}
 
+	private updateMerchantCurrencies(ev: JQuery.ClickEvent<any, undefined, any, any>) {
+		currencyCalculator.updateMerchantCurrency(this.actor);
+
+	}
 }
 
 class QuantityDialog extends Dialog {
@@ -1153,6 +1114,7 @@ Hooks.on('createActor', async function (actor: Actor, options: any, data: any) {
 })
 
 
+// @ts-ignore
 Hooks.on('dropActorSheetData', async function (target: Actor, sheet: any, dragSource: any, user: any) {
 	let disableSell = target.getFlag(Globals.ModuleName, "disableSell");
 	if (disableSell !== undefined && disableSell) {
@@ -1211,12 +1173,15 @@ Hooks.on('dropActorSheetData', async function (target: Actor, sheet: any, dragSo
 							// @ts-ignore
 							let quantity = MerchantSheet.getHtmlInputStringValue("quantity-modifier", document);
 							let itemId = dragSource.data._id
-							// addItemToActor(dragSource,target,quantity);
-							merchantSheetNPC.moveItems(actor, target, [{itemId, quantity}], true);
 							// @ts-ignore
 							let value: number = MerchantSheet.getHtmlInputStringValue("quantity-modifier-total", document);
 							// @ts-ignore
-							merchantSheetNPC.sellItem(target, dragSource, sourceActor, quantity, value)
+							merchantSheetNPC.sellItem(target, dragSource, sourceActor, quantity, value).then(() => {
+								merchantSheetNPC.moveItems(actor, target, [{itemId, quantity}], true);
+							}).catch(reason => {
+								ui.notifications?.error(reason)
+								console.error(reason, reason.stack);
+							})
 						}
 					},
 					two: {
@@ -1225,7 +1190,7 @@ Hooks.on('dropActorSheetData', async function (target: Actor, sheet: any, dragSo
 						callback: () => console.log("Merchant sheet | Price Modifier Cancelled")
 					}
 				},
-				default: "two",
+				default: "one",
 				close: () => console.log("Merchant sheet | Price Modifier Closed")
 			});
 			d.render(true);

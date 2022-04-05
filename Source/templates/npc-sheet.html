@@ -47,6 +47,25 @@
 			</div>
 		</div>
 		</div>
+			{{#if limitedCurrency}}
+			<h3 class="currency">
+				{{localize "MERCHANTNPC.currency"}}
+			</h3>
+			<div class="merchant-buttons flexrow">
+				{{#each currencies as |currency c|}}
+				<div class="flexcol">
+					<div class="flexcol"><h4>{{currency.name}}: </h4></div>
+					<div class="flexcol"><input id="currency-{{currency.name}}" type="text" data-dtype="Number" placeholder="e.g. 10"
+												value="{{currency.value}}"/></div>
+				</div>
+				{{/each}}
+				<div class="charbutton flexcol">
+					<button type="button" class="currency-update" type="currency-update" name="currency-update" value=""><i
+						class="fa fa-coins"></i>{{localize "MERCHANTNPC.update"}}
+					</button>
+				</div>
+			</div>
+			{{/if}}
 		{{/if}}
 	</header>
 
