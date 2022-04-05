@@ -3,7 +3,7 @@ import {ItemData} from "@league-of-foundry-developers/foundry-vtt-types/src/foun
 import MerchantSheet from "../MerchantSheet";
 import Logger from "../../Utils/Logger";
 import MerchantCurrency from "../model/MerchantCurrency";
-import MerchantSheetNPCHelper from "../MerchantSheetNPCHelper";
+import HtmlHelpers from "../../Utils/HtmlHelpers";
 
 
 export default class CurrencyCalculator {
@@ -138,7 +138,7 @@ export default class CurrencyCalculator {
 	}
 
 	updateMerchantCurrency(actor: Actor) {
-		let currency: number = MerchantSheet.getHtmlInputNumberValue("currency-Currency", document);
+		let currency: number = HtmlHelpers.getHtmlInputNumberValue("currency-Currency", document);
 		this.updateActorWithNewFunds(actor,currency);
 	}
 }

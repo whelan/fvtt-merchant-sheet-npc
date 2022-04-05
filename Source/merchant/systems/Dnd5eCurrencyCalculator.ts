@@ -1,14 +1,11 @@
 import CurrencyCalculator from "./CurrencyCalculator";
 // @ts-ignore
-// import Item5e from "../../../../systems/dnd5e/module/item/entity.js";
 import MerchantSheet from "../MerchantSheet";
-import MerchantSheetNPCHelper from "../MerchantSheetNPCHelper";
 import {PropertiesToSource} from "@league-of-foundry-developers/foundry-vtt-types/src/types/helperTypes";
 import {ItemData} from "@league-of-foundry-developers/foundry-vtt-types/src/foundry/common/data/data.mjs";
-import * as Console from "console";
 import Globals from "../../Globals";
 import MerchantCurrency from "../model/MerchantCurrency";
-import Logger from "../../Utils/Logger";
+import HtmlHelpers from "../../Utils/HtmlHelpers";
 
 let conversionRates: {[key:string]: number} = {"pp": 1,
 	"gp": 10,
@@ -393,11 +390,11 @@ export default class Dnd5eCurrencyCalculator extends CurrencyCalculator {
 	}
 
 	updateMerchantCurrency(actor: Actor) {
-		let pp: number = MerchantSheet.getHtmlInputNumberValue("currency-pp", document);
-		let gp: number = MerchantSheet.getHtmlInputNumberValue("currency-gp", document);
-		let ep: number = MerchantSheet.getHtmlInputNumberValue("currency-ep", document);
-		let sp: number = MerchantSheet.getHtmlInputNumberValue("currency-sp", document);
-		let cp: number = MerchantSheet.getHtmlInputNumberValue("currency-cp", document);
+		let pp: number = HtmlHelpers.getHtmlInputNumberValue("currency-pp", document);
+		let gp: number = HtmlHelpers.getHtmlInputNumberValue("currency-gp", document);
+		let ep: number = HtmlHelpers.getHtmlInputNumberValue("currency-ep", document);
+		let sp: number = HtmlHelpers.getHtmlInputNumberValue("currency-sp", document);
+		let cp: number = HtmlHelpers.getHtmlInputNumberValue("currency-cp", document);
 		this.updateActorWithNewFunds(actor, {pp, gp, ep, sp, cp});
 	}
 }
