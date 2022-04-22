@@ -246,7 +246,9 @@ export default class Dnd5eCurrencyCalculator extends CurrencyCalculator {
 		this.updateActorWithNewFunds(seller, sellerFunds);
 	}
 
-	getPriceOutputWithModifier(basePrice: number, modifier: number) {
+	getPriceOutputWithModifier(basePriceItem: Item, modifier: number) {
+		// @ts-ignore
+		let basePrice = basePriceItem.data.data.price
 		return this.priceInText((basePrice * modifier * 100) / 100)
 	}
 

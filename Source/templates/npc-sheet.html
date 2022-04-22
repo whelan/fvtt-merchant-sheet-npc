@@ -137,11 +137,11 @@
 						{{#if ../../isGM}}
 						<a class="item-control change-item-price" title="{{localize 'MERCHANTNPC.change-price-help'}}">
 							<i class="fas fa-coins" title="{{localize 'MERCHANTNPC.price'}}"></i> {{ merchantsheetprice
-							item.data.data.price ../../priceModifier }}
+							item ../../priceModifier }}
 						</a>
 						{{else}}
 						<i class="fas fa-coins" title="{{localize 'MERCHANTNPC.price'}}"></i> {{ merchantsheetprice
-						item.data.data.price ../../priceModifier }}
+						item ../../priceModifier }}
 						{{/if}}
 					</div>
 
@@ -157,7 +157,7 @@
 				</li>
 
 				{{else}}
-				{{#if (shouldItemBeVisible item (getItemQuantity item.data.data.quantity) ../../isGM)}}
+				{{#if (shouldItemBeVisible item (getItemQuantity (getQuantity item.data.data)) ../../isGM)}}
 				<li class="merchant-item flexrow" data-item-id="{{item.data._id}}"
 					data-item-stack="{{../../stackModifier}}">
 					<div class="merchant-item-image" style="background-image: url('{{item.img}}')"></div>
@@ -168,18 +168,18 @@
 						<a class="item-control change-item-quantity"
 						   title="{{localize 'MERCHANTNPC.change-item-quantity-help'}}">
 							<i class="fas fa-box"></i>
-							{{#if (itemInfinity (getItemQuantity item.data.data.quantity) ../../infinity)}}
+							{{#if (itemInfinity (getItemQuantity (getQuantity item.data.data)) ../../infinity)}}
 							<i class="fas fa-infinity"></i>
 							{{else}}
-							{{getItemQuantity item.data.data.quantity}}
+							{{getItemQuantity (getQuantity item.data.data)}}
 							{{/if}}
 						</a>
 						{{else}}
 						<i class="fas fa-box"></i>
-						{{#if (itemInfinity (getItemQuantity item.data.data.quantity) ../../infinity)}}
+						{{#if (itemInfinity (getItemQuantity (getQuantity item.data.data)) ../../infinity)}}
 						<i class="fas fa-infinity"></i>
 						{{else}}
-						{{getItemQuantity item.data.data.quantity}}
+						{{getItemQuantity (getQuantity item.data.data)}}
 						{{/if}}
 						{{/if}}
 
@@ -189,17 +189,17 @@
 						<i class="fas fa-weight-hanging" title="{{localize 'MERCHANTNPC.weight'}}"></i>
 						{{merchantsheetweight
 						(getItemWeight item.data.data)}}{{merchantsheetstackweight (getItemWeight item.data.data)
-						(getItemQuantity item.data.data.quantity) ../../infinity}}
+						(getItemQuantity (getQuantity item.data.data)) ../../infinity}}
 					</div>
 					<div class="item-price">
 						{{#if ../../isGM}}
 						<a class="item-control change-item-price" title="{{localize 'MERCHANTNPC.change-price-help'}}">
 							<i class="fas fa-coins" title="{{localize 'MERCHANTNPC.price'}}"></i> {{ merchantsheetprice
-							item.data.data.price ../../priceModifier }}
+							item ../../priceModifier }}
 						</a>
 						{{else}}
 						<i class="fas fa-coins" title="{{localize 'MERCHANTNPC.price'}}"></i> {{ merchantsheetprice
-						item.data.data.price ../../priceModifier }}
+						item ../../priceModifier }}
 						{{/if}}
 					</div>
 

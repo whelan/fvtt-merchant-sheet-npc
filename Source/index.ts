@@ -13,6 +13,8 @@ import PacketType from "./merchant/model/PacketType";
 function getTypesForSheet() {
 	if ((<Game>game).system.id === 'sfrpg') {
 		return ['npc','npc2'];
+	} else if ((<Game>game).system.id === 'gurps') {
+		return ['character'];
 	}
 	return ['npc'];
 }
@@ -26,13 +28,6 @@ Hooks.once("init", async () => {
 		makeDefault: false
 	});
 
-	// if ((<Game>game).system.id === 'Sfrpg') {
-	// 	Actors.registerSheet("sfrpg", SfrpgMerchantSheet, {
-	// 		label: "Merchant NPC",
-	// 		types: ['npc2'],
-	// 		makeDefault: false
-	// 	});
-	// }
 });
 
 Hooks.once("setup", () => {

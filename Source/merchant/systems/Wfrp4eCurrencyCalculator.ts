@@ -252,7 +252,10 @@ export default class Wfrp4eCurrencyCalculator extends CurrencyCalculator {
 		return itemData.encumbrance.value;
 	}
 
-	getPriceOutputWithModifier(basePrice: any, modifier: number): string {
+	getPriceOutputWithModifier(basePriceItem: Item, modifier: number): string {
+		// @ts-ignore
+		let basePrice = basePriceItem.data.data.price
+
 		let baseAmount = this.getBPprice(basePrice);
 		let priceCalculated = Math.round(Math.round(baseAmount * modifier * 100) / 100);
 

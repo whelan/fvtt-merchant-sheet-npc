@@ -225,7 +225,9 @@ export default class World5eCurrencyCalculator extends CurrencyCalculator {
         return " " + CONFIG.DND5E.currencies[standard].abbreviation;
     }
 
-    getPriceOutputWithModifier(basePrice: any, modifier: number): string {
-        return this.gpToStandard((Math.round((<number>basePrice) * modifier * 100) / 100)).toLocaleString('en') + this.abbreviation();
+    getPriceOutputWithModifier(basePriceItem: Item, modifier: number): string {
+		// @ts-ignore
+		let basePrice = basePriceItem.data.data.price
+		return this.gpToStandard((Math.round((<number>basePrice) * modifier * 100) / 100)).toLocaleString('en') + this.abbreviation();
     }
 }

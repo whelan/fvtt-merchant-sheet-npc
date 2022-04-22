@@ -18,6 +18,7 @@ export default class CurrencyCalculator {
 
 	actorCurrency(actor: Actor) {
 		// @ts-ignore
+
 		return actor.data.data.currency;
 	}
 
@@ -96,8 +97,13 @@ export default class CurrencyCalculator {
 	getWeight(itemData: any) {
 		return itemData.weight;
 	}
+	getQuantityNumber(itemData: any): number {
+		return itemData.quantity;
+	}
 
-	getPriceOutputWithModifier(basePrice: any, modifier: number): string {
+	getPriceOutputWithModifier(basePriceItem: Item, modifier: number): string {
+		// @ts-ignore
+		let basePrice = basePriceItem.data.data.price
 		return (Math.round((<number>basePrice) * modifier * 100) / 100).toLocaleString('en')
 	}
 

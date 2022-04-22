@@ -24,6 +24,12 @@ class MerchantSheet extends ActorSheet {
 	get template() {
 		currencyCalculator = merchantSheetNPC.systemCurrencyCalculator();
 		new HandlebarHelpersMerchantSheet().registerHelpers(currencyCalculator,merchantSheetNPC);
+		Handlebars.registerHelper('getQuantity', function (itemData, options) {
+			console.log("quantity", itemData);
+			let q =  currencyCalculator.getQuantityNumber(itemData);
+			console.log("quantity found", q);
+			return q;
+		});
 		return getSheetTemplateName();
 	}
 
@@ -752,7 +758,7 @@ class MerchantSheet extends ActorSheet {
 			// @ts-ignore
 			for (let extraItem of value) {
 				if (itemToUpdateQuantity !== extraItem) {
-					let newQty = currencyCalculator.getQuantity(itemToUpdateQuantity.data.data.quantity) + currencyCalculator.getQuantity(extraItem.data.data.quantity);
+					let newQty = currencyCalculator.getQuantity(currencyCalculator.getQuantityNumber(itemToUpdateQuantity.data.data)) + currencyCalculator.getQuantity(currencyCalculator.getQuantityNumber(extraItem.data.data));
 					await itemToUpdateQuantity.update({"data.quantity": newQty});
 					itemsToBeDeleted.push(extraItem.id);
 				}
@@ -1037,7 +1043,7 @@ Hooks.on('dropActorSheetData', async function (target: Actor, sheet: any, dragSo
 			console.warn("Merchant sheet | target has no data._id?", target);
 			return;
 		}
-		if (currencyCalculator.getQuantity(dragSource.data.data.quantity) <= 0) {
+		if (currencyCalculator.getQuantity(currencyCalculator.getQuantityNumber(dragSource.data.data)) <= 0) {
 			(ui.notifications || new Notifications).error((<Game>game).i18n.localize("MERCHANTNPC.invalidQuantity"));
 			return;
 		}
@@ -1063,8 +1069,8 @@ Hooks.on('dropActorSheetData', async function (target: Actor, sheet: any, dragSo
 				name: dragSource.data.name,
 				price: price
 			}) + "</div>";
-			html += '<div><input name="quantity-modifier" id="quantity-modifier" type="range" min="0" max="' + currencyCalculator.getQuantity(dragSource.data.data.quantity) + '" value="1" class="slider"></div>';
-			html += '<div><label>' + (<Game>game).i18n.localize("MERCHANTNPC.quantity") + ':</label> <input style="' + currencyCalculator.inputStyle() + '" type=number min="0" max="' + currencyCalculator.getQuantity(dragSource.data.data.quantity) + '" value="1" id="quantity-modifier-display"></div> <input type="hidden" id="quantity-modifier-price" value = "' + (buyModifier * itemPrice) + '"/>';
+			html += '<div><input name="quantity-modifier" id="quantity-modifier" type="range" min="0" max="' + currencyCalculator.getQuantity(currencyCalculator.getQuantityNumber(dragSource.data.data)) + '" value="1" class="slider"></div>';
+			html += '<div><label>' + (<Game>game).i18n.localize("MERCHANTNPC.quantity") + ':</label> <input style="' + currencyCalculator.inputStyle() + '" type=number min="0" max="' + currencyCalculator.getQuantity(currencyCalculator.getQuantityNumber(dragSource.data.data)) + '" value="1" id="quantity-modifier-display"></div> <input type="hidden" id="quantity-modifier-price" value = "' + (buyModifier * itemPrice) + '"/>';
 			html += '<script>var pmSlider = document.getElementById("quantity-modifier"); var pmDisplay = document.getElementById("quantity-modifier-display"); var total = document.getElementById("quantity-modifier-total"); var price = document.getElementById("quantity-modifier-price"); pmDisplay.value = pmSlider.value; pmSlider.oninput = function() { pmDisplay.value = this.value;  total.value =this.value * price.value; }; pmDisplay.oninput = function() { pmSlider.value = this.value; };</script>';
 			html += '<div>' + (<Game>game).i18n.localize("MERCHANTNPC.total") + '<input style="' + currencyCalculator.inputStyle() + '" readonly type="text"  value="' + (itemPrice * buyModifier) + '" id = "quantity-modifier-total"/> </div>';
 
