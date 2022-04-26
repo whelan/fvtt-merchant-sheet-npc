@@ -91,7 +91,7 @@ export default class CurrencyCalculator {
 	}
 
 	getQuantityKey(): string {
-		return "data.quantity"
+		return "data.eqt.count"
 	}
 
 	getWeight(itemData: any) {
@@ -147,4 +147,17 @@ export default class CurrencyCalculator {
 		let currency: number = HtmlHelpers.getHtmlInputNumberValue("currency-Currency", document);
 		this.updateActorWithNewFunds(actor,currency);
 	}
+
+	deleteItemsOnActor(source: Actor, deletes: any[]) {
+		return source.deleteEmbeddedDocuments("Item", deletes);
+	}
+
+	updateItemsOnActor(destination: Actor, destUpdates: any[]) {
+		return destination.updateEmbeddedDocuments("Item", destUpdates);
+	}
+
+	addItemsToActor(destination: Actor, additions: any[]) {
+		return destination.createEmbeddedDocuments("Item", additions);
+	}
+
 }

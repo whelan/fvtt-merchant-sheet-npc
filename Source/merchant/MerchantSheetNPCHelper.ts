@@ -212,14 +212,14 @@ class MerchantSheetNPCHelper {
 						// @ts-ignore
 						if (document.getElementById("quantity-infinity").checked) {
 
-							actor.updateEmbeddedDocuments("Item", [{
+							currencyCalculator.updateItemsOnActor(actor,[{
 								_id: itemId,
 								[currencyCalculator.getQuantityKey()]: Number.MAX_VALUE
 							}])
 						} else {
 							// @ts-ignore
 							let newQuantity: number = document.getElementById("quantity-value").value;
-							actor.updateEmbeddedDocuments("Item", [{
+							currencyCalculator.updateItemsOnActor(actor,[{
 								_id: itemId,
 								[currencyCalculator.getQuantityKey()]: newQuantity
 							}])
@@ -469,6 +469,7 @@ class MerchantSheetNPCHelper {
 				quantity: quantity
 			});
 			let destItem = destination.data.items.find(i => i.name == newItem.name);
+			console.log("destItem", destItem)
 			if (destItem === undefined) {
 				additions.push(newItem);
 			} else {
@@ -493,10 +494,10 @@ class MerchantSheetNPCHelper {
 		let packet = null;
 		if (source.isOwner) {
 			if (deletes.length > 0) {
-				await source.deleteEmbeddedDocuments("Item", deletes);
+				await currencyCalculator.deleteItemsOnActor(source, deletes);
 			}
 			if (updates.length > 0) {
-				await source.updateEmbeddedDocuments("Item", updates);
+				await currencyCalculator.updateItemsOnActor(source,updates);
 			}
 		} else if (!allowNoTargetGM) {
 			packet = new MoveItemsPacket();
@@ -526,11 +527,11 @@ class MerchantSheetNPCHelper {
 
 		if (destination.isOwner) {
 			if (additions.length > 0) {
-				await destination.createEmbeddedDocuments("Item", additions);
+				await currencyCalculator.addItemsToActor(destination, additions);
 			}
 
 			if (destUpdates.length > 0) {
-				await destination.updateEmbeddedDocuments("Item", destUpdates);
+				await currencyCalculator.updateItemsOnActor(destination, destUpdates);
 			}
 		} else if (!allowNoTargetGM) {
 			packet = new MoveItemsPacket();

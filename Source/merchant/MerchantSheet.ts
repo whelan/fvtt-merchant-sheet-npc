@@ -25,10 +25,7 @@ class MerchantSheet extends ActorSheet {
 		currencyCalculator = merchantSheetNPC.systemCurrencyCalculator();
 		new HandlebarHelpersMerchantSheet().registerHelpers(currencyCalculator,merchantSheetNPC);
 		Handlebars.registerHelper('getQuantity', function (itemData, options) {
-			console.log("quantity", itemData);
-			let q =  currencyCalculator.getQuantityNumber(itemData);
-			console.log("quantity found", q);
-			return q;
+			return currencyCalculator.getQuantityNumber(itemData);
 		});
 		return getSheetTemplateName();
 	}

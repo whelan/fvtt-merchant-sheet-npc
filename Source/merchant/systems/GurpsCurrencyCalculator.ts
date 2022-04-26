@@ -6,6 +6,7 @@ import {ItemData} from "@league-of-foundry-developers/foundry-vtt-types/src/foun
 import Globals from "../../Globals";
 import MerchantCurrency from "../model/MerchantCurrency";
 import HtmlHelpers from "../../Utils/HtmlHelpers";
+import Logger from "../../Utils/Logger";
 
 
 
@@ -98,7 +99,9 @@ export default class GurpsCurrencyCalculator extends CurrencyCalculator {
 	}
 
 	updateActorWithNewFunds(buyer: Actor, buyerFunds: any) {
-		buyer.update({"data.currency": buyerFunds});
+		let currencyItem = this.getCurrencyItem(buyer);
+		// @ts-ignore
+		buyer.updateEqtCount(currencyItem.key,buyerFunds)
 	}
 
 
@@ -245,11 +248,32 @@ export default class GurpsCurrencyCalculator extends CurrencyCalculator {
 	}
 
 	updateMerchantCurrency(actor: Actor) {
-		let pp: number = HtmlHelpers.getHtmlInputNumberValue("currency-pp", document);
-		let gp: number = HtmlHelpers.getHtmlInputNumberValue("currency-gp", document);
-		let ep: number = HtmlHelpers.getHtmlInputNumberValue("currency-ep", document);
-		let sp: number = HtmlHelpers.getHtmlInputNumberValue("currency-sp", document);
-		let cp: number = HtmlHelpers.getHtmlInputNumberValue("currency-cp", document);
-		this.updateActorWithNewFunds(actor, {pp, gp, ep, sp, cp});
+		let currency: number = HtmlHelpers.getHtmlInputNumberValue("currency-"+this.currencyName, document);
+		this.updateActorWithNewFunds(actor,currency);
 	}
+
+	deleteItemsOnActor(actor: Actor, deletes: any[]) {
+		return actor.deleteEmbeddedDocuments("Item", deletes);
+	}
+
+	updateItemsOnActor(actor: Actor, destUpdates: any[]) {
+		console.log("update",actor,destUpdates)
+		return actor.updateEmbeddedDocuments("Item", destUpdates);
+	}
+
+	setQuantityForItemData(data: any, quantity: number) {
+		// @ts-ignore
+		Logger.Log("Changing quantity for item and set quantity", data, quantity)
+		// @ts-ignore
+		data.eqt.count = quantity;
+	}
+
+	addItemsToActor(actor: Actor, additions: any[]) {
+		for (const addition of additions) {
+			// @ts-ignore
+			actor.addNewItemData(addition);
+		}
+		return actor.createEmbeddedDocuments("Item",[]);
+	}
+
 }
