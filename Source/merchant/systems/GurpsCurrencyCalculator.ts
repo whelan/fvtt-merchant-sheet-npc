@@ -13,6 +13,7 @@ import Logger from "../../Utils/Logger";
 
 export default class GurpsCurrencyCalculator extends CurrencyCalculator {
 	currencyName = 'Money'
+
 	// useEP: unknown = true;
 
 	async onDropItemCreate(itemData: PropertiesToSource<ItemData>, caller: MerchantSheet) {
@@ -65,15 +66,15 @@ export default class GurpsCurrencyCalculator extends CurrencyCalculator {
 		return this.createScrollFromSpell(itemData);
 	}
 
-	getCurrencyItem(actor: Actor): any {
+	getItemForActor(actor: Actor, name: string): any {
 		// @ts-ignore
-		return actor.findEquipmentByName(this.currencyName)
+		return actor.findEquipmentByName(name)
 	}
 
 	actorCurrency(actor: Actor): number {
 		// @ts-ignore
-		let currencyItem = this.getCurrencyItem(actor);
-		console.log("actor currency", currencyItem,actor)
+		let currencyItem = this.getItemForActor(actor, this.currencyName);
+		console.log("actor currency", currencyItem, actor)
 		if (currencyItem !== undefined) {
 			// @ts-ignore
 			return currencyItem[0].count;
@@ -99,9 +100,9 @@ export default class GurpsCurrencyCalculator extends CurrencyCalculator {
 	}
 
 	updateActorWithNewFunds(buyer: Actor, buyerFunds: any) {
-		let currencyItem = this.getCurrencyItem(buyer);
+		let currencyItem = this.getItemForActor(buyer, this.currencyName);
 		// @ts-ignore
-		buyer.updateEqtCount(currencyItem.key,buyerFunds)
+		buyer.updateEqtCount(currencyItem.key, buyerFunds)
 	}
 
 
@@ -146,7 +147,7 @@ export default class GurpsCurrencyCalculator extends CurrencyCalculator {
 
 	priceInText(itemCostInGold: number): string {
 
-		return ''+itemCostInGold;
+		return '' + itemCostInGold;
 	}
 
 	public prepareItems(items: any) {
@@ -248,8 +249,8 @@ export default class GurpsCurrencyCalculator extends CurrencyCalculator {
 	}
 
 	updateMerchantCurrency(actor: Actor) {
-		let currency: number = HtmlHelpers.getHtmlInputNumberValue("currency-"+this.currencyName, document);
-		this.updateActorWithNewFunds(actor,currency);
+		let currency: number = HtmlHelpers.getHtmlInputNumberValue("currency-" + this.currencyName, document);
+		this.updateActorWithNewFunds(actor, currency);
 	}
 
 	deleteItemsOnActor(actor: Actor, deletes: any[]) {
@@ -257,7 +258,7 @@ export default class GurpsCurrencyCalculator extends CurrencyCalculator {
 	}
 
 	updateItemsOnActor(actor: Actor, destUpdates: any[]) {
-		console.log("update",actor,destUpdates)
+		console.log("update", actor, destUpdates)
 		return actor.updateEmbeddedDocuments("Item", destUpdates);
 	}
 
@@ -269,11 +270,38 @@ export default class GurpsCurrencyCalculator extends CurrencyCalculator {
 	}
 
 	addItemsToActor(actor: Actor, additions: any[]) {
+		console.log("Add item", additions)
 		for (const addition of additions) {
 			// @ts-ignore
 			actor.addNewItemData(addition);
 		}
-		return actor.createEmbeddedDocuments("Item",[]);
+		return actor.createEmbeddedDocuments("Item", []);
 	}
 
+	findItemByNameForActor(actor: Actor, name: string) {
+		return this.getItemForActor(actor, name)
+	}
+
+	isItemNotFound(destItem: any | undefined) {
+		console.log("isItemNotFound", destItem)
+		if (destItem === undefined) {
+			console.log("isItemNotFound undefined")
+			return true;
+		}
+		if (Array.isArray(destItem)) {
+			for (const destItemElement of destItem) {
+				if (destItemElement !== undefined) {
+					console.log("isItemNotFound found")
+					return false;
+				}
+			}
+		}
+		console.log("isItemNotFound Not found")
+		return true;
+	}
+
+	updateItemAddToArray(destUpdates: any[], destItem: any, newItem: any) {
+		destItem[0].count = newItem.data.eqt.count;
+		destUpdates.push(destItem)
+	}
 }

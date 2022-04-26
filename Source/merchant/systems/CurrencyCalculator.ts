@@ -160,4 +160,30 @@ export default class CurrencyCalculator {
 		return destination.createEmbeddedDocuments("Item", additions);
 	}
 
+	findItemByNameForActor(destination: Actor, name: string) {
+		return destination.data.items.find(i => i.name == name)
+	}
+
+	isItemNotFound(destItem: Item | undefined) {
+		return destItem === undefined;
+	}
+
+	updateItemAddToArray(destUpdates: any[], destItem: any, newItem: any) {
+		// @ts-ignore
+		this.setQuantityForItemData(destItem.data.data, Number(this.getQuantity(this.getQuantityNumber(destItem.data.data))) + Number(this.getQuantity(newItem.data.quantity)))
+
+		// @ts-ignore
+		if (this.getQuantity(this.getQuantityNumber(destItem.data.data)) < 0) {
+			// @ts-ignore
+			this.setQuantityForItemData(destItem.data.data, 0)
+		}
+		// @ts-ignore
+		const destUpdate = {
+			_id: destItem.id,
+			// @ts-ignore
+			[this.getQuantityKey()]: this.getQuantity(this.getQuantityNumber(destItem.data.data))
+		};
+		destUpdates.push(destUpdate);
+
+	}
 }

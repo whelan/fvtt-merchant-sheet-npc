@@ -433,6 +433,7 @@ class MerchantSheetNPCHelper {
 		const updates = [];
 		const deletes = [];
 		const additions = [];
+		// @ts-ignore
 		const destUpdates = [];
 		const results = [];
 		let allowNoTargetGM = (<Game>game).settings.get(Globals.ModuleName, "allowNoGM")
@@ -468,27 +469,13 @@ class MerchantSheetNPCHelper {
 				item: newItem,
 				quantity: quantity
 			});
-			let destItem = destination.data.items.find(i => i.name == newItem.name);
+			let destItem = currencyCalculator.findItemByNameForActor(destination,newItem.name);
 			console.log("destItem", destItem)
-			if (destItem === undefined) {
+			if (currencyCalculator.isItemNotFound(destItem)) {
 				additions.push(newItem);
-			} else {
-				//console.log("Existing Item");
+			} else if (destItem !== undefined) {
 				// @ts-ignore
-				currencyCalculator.setQuantityForItemData(destItem.data.data, Number(currencyCalculator.getQuantity(currencyCalculator.getQuantityNumber(destItem.data.data))) + Number(currencyCalculator.getQuantity(newItem.data.quantity)))
-
-				// @ts-ignore
-				if (currencyCalculator.getQuantity(currencyCalculator.getQuantityNumber(destItem.data.data)) < 0) {
-					// @ts-ignore
-					currencyCalculator.setQuantityForItemData(destItem.data.data, 0)
-				}
-				// @ts-ignore
-				const destUpdate = {
-					_id: destItem.id,
-					// @ts-ignore
-					[currencyCalculator.getQuantityKey()]: currencyCalculator.getQuantity(currencyCalculator.getQuantityNumber(destItem.data.data))
-				};
-				destUpdates.push(destUpdate);
+				currencyCalculator.updateItemAddToArray(destUpdates,destItem,newItem)
 			}
 		}
 		let packet = null;
@@ -523,28 +510,38 @@ class MerchantSheetNPCHelper {
 					packet.actorLink = false;
 				}
 			}
+			if (packet) {
+				// @ts-ignore
+				(<Game>game).socket.emit(Globals.Socket, packet);
+			}
 		}
 
 		if (destination.isOwner) {
+			console.log("Destination is owner")
 			if (additions.length > 0) {
+				console.log("Add items", additions)
 				await currencyCalculator.addItemsToActor(destination, additions);
 			}
 
 			if (destUpdates.length > 0) {
+				console.log("Update items", updates)
+				// @ts-ignore
 				await currencyCalculator.updateItemsOnActor(destination, destUpdates);
 			}
 		} else if (!allowNoTargetGM) {
+			console.log("Destination is not owner")
 			packet = new MoveItemsPacket();
 			if (destination.id) {
 				packet.actorId = destination.id;
 			}
 			packet.additions = additions;
-			packet.updates = destUpdates;
-
-		}
-		if (packet) {
 			// @ts-ignore
-			(<Game>game).socket.emit(Globals.Socket, packet);
+			packet.updates = destUpdates;
+			if (packet) {
+				// @ts-ignore
+				(<Game>game).socket.emit(Globals.Socket, packet);
+			}
+
 		}
 
 		return results;
