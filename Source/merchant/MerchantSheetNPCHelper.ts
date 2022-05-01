@@ -17,6 +17,7 @@ import Wfrp4eCurrencyCalculator from "./systems/Wfrp4eCurrencyCalculator";
 import MoveItemsPacket from "./model/MoveItemsPacket";
 import MerchantCurrencyPacket from "./model/MerchantCurrencyPacket";
 import CurrencyAction from "./model/CurrencyAction";
+import MerchantDragSource from "./model/MerchantDragSource";
 
 let currencyCalculator: CurrencyCalculator;
 
@@ -372,7 +373,7 @@ class MerchantSheetNPCHelper {
 		}
 	}
 
-	public async sellItem(target: Actor, dragSource: any, sourceActor: Actor, quantity: number, totalItemsPrice: number) {
+	public async sellItem(target: Actor, dragSource: MerchantDragSource, sourceActor: Actor, quantity: number, totalItemsPrice: number) {
 		let sellerFunds = currencyCalculator.actorCurrency(sourceActor);
 		let chatPrice = currencyCalculator.priceInText(totalItemsPrice);
 		if (target.getFlag(Globals.ModuleName, "limitedCurrency")) {
@@ -420,16 +421,17 @@ class MerchantSheetNPCHelper {
 			}
 		}
 		currencyCalculator.addAmountForActor(sourceActor, sellerFunds, totalItemsPrice)
+		Logger.Log("Chat message", dragSource)
 		// @ts-ignore
 		this.chatMessage(sourceActor, target, (<Game>game).i18n.format('MERCHANTNPC.sellText', {
 			seller: sourceActor.name,
 			quantity: quantity,
-			itemName: dragSource.data.name,
+			itemName: dragSource.name,
 			chatPrice: chatPrice
-		}), dragSource.data, false);
+		}), dragSource.payload.data, false);
 	}
 
-	public async moveItems(source: Actor, destination: Actor, items: any[], deleteItemFromSource: Boolean) {
+	public async moveItems(source: Actor, destination: Actor, items: any[], deleteItemFromSource: boolean) {
 		const updates = [];
 		const deletes = [];
 		const additions = [];
@@ -475,7 +477,7 @@ class MerchantSheetNPCHelper {
 				additions.push(newItem);
 			} else if (destItem !== undefined) {
 				// @ts-ignore
-				currencyCalculator.updateItemAddToArray(destUpdates,destItem,newItem)
+				currencyCalculator.updateItemAddToArray(destUpdates,destItem,quantity)
 			}
 		}
 		let packet = null;
@@ -585,18 +587,18 @@ class MerchantSheetNPCHelper {
 		}
 		Logger.Log("Actor updating", actor);
 		if (packet.deletes.length > 0) {
-			await actor.deleteEmbeddedDocuments("Item", packet.deletes);
+			await currencyCalculator.deleteItemsOnActor(actor,packet.deletes)
 			Logger.Log("delete Items ", packet.deletes)
 		}
 
 		if (packet.updates.length > 0) {
 			Logger.Log("delete Items ", packet.updates)
-			await actor.updateEmbeddedDocuments("Item", packet.updates);
+			await currencyCalculator.updateItemsOnActor(actor,packet.updates)
 		}
 
 		if (packet.additions.length > 0) {
 			Logger.Log("delete Items ", packet.additions)
-			await actor.createEmbeddedDocuments("Item", packet.additions);
+			await currencyCalculator.addItemsToActor(actor,packet.additions)
 		}
 	}
 

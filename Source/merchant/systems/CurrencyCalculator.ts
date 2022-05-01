@@ -4,6 +4,7 @@ import MerchantSheet from "../MerchantSheet";
 import Logger from "../../Utils/Logger";
 import MerchantCurrency from "../model/MerchantCurrency";
 import HtmlHelpers from "../../Utils/HtmlHelpers";
+import MerchantDragSource from "../model/MerchantDragSource";
 
 
 export default class CurrencyCalculator {
@@ -91,7 +92,7 @@ export default class CurrencyCalculator {
 	}
 
 	getQuantityKey(): string {
-		return "data.eqt.count"
+		return "data.quantity"
 	}
 
 	getWeight(itemData: any) {
@@ -168,9 +169,9 @@ export default class CurrencyCalculator {
 		return destItem === undefined;
 	}
 
-	updateItemAddToArray(destUpdates: any[], destItem: any, newItem: any) {
+	updateItemAddToArray(destUpdates: any[], destItem: any, quantity: number) {
 		// @ts-ignore
-		this.setQuantityForItemData(destItem.data.data, Number(this.getQuantity(this.getQuantityNumber(destItem.data.data))) + Number(this.getQuantity(newItem.data.quantity)))
+		this.setQuantityForItemData(destItem.data.data, Number(this.getQuantity(this.getQuantityNumber(destItem.data.data))) + quantity)
 
 		// @ts-ignore
 		if (this.getQuantity(this.getQuantityNumber(destItem.data.data)) < 0) {
@@ -185,5 +186,22 @@ export default class CurrencyCalculator {
 		};
 		destUpdates.push(destUpdate);
 
+	}
+
+	isDropAccepted(dragSource: any) {
+		return dragSource.type == "Item" && dragSource.actorId
+	}
+
+	getMerchantDragSource(dragSource: any): MerchantDragSource | undefined{
+		if (dragSource.actorId === undefined || dragSource.type !== 'Item') {
+			return undefined;
+		}
+		return new MerchantDragSource(this.getQuantity(this.getQuantityNumber(dragSource.data.data)),
+			dragSource.actorId,
+			this.getPriceFromItem(dragSource.data),
+			dragSource.data.name,
+			dragSource.data._id,
+			dragSource
+		);
 	}
 }

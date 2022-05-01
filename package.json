@@ -1,9 +1,9 @@
 {
   "private": true,
 	"name": "merchantsheetnpc",
-  "title": "",
-  "description": "",
-	"version": "2.6.0",
+	"title": "Merchant Sheet NPC",
+	"version": "2.7.0",
+	"description": "A merchant sheet NPC module that helps to buy/sell items in different systems in Foundry VTT",
 	"main": "index.js",
   "scripts": {
 		"package": "gulp publish --update",

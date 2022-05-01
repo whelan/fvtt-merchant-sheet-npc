@@ -101,8 +101,9 @@ export default class GurpsCurrencyCalculator extends CurrencyCalculator {
 
 	updateActorWithNewFunds(buyer: Actor, buyerFunds: any) {
 		let currencyItem = this.getItemForActor(buyer, this.currencyName);
+		console.log("update currency", currencyItem[1],buyerFunds)
 		// @ts-ignore
-		buyer.updateEqtCount(currencyItem.key, buyerFunds)
+		buyer.updateEqtCount(currencyItem[1], buyerFunds)
 	}
 
 
@@ -258,8 +259,11 @@ export default class GurpsCurrencyCalculator extends CurrencyCalculator {
 	}
 
 	updateItemsOnActor(actor: Actor, destUpdates: any[]) {
-		console.log("update", actor, destUpdates)
-		return actor.updateEmbeddedDocuments("Item", destUpdates);
+		for (const destUpdate of destUpdates) {
+			// @ts-ignore
+			actor.updateEqtCount(destUpdate[1],destUpdate[0].count)
+		}
+		return actor.updateEmbeddedDocuments("Item", []);
 	}
 
 	setQuantityForItemData(data: any, quantity: number) {
@@ -283,25 +287,32 @@ export default class GurpsCurrencyCalculator extends CurrencyCalculator {
 	}
 
 	isItemNotFound(destItem: any | undefined) {
-		console.log("isItemNotFound", destItem)
 		if (destItem === undefined) {
-			console.log("isItemNotFound undefined")
 			return true;
 		}
 		if (Array.isArray(destItem)) {
 			for (const destItemElement of destItem) {
 				if (destItemElement !== undefined) {
-					console.log("isItemNotFound found")
 					return false;
 				}
 			}
 		}
-		console.log("isItemNotFound Not found")
 		return true;
 	}
 
-	updateItemAddToArray(destUpdates: any[], destItem: any, newItem: any) {
-		destItem[0].count = newItem.data.eqt.count;
+	updateItemAddToArray(destUpdates: any[], destItem: any, quantity: number) {
+		destItem[0].count = destItem[0].count+quantity;
 		destUpdates.push(destItem)
 	}
+	getQuantityKey(): string {
+		return "data.eqt.count"
+	}
+
+	isDropAccepted(dragSource: any) {
+		return dragSource.type === "equipment" && dragSource.actorid
+	}
+
+
+
+
 }
