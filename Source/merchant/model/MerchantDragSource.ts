@@ -4,14 +4,17 @@ class MerchantDragSource {
 	itemPrice: number;
 	name: string;
 	itemId: string;
-	payload: any
+	payload: any;
+	id: string;
+	img: any;
 
 	constructor(quantity: number,
 				actorId: any,
 				itemPrice: number,
 				name: string,
 				itemId: string,
-				payload: any
+				payload: any,
+				img: any
 	) {
 		this.quantity = quantity;
 		this.actorId = actorId;
@@ -19,6 +22,9 @@ class MerchantDragSource {
 		this.name = name;
 		this.itemId = itemId;
 		this.payload = payload;
+		this.id = itemId;
+		this.img = img
+
 	}
 }
 

@@ -201,7 +201,8 @@ export default class CurrencyCalculator {
 			this.getPriceFromItem(dragSource.data),
 			dragSource.data.name,
 			dragSource.data._id,
-			dragSource
+			dragSource,
+			dragSource.data.img
 		);
 	}
 }

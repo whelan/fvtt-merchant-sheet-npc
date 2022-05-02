@@ -7,6 +7,7 @@ import Globals from "../../Globals";
 import MerchantCurrency from "../model/MerchantCurrency";
 import HtmlHelpers from "../../Utils/HtmlHelpers";
 import Logger from "../../Utils/Logger";
+import MerchantDragSource from "../model/MerchantDragSource";
 
 
 
@@ -312,6 +313,20 @@ export default class GurpsCurrencyCalculator extends CurrencyCalculator {
 		return dragSource.type === "equipment" && dragSource.actorid
 	}
 
+	getMerchantDragSource(dragSource: any): MerchantDragSource | undefined{
+		if (dragSource.actorid === undefined || dragSource.type !== "equipment") {
+			return undefined;
+		}
+		console.log("DragSource",dragSource)
+		return new MerchantDragSource(this.getQuantityNumber(dragSource.itemData.data),
+			dragSource.actorid,
+			this.getPriceFromItem(dragSource.itemData),
+			dragSource.itemData.name,
+			dragSource._id,
+			dragSource,
+			dragSource.itemData.img
+		);
+	}
 
 
 

@@ -18,6 +18,7 @@ import MoveItemsPacket from "./model/MoveItemsPacket";
 import MerchantCurrencyPacket from "./model/MerchantCurrencyPacket";
 import CurrencyAction from "./model/CurrencyAction";
 import MerchantDragSource from "./model/MerchantDragSource";
+import merchantDragSource from "./model/MerchantDragSource";
 
 let currencyCalculator: CurrencyCalculator;
 
@@ -315,7 +316,7 @@ class MerchantSheetNPCHelper {
 		}
 	}
 
-	private chatMessage(speaker: Actor, owner: Actor, message: string, item: Item, service: Boolean) {
+	private chatMessage(speaker: Actor, owner: Actor, message: string, item: MerchantDragSource | Item, service: Boolean) {
 		if ((<Game>game).settings.get(Globals.ModuleName, "buyChat")) {
 			message = `
             <div class="chat-card item-card" data-actor-id="${owner.id}" data-item-id="${item.id}">
@@ -428,7 +429,7 @@ class MerchantSheetNPCHelper {
 			quantity: quantity,
 			itemName: dragSource.name,
 			chatPrice: chatPrice
-		}), dragSource.payload.data, false);
+		}), dragSource, false);
 	}
 
 	public async moveItems(source: Actor, destination: Actor, items: any[], deleteItemFromSource: boolean) {
@@ -452,7 +453,7 @@ class MerchantSheetNPCHelper {
 				// @ts-ignore
 				quantity = Number(currencyCalculator.getQuantity(currencyCalculator.getQuantityNumber(item.data.data)));
 			}
-
+			console.log("item found", item)
 			let newItem = duplicate(item);
 			// @ts-ignore
 			const update = {
