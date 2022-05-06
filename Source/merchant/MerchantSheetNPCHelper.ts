@@ -1,14 +1,9 @@
-import {
-	ActorData,
-	ItemData,
-	TokenData
-} from "@league-of-foundry-developers/foundry-vtt-types/src/foundry/common/data/data.mjs";
+import {ActorData} from "@league-of-foundry-developers/foundry-vtt-types/src/foundry/common/data/data.mjs";
 import PermissionPlayer from "./PermissionPlayer";
 import Globals from "../Globals";
 import CurrencyCalculator from "./systems/CurrencyCalculator";
 import Dnd5eCurrencyCalculator from "./systems/Dnd5eCurrencyCalculator";
 import World5eCurrencyCalculator from "./systems/World5eCurrencyCalculator";
-import MerchantSheet from "./MerchantSheet";
 import SfrpgCurrencyCalculator from "./systems/SfrpgCurrencyCalculator";
 import GurpsCurrencyCalculator from "./systems/GurpsCurrencyCalculator";
 import SwadeCurrencyCalculator from "./systems/SwadeCurrencyCalculator";
@@ -18,7 +13,6 @@ import MoveItemsPacket from "./model/MoveItemsPacket";
 import MerchantCurrencyPacket from "./model/MerchantCurrencyPacket";
 import CurrencyAction from "./model/CurrencyAction";
 import MerchantDragSource from "./model/MerchantDragSource";
-import merchantDragSource from "./model/MerchantDragSource";
 
 let currencyCalculator: CurrencyCalculator;
 
@@ -443,36 +437,39 @@ class MerchantSheetNPCHelper {
 		for (let i of items) {
 			// @ts-ignore
 			let itemId = i.itemId;
+			let itemName = i.itemName;
 			// @ts-ignore
 			let quantity = Number(i.quantity);
 			let item = source.getEmbeddedDocument("Item", itemId);
+			if (item === undefined) {
+				item = currencyCalculator.findItemByNameForActor(source,itemName)
+			}
 			let infinity = source.getFlag(Globals.ModuleName, "infinity");
 			// Move all items if we select more than the quantity.
+			console.log("Item found " + itemName, item, itemName)
+
 			// @ts-ignore
-			if (item !== undefined && currencyCalculator.getQuantity(currencyCalculator.getQuantityNumber(item.data.data)) < quantity) {
+			let quantityFromItem = currencyCalculator.getQuantityFromItem(item);
+			if (quantityFromItem < quantity) {
 				// @ts-ignore
-				quantity = Number(currencyCalculator.getQuantity(currencyCalculator.getQuantityNumber(item.data.data)));
+				quantity = quantityFromItem;
 			}
-			console.log("item found", item)
 			let newItem = duplicate(item);
 			// @ts-ignore
-			const update = {
-				_id: itemId,
-				// @ts-ignore
-				[currencyCalculator.getQuantityKey()]: currencyCalculator.getQuantity(currencyCalculator.getQuantityNumber(item.data.data)) >= Number.MAX_VALUE - 10000 || infinity ? Number.MAX_VALUE : currencyCalculator.getQuantity(currencyCalculator.getQuantityNumber(item.data.data)) - quantity
-			};
+			let update = currencyCalculator.getUpdateObject(quantityFromItem,quantity,item, itemId, infinity)
 
+			// @ts-ignore
 			if (update[currencyCalculator.getQuantityKey()] === 0 && !allowNoTargetGM && deleteItemFromSource) {
 				deletes.push(itemId);
 			} else {
 				updates.push(update);
 			}
-			currencyCalculator.setQuantityForItemData(newItem.data, quantity)
+			currencyCalculator.setQuantityForItem(newItem, quantity);
 			results.push({
 				item: newItem,
 				quantity: quantity
 			});
-			let destItem = currencyCalculator.findItemByNameForActor(destination,newItem.name);
+			let destItem = currencyCalculator.findItemByNameForActor(destination,currencyCalculator.getNameFromItem(newItem));
 			console.log("destItem", destItem)
 			if (currencyCalculator.isItemNotFound(destItem)) {
 				additions.push(newItem);

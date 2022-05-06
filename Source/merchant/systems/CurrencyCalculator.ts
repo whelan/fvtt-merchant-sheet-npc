@@ -205,4 +205,24 @@ export default class CurrencyCalculator {
 			dragSource.data.img
 		);
 	}
+
+	getQuantityFromItem(item: Item): number {
+		return this.getQuantity(this.getQuantityNumber(item.data.data));
+	}
+
+	setQuantityForItem(newItem: any, quantity: number) {
+		this.setQuantityForItemData(newItem.data, quantity)
+	}
+
+	getNameFromItem(newItem: any): string {
+		return newItem.name;
+	}
+
+	getUpdateObject(quantityFromItem: number, quantity: number, item: any, itemId: any, infinity: boolean) {
+		return {
+			_id: itemId,
+				// @ts-ignore
+				[currencyCalculator.getQuantityKey()]: quantityFromItem >= Number.MAX_VALUE - 10000 || infinity ? Number.MAX_VALUE : quantityFromItem - quantity
+		};
+	}
 }

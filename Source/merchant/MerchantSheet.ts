@@ -1102,11 +1102,12 @@ Hooks.on('dropActorSheetData', async function (target: Actor, sheet: any, dragSo
 					// @ts-ignore
 					let quantity = MerchantSheet.getHtmlInputStringValue("quantity-modifier", document);
 					let itemId = merchantDragSource?.itemId
+					let itemName = merchantDragSource?.name
 					// @ts-ignore
 					let value: number = MerchantSheet.getHtmlInputStringValue("quantity-modifier-total", document);
 					// @ts-ignore
 					merchantSheetNPC.sellItem(target, merchantDragSource, sourceActor, quantity, value).then(() => {
-						merchantSheetNPC.moveItems(actor, target, [{itemId, quantity}], true);
+						merchantSheetNPC.moveItems(actor, target, [{itemId, quantity,itemName}], true);
 					}).catch(reason => {
 						ui.notifications?.error(reason)
 						console.error(reason, reason.stack);

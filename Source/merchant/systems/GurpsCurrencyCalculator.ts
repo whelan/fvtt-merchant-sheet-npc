@@ -261,10 +261,49 @@ export default class GurpsCurrencyCalculator extends CurrencyCalculator {
 
 	updateItemsOnActor(actor: Actor, destUpdates: any[]) {
 		for (const destUpdate of destUpdates) {
-			// @ts-ignore
-			actor.updateEqtCount(destUpdate[1],destUpdate[0].count)
+			if (Array.isArray(destUpdate)) {
+				// @ts-ignore
+				actor.updateEqtCount(destUpdate[1], destUpdate[0].count)
+			} else {
+				// @ts-ignore
+				actor.updateEqtCount(destUpdate._id, destUpdate.count)
+			}
+
 		}
 		return actor.updateEmbeddedDocuments("Item", []);
+	}
+
+	getUpdateObject(quantityFromItem: number, quantity: number, item: any, itemId: any, infinity: boolean) {
+		if (Array.isArray(item)) {
+			// @ts-ignore
+			return {
+				_id: item[1],
+				// @ts-ignore
+				count: quantityFromItem >= Number.MAX_VALUE - 10000 || infinity ? Number.MAX_VALUE : quantityFromItem - quantity
+			};
+		}
+		return {
+			_id: itemId,
+			// @ts-ignore
+			[currencyCalculator.getQuantityKey()]: quantityFromItem >= Number.MAX_VALUE - 10000 || infinity ? Number.MAX_VALUE : quantityFromItem - quantity
+		};
+
+	}
+
+
+	getNameFromItem(newItem: any): string {
+		if (Array.isArray(newItem)) {
+			return newItem[0].name;
+		}
+		return newItem.name;
+	}
+
+	setQuantityForItem(newItem: any, quantity: number) {
+		if (Array.isArray(newItem)) {
+			newItem[0].count = quantity;
+		} else {
+			this.setQuantityForItemData(newItem.data, quantity)
+		}
 	}
 
 	setQuantityForItemData(data: any, quantity: number) {
@@ -328,6 +367,13 @@ export default class GurpsCurrencyCalculator extends CurrencyCalculator {
 		);
 	}
 
+	getQuantityFromItem(item: any): number {
+		if (Array.isArray(item)) {
+			return item[0].count
+		} else {
+			return this.getQuantity(this.getQuantityNumber(item.data.data));
+		}
+	}
 
 
 }
