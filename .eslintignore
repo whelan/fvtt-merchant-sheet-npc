@@ -1,3 +1,9 @@
 node_modules
+.eslintrc.js
+.prettierrc.js
 dist
 gulpfile.ts
+jsconfig.json
+/dist
+/.pnp.js
+/.yarn/
