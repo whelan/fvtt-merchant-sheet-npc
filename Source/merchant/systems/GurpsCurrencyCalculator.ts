@@ -8,6 +8,7 @@ import MerchantCurrency from "../model/MerchantCurrency";
 import HtmlHelpers from "../../Utils/HtmlHelpers";
 import Logger from "../../Utils/Logger";
 import MerchantDragSource from "../model/MerchantDragSource";
+import AddItemHolder from "../model/AddItemHolder";
 
 
 
@@ -68,6 +69,7 @@ export default class GurpsCurrencyCalculator extends CurrencyCalculator {
 	}
 
 	getItemForActor(actor: Actor, name: string): any {
+		console.log("Find "+name+" from actor", actor)
 		// @ts-ignore
 		return actor.findEquipmentByName(name)
 	}
@@ -86,7 +88,7 @@ export default class GurpsCurrencyCalculator extends CurrencyCalculator {
 	merchantCurrency(actor: Actor): MerchantCurrency[] {
 		return [
 			{
-				name: "$",
+				name: this.currencyName,
 				value: 0
 			}
 		];
@@ -127,6 +129,7 @@ export default class GurpsCurrencyCalculator extends CurrencyCalculator {
 	}
 
 	addAmountForActor(seller: Actor, sellerFunds: any, itemCostInGold: number) {
+		sellerFunds =  Number(sellerFunds) + Number(itemCostInGold);
 		this.updateActorWithNewFunds(seller, sellerFunds);
 	}
 
@@ -247,11 +250,13 @@ export default class GurpsCurrencyCalculator extends CurrencyCalculator {
 	}
 
 	currency(): string {
-		return 'GP';
+		return this.currencyName;
 	}
 
 	updateMerchantCurrency(actor: Actor) {
-		let currency: number = HtmlHelpers.getHtmlInputNumberValue("currency-" + this.currencyName, document);
+		let currencyInputName = "currency-" + this.currencyName
+		console.log("find input: " + currencyInputName)
+		let currency: number = HtmlHelpers.getHtmlInputNumberValue(currencyInputName, document);
 		this.updateActorWithNewFunds(actor, currency);
 	}
 
@@ -285,7 +290,7 @@ export default class GurpsCurrencyCalculator extends CurrencyCalculator {
 		return {
 			_id: itemId,
 			// @ts-ignore
-			[currencyCalculator.getQuantityKey()]: quantityFromItem >= Number.MAX_VALUE - 10000 || infinity ? Number.MAX_VALUE : quantityFromItem - quantity
+			[this.getQuantityKey()]: quantityFromItem >= Number.MAX_VALUE - 10000 || infinity ? Number.MAX_VALUE : quantityFromItem - quantity
 		};
 
 	}
@@ -313,17 +318,25 @@ export default class GurpsCurrencyCalculator extends CurrencyCalculator {
 		data.eqt.count = quantity;
 	}
 
-	addItemsToActor(actor: Actor, additions: any[]) {
+	addItemsToActor(actor: Actor, additions: AddItemHolder[]) {
 		console.log("Add item", additions)
 		for (const addition of additions) {
+			console.log("Add item", addition)
+			let itemToAdd;
+			if (Array.isArray(addition.newItem)) {
+				itemToAdd = addition.origItem.data
+			} else {
+				itemToAdd = addition.newItem;
+			}
+			console.log("Add item to Actor", itemToAdd)
 			// @ts-ignore
-			actor.addNewItemData(addition);
+			actor.addNewItemData(itemToAdd);
 		}
 		return actor.createEmbeddedDocuments("Item", []);
 	}
 
 	findItemByNameForActor(actor: Actor, name: string) {
-		return this.getItemForActor(actor, name)
+		return this.getItemForActor(actor, name);
 	}
 
 	isItemNotFound(destItem: any | undefined) {
@@ -373,6 +386,14 @@ export default class GurpsCurrencyCalculator extends CurrencyCalculator {
 		} else {
 			return this.getQuantity(this.getQuantityNumber(item.data.data));
 		}
+	}
+
+	duplicateItemFromActor(item: any, source: Actor) {
+		let foundItem = source.data.items.find(i => i.name == this.getNameFromItem(item));
+		if (foundItem === undefined) {
+			return duplicate(item);
+		}
+		return duplicate(foundItem);
 	}
 
 

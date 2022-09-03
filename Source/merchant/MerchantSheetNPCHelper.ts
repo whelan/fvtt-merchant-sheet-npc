@@ -13,6 +13,7 @@ import MoveItemsPacket from "./model/MoveItemsPacket";
 import MerchantCurrencyPacket from "./model/MerchantCurrencyPacket";
 import CurrencyAction from "./model/CurrencyAction";
 import MerchantDragSource from "./model/MerchantDragSource";
+import AddItemHolder from "./model/AddItemHolder";
 
 let currencyCalculator: CurrencyCalculator;
 
@@ -189,7 +190,7 @@ class MerchantSheetNPCHelper {
 		const item: Item = actor.getEmbeddedDocument("Item", itemId);
 		const template_file = "modules/" + Globals.ModuleName + "/templates/change_quantity.html";
 		// @ts-ignore
-		const quantity = currencyCalculator.getQuantity(currencyCalculator.getQuantityNumber(item.data.data));
+		const quantity = currencyCalculator.getQuantityFromItem(item);
 		const infinityActivated = (quantity === Number.MAX_VALUE ? 'checked' : '');
 		// @ts-ignore
 		const template_data = {
@@ -205,20 +206,23 @@ class MerchantSheetNPCHelper {
 					icon: '<i class="fas fa-check"></i>',
 					label: (<Game>game).i18n.localize('MERCHANTNPC.update'),
 					callback: () => {
+						let itemFound = currencyCalculator.findItemByNameForActor(actor,currencyCalculator.getNameFromItem(item));
 						// @ts-ignore
 						if (document.getElementById("quantity-infinity").checked) {
-
-							currencyCalculator.updateItemsOnActor(actor,[{
-								_id: itemId,
-								[currencyCalculator.getQuantityKey()]: Number.MAX_VALUE
-							}])
+							currencyCalculator.setQuantityForItem(itemFound,Number.MAX_VALUE)
+							// currencyCalculator.updateItemsOnActor(actor,[{
+							// 	_id: itemId,
+							// 	[currencyCalculator.getQuantityKey()]: Number.MAX_VALUE
+							// }])
 						} else {
 							// @ts-ignore
 							let newQuantity: number = document.getElementById("quantity-value").value;
-							currencyCalculator.updateItemsOnActor(actor,[{
-								_id: itemId,
-								[currencyCalculator.getQuantityKey()]: newQuantity
-							}])
+							currencyCalculator.setQuantityForItem(itemFound,newQuantity)
+
+							// currencyCalculator.updateItemsOnActor(actor,[{
+							// 	_id: itemId,
+							// 	[currencyCalculator.getQuantityKey()]: newQuantity
+							// }])
 						}
 					}
 				},
@@ -371,6 +375,9 @@ class MerchantSheetNPCHelper {
 	public async sellItem(target: Actor, dragSource: MerchantDragSource, sourceActor: Actor, quantity: number, totalItemsPrice: number) {
 		let sellerFunds = currencyCalculator.actorCurrency(sourceActor);
 		let chatPrice = currencyCalculator.priceInText(totalItemsPrice);
+		console.log("Add amount to Actor", sellerFunds,chatPrice,sourceActor)
+		console.log("subtract amount to Actor", sellerFunds,chatPrice,target)
+		currencyCalculator.addAmountForActor(sourceActor, sellerFunds, totalItemsPrice)
 		if (target.getFlag(Globals.ModuleName, "limitedCurrency")) {
 			let buyerFunds = duplicate(currencyCalculator.actorCurrency(target));
 			console.log("merchant currency", target, currencyCalculator.actorCurrency(target))
@@ -415,8 +422,6 @@ class MerchantSheetNPCHelper {
 
 			}
 		}
-		currencyCalculator.addAmountForActor(sourceActor, sellerFunds, totalItemsPrice)
-		Logger.Log("Chat message", dragSource)
 		// @ts-ignore
 		this.chatMessage(sourceActor, target, (<Game>game).i18n.format('MERCHANTNPC.sellText', {
 			seller: sourceActor.name,
@@ -454,7 +459,8 @@ class MerchantSheetNPCHelper {
 				// @ts-ignore
 				quantity = quantityFromItem;
 			}
-			let newItem = duplicate(item);
+			let newItem = currencyCalculator.duplicateItemFromActor(item,source)
+				// duplicate(item);
 			// @ts-ignore
 			let update = currencyCalculator.getUpdateObject(quantityFromItem,quantity,item, itemId, infinity)
 
@@ -472,7 +478,7 @@ class MerchantSheetNPCHelper {
 			let destItem = currencyCalculator.findItemByNameForActor(destination,currencyCalculator.getNameFromItem(newItem));
 			console.log("destItem", destItem)
 			if (currencyCalculator.isItemNotFound(destItem)) {
-				additions.push(newItem);
+				additions.push(new AddItemHolder(newItem,i));
 			} else if (destItem !== undefined) {
 				// @ts-ignore
 				currencyCalculator.updateItemAddToArray(destUpdates,destItem,quantity)
@@ -515,21 +521,18 @@ class MerchantSheetNPCHelper {
 				(<Game>game).socket.emit(Globals.Socket, packet);
 			}
 		}
-
+		console.log("Destination", destination)
 		if (destination.isOwner) {
 			console.log("Destination is owner")
 			if (additions.length > 0) {
-				console.log("Add items", additions)
 				await currencyCalculator.addItemsToActor(destination, additions);
 			}
 
 			if (destUpdates.length > 0) {
-				console.log("Update items", updates)
 				// @ts-ignore
 				await currencyCalculator.updateItemsOnActor(destination, destUpdates);
 			}
 		} else if (!allowNoTargetGM) {
-			console.log("Destination is not owner")
 			packet = new MoveItemsPacket();
 			if (destination.id) {
 				packet.actorId = destination.id;

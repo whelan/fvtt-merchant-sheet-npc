@@ -5,6 +5,7 @@ import Logger from "../../Utils/Logger";
 import MerchantCurrency from "../model/MerchantCurrency";
 import HtmlHelpers from "../../Utils/HtmlHelpers";
 import MerchantDragSource from "../model/MerchantDragSource";
+import AddItemHolder from "../model/AddItemHolder";
 
 
 export default class CurrencyCalculator {
@@ -157,8 +158,12 @@ export default class CurrencyCalculator {
 		return destination.updateEmbeddedDocuments("Item", destUpdates);
 	}
 
-	addItemsToActor(destination: Actor, additions: any[]) {
-		return destination.createEmbeddedDocuments("Item", additions);
+	addItemsToActor(destination: Actor, additions: AddItemHolder[]) {
+		let addItems: any[] = []
+		for (const addition of additions) {
+			addItems.push(addition)
+		}
+		return destination.createEmbeddedDocuments("Item", addItems);
 	}
 
 	findItemByNameForActor(destination: Actor, name: string) {
@@ -224,5 +229,9 @@ export default class CurrencyCalculator {
 				// @ts-ignore
 				[currencyCalculator.getQuantityKey()]: quantityFromItem >= Number.MAX_VALUE - 10000 || infinity ? Number.MAX_VALUE : quantityFromItem - quantity
 		};
+	}
+
+	duplicateItemFromActor(item: any, source: Actor) {
+		return duplicate(item);
 	}
 }
