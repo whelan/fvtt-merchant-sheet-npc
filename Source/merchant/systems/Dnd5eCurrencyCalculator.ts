@@ -73,8 +73,9 @@ export default class Dnd5eCurrencyCalculator extends CurrencyCalculator {
 	}
 
 	actorCurrency(actor: Actor) {
+		console.log(actor)
 		// @ts-ignore
-		return actor.data.data.currency;
+		return actor.system.currency;
 	}
 
 	merchantCurrency(actor: Actor): MerchantCurrency[] {
@@ -247,8 +248,9 @@ export default class Dnd5eCurrencyCalculator extends CurrencyCalculator {
 	}
 
 	getPriceOutputWithModifier(basePriceItem: Item, modifier: number) {
+		console.log(basePriceItem)
 		// @ts-ignore
-		let basePrice = basePriceItem.data.data.price
+		let basePrice = basePriceItem.system.price
 		return this.priceInText((basePrice * modifier * 100) / 100)
 	}
 
@@ -368,9 +370,9 @@ export default class Dnd5eCurrencyCalculator extends CurrencyCalculator {
 	}
 
 	public registerSystemSettings() {
-		(<Game>game).settings.register(Globals.ModuleName, "useEP", {
-			name: (<Game>game).i18n.format("MERCHANTNPC.global-settings.use-ep-name"),
-			hint: (<Game>game).i18n.format("MERCHANTNPC.global-settings.use-ep-hint"),
+		game.settings.register(Globals.ModuleName, "useEP", {
+			name: game.i18n.format("MERCHANTNPC.global-settings.use-ep-name"),
+			hint: game.i18n.format("MERCHANTNPC.global-settings.use-ep-hint"),
 			scope: "world",
 			config: true,
 			default: true,
@@ -380,11 +382,11 @@ export default class Dnd5eCurrencyCalculator extends CurrencyCalculator {
 
 	getPriceFromItem(item: Item) {
 		// @ts-ignore
-		return item.data.price;
+		return item.system.price;
 	}
 
 	getPriceItemKey() {
-		return "data.price";
+		return "system.price";
 	}
 
 	currency(): string {

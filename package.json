@@ -12,7 +12,7 @@
 		"build:watch": "gulp watch",
 		"clean": "gulp clean && gulp link --clean",
 		"test": "jest",
-    "update": "npm install --save-dev @league-of-foundry-developers/foundry-vtt-types@9",
+    "update": "npm install --save-dev @league-of-foundry-developers/foundry-vtt-types@10",
     "prettier-format": "prettier --config .prettierrc --write \"./Source/**/*.(ts|js|json|scss|css|html)\""
   },
 	"author": "whelan",

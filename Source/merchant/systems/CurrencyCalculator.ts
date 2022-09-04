@@ -175,19 +175,14 @@ export default class CurrencyCalculator {
 	}
 
 	updateItemAddToArray(destUpdates: any[], destItem: any, quantity: number) {
-		// @ts-ignore
-		this.setQuantityForItemData(destItem.data.data, Number(this.getQuantity(this.getQuantityNumber(destItem.data.data))) + quantity)
+		this.setQuantityForItemData(destItem.system, Number(this.getQuantity(this.getQuantityNumber(destItem.system))) + quantity)
 
-		// @ts-ignore
-		if (this.getQuantity(this.getQuantityNumber(destItem.data.data)) < 0) {
-			// @ts-ignore
-			this.setQuantityForItemData(destItem.data.data, 0)
+		if (this.getQuantity(this.getQuantityNumber(destItem.system)) < 0) {
+			this.setQuantityForItemData(destItem.system, 0)
 		}
-		// @ts-ignore
 		const destUpdate = {
 			_id: destItem.id,
-			// @ts-ignore
-			[this.getQuantityKey()]: this.getQuantity(this.getQuantityNumber(destItem.data.data))
+			[this.getQuantityKey()]: this.getQuantity(this.getQuantityNumber(destItem.system))
 		};
 		destUpdates.push(destUpdate);
 
@@ -201,22 +196,22 @@ export default class CurrencyCalculator {
 		if (dragSource.actorId === undefined || dragSource.type !== 'Item') {
 			return undefined;
 		}
-		return new MerchantDragSource(this.getQuantity(this.getQuantityNumber(dragSource.data.data)),
+		return new MerchantDragSource(this.getQuantity(this.getQuantityNumber(dragSource.system)),
 			dragSource.actorId,
 			this.getPriceFromItem(dragSource.data),
-			dragSource.data.name,
-			dragSource.data._id,
+			dragSource.system.name,
+			dragSource.system.id,
 			dragSource,
-			dragSource.data.img
+			dragSource.system.img
 		);
 	}
 
 	getQuantityFromItem(item: Item): number {
-		return this.getQuantity(this.getQuantityNumber(item.data.data));
+		return this.getQuantity(this.getQuantityNumber(item.data));
 	}
 
 	setQuantityForItem(newItem: any, quantity: number) {
-		this.setQuantityForItemData(newItem.data, quantity)
+		this.setQuantityForItemData(newItem.system, quantity)
 	}
 
 	getNameFromItem(newItem: any): string {
@@ -224,9 +219,11 @@ export default class CurrencyCalculator {
 	}
 
 	getUpdateObject(quantityFromItem: number, quantity: number, item: any, itemId: any, infinity: boolean) {
+		// @ts-ignore
 		return {
 			_id: itemId,
-				// @ts-ignore
+
+		// @ts-ignore
 				[currencyCalculator.getQuantityKey()]: quantityFromItem >= Number.MAX_VALUE - 10000 || infinity ? Number.MAX_VALUE : quantityFromItem - quantity
 		};
 	}

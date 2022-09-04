@@ -25,9 +25,6 @@ class MerchantSheet extends ActorSheet {
 	get template() {
 		currencyCalculator = merchantSheetNPC.systemCurrencyCalculator();
 		new HandlebarHelpersMerchantSheet().registerHelpers(currencyCalculator,merchantSheetNPC);
-		Handlebars.registerHelper('getQuantity', function (itemData, options) {
-			return currencyCalculator.getQuantityNumber(itemData);
-		});
 		return getSheetTemplateName();
 	}
 
@@ -52,7 +49,6 @@ class MerchantSheet extends ActorSheet {
 		}
 		currencyCalculator = merchantSheetNPC.systemCurrencyCalculator();
 
-		let g = game as Game;
 
 		// Prepare GM Settings
 
@@ -61,7 +57,7 @@ class MerchantSheet extends ActorSheet {
 
 		// Prepare isGM attribute in sheet Data
 
-		if (g.user?.isGM) {
+		if (game.user?.isGM) {
 			sheetData.isGM = true;
 		} else {
 			sheetData.isGM = false;
@@ -159,7 +155,7 @@ class MerchantSheet extends ActorSheet {
 		console.log(header.dataset)
 		const type = header.dataset.type;
 		const itemData = {
-			name: (<Game>game).i18n.format("MERCHANTNPC.item-new", {type: (<Game>game).i18n.localize(`MERCHANTNPC.${type.toLowerCase()}`)}),
+			name: game.i18n.format("MERCHANTNPC.item-new", {type: game.i18n.localize(`MERCHANTNPC.${type.toLowerCase()}`)}),
 			type: type,
 			data: foundry.utils.deepClone(header.dataset)
 		};
@@ -229,12 +225,12 @@ class MerchantSheet extends ActorSheet {
 
 
 		let d = new Dialog({
-			title: (<Game>game).i18n.localize('MERCHANTNPC.settings'),
+			title: game.i18n.localize('MERCHANTNPC.settings'),
 			content: rendered_html,
 			buttons: {
 				one: {
 					icon: '<i class="fas fa-check"></i>',
-					label: (<Game>game).i18n.localize('MERCHANTNPC.update'),
+					label: game.i18n.localize('MERCHANTNPC.update'),
 					callback: () => {
 						this.actor.setFlag(Globals.ModuleName, "disableSell", MerchantSheetNPCHelper.getElementById("disable-sell").checked);
 						this.actor.setFlag(Globals.ModuleName, "limitedCurrency", MerchantSheetNPCHelper.getElementById("limited-currency").checked);
@@ -247,7 +243,7 @@ class MerchantSheet extends ActorSheet {
 				},
 				two: {
 					icon: '<i class="fas fa-times"></i>',
-					label: (<Game>game).i18n.localize('MERCHANTNPC.cancel'),
+					label: game.i18n.localize('MERCHANTNPC.cancel'),
 					callback: () => console.log("Merchant sheet | Stack Modifier Cancelled")
 				}
 			},
@@ -284,7 +280,7 @@ class MerchantSheet extends ActorSheet {
 		let field = $(event.currentTarget).parent().siblings('input[type="hidden"]');
 		let newLevel = this.getNewLevel(field);
 
-		let users = (<Game>game).users?.contents;
+		let users = game.users?.contents;
 
 		let currentPermissions = duplicate(actorData.permission);
 		if (users !== undefined) {
@@ -335,12 +331,12 @@ class MerchantSheet extends ActorSheet {
 		const rendered_html = await renderTemplate(template_file, template_data);
 
 		let d = new Dialog({
-			title: (<Game>game).i18n.localize('MERCHANTNPC.buyMerchantDialog-title'),
+			title: game.i18n.localize('MERCHANTNPC.buyMerchantDialog-title'),
 			content: rendered_html,
 			buttons: {
 				one: {
 					icon: '<i class="fas fa-check"></i>',
-					label: (<Game>game).i18n.localize('MERCHANTNPC.update'),
+					label: game.i18n.localize('MERCHANTNPC.update'),
 					callback: () => {
 						// @ts-ignore
 						let newPriceModifier = MerchantSheet.getHtmlInputNumberValue("price-modifier-percent", document);
@@ -354,7 +350,7 @@ class MerchantSheet extends ActorSheet {
 				},
 				two: {
 					icon: '<i class="fas fa-times"></i>',
-					label: (<Game>game).i18n.localize('MERCHANTNPC.cancel'),
+					label: game.i18n.localize('MERCHANTNPC.cancel'),
 					callback: () => Logger.Log("Price Modifier Cancelled")
 				}
 			},
@@ -380,12 +376,12 @@ class MerchantSheet extends ActorSheet {
 		const rendered_html = await renderTemplate(template_file, template_data);
 
 		let d = new Dialog({
-			title: (<Game>game).i18n.localize('MERCHANTNPC.sellToMerchantDialog-title'),
+			title: game.i18n.localize('MERCHANTNPC.sellToMerchantDialog-title'),
 			content: rendered_html,
 			buttons: {
 				one: {
 					icon: '<i class="fas fa-check"></i>',
-					label: (<Game>game).i18n.localize('MERCHANTNPC.update'),
+					label: game.i18n.localize('MERCHANTNPC.update'),
 					callback: () => {
 						// @ts-ignore
 						let priceModifier = MerchantSheet.getHtmlInputNumberValue("price-modifier-percent", document);
@@ -399,7 +395,7 @@ class MerchantSheet extends ActorSheet {
 				},
 				two: {
 					icon: '<i class="fas fa-times"></i>',
-					label: (<Game>game).i18n.localize('MERCHANTNPC.cancel'),
+					label: game.i18n.localize('MERCHANTNPC.cancel'),
 					callback: () => console.log("Merchant sheet | Buy Modifier Cancelled")
 				}
 			},
@@ -422,12 +418,12 @@ class MerchantSheet extends ActorSheet {
 
 		// @ts-ignore
 		let d = new Dialog({
-			title: (<Game>game).i18n.localize('MERCHANTNPC.stack-modifier'),
+			title: game.i18n.localize('MERCHANTNPC.stack-modifier'),
 			content: rendered_html,
 			buttons: {
 				one: {
 					icon: '<i class="fas fa-check"></i>',
-					label: (<Game>game).i18n.localize('MERCHANTNPC.update'),
+					label: game.i18n.localize('MERCHANTNPC.update'),
 					callback: () => {
 						let stackModifierValue = MerchantSheetNPCHelper.getElementById("stack-modifier").value;
 						this.actor.setFlag(Globals.ModuleName, "stackModifier", parseInt(stackModifierValue))
@@ -435,7 +431,7 @@ class MerchantSheet extends ActorSheet {
 				},
 				two: {
 					icon: '<i class="fas fa-times"></i>',
-					label: (<Game>game).i18n.localize('MERCHANTNPC.cancel'),
+					label: game.i18n.localize('MERCHANTNPC.cancel'),
 					callback: () => console.log("Merchant sheet | Stack Modifier Cancelled")
 				}
 			},
@@ -459,19 +455,19 @@ class MerchantSheet extends ActorSheet {
 		const template_file = "modules/" + Globals.ModuleName + "/templates/csv-import.html";
 
 		const template_data = {
-			itemTypes: (<Game>game).system.documentTypes.Item,
+			itemTypes: game.system.documentTypes.Item,
 			compendiums: MerchantSettings.getCompendiumnsChoices()
 		};
 		const rendered_html = await renderTemplate(template_file, template_data);
 
 
 		let d = new Dialog({
-			title: (<Game>game).i18n.localize('MERCHANTNPC.csv-import'),
+			title: game.i18n.localize('MERCHANTNPC.csv-import'),
 			content: rendered_html,
 			buttons: {
 				one: {
 					icon: '<i class="fas fa-check"></i>',
-					label: (<Game>game).i18n.localize('MERCHANTNPC.update'),
+					label: game.i18n.localize('MERCHANTNPC.update'),
 					callback: () => {
 						let csvInput = {
 							pack: MerchantSheet.getHtmlInputStringValue("csv-pack-name", document),
@@ -490,7 +486,7 @@ class MerchantSheet extends ActorSheet {
 				},
 				two: {
 					icon: '<i class="fas fa-times"></i>',
-					label: (<Game>game).i18n.localize('MERCHANTNPC.cancel'),
+					label: game.i18n.localize('MERCHANTNPC.cancel'),
 					callback: () => console.log("Merchant sheet | Stack Modifier Cancelled")
 				}
 			},
@@ -529,7 +525,7 @@ class MerchantSheet extends ActorSheet {
 		let createItems: Item[] = [];
 		if (generatorInput.selected === 'table') {
 			// @ts-ignore
-			let rolltable = (<Game>game).tables.getName(generatorInput.table);
+			let rolltable = game.tables.getName(generatorInput.table);
 
 			if (!rolltable) {
 				console.log(`Merchant sheet | No Rollable Table found with name "${generatorInput.table}".`);
@@ -552,7 +548,7 @@ class MerchantSheet extends ActorSheet {
 					if (collection === undefined) {
 						continue
 					}
-					let compendium = await (<Game>game).packs?.get(collection);
+					let compendium = await game.packs?.get(collection);
 					if (compendium === undefined) {
 						continue
 					}
@@ -734,7 +730,7 @@ class MerchantSheet extends ActorSheet {
 
 	static async findSpellPack(pack: any) {
 		if (pack !== 'none') {
-			return (await (<Game>game).packs.filter(s => s.metadata.name === pack))[0]
+			return (await game.packs.filter(s => s.metadata.name === pack))[0]
 		}
 		return undefined;
 	}
@@ -767,36 +763,37 @@ class MerchantSheet extends ActorSheet {
 
 	buyItem(event: JQuery.ClickEvent, stack: number = 0) {
 		event.preventDefault();
-		console.log("Merchant sheet | Buy Item clicked");
+		Logger.Log("Buy item clicked")
 
 		let targetGm: any = null;
-		(<Game>game).users?.forEach((u) => {
+		game.users?.forEach((u) => {
 			if (u.isGM && u.active) {
 				targetGm = u;
 			}
 		});
-		let allowNoTargetGM = (<Game>game).settings.get(Globals.ModuleName, "allowNoGM")
+		let allowNoTargetGM = game.settings.get(Globals.ModuleName, "allowNoGM")
 		let gmId = null;
 		
 
 		if (!allowNoTargetGM && !targetGm) {
 			Logger.Log("No Valid GM", allowNoTargetGM)
 			// @ts-ignore
-			return ui.notifications.error((<Game>game).i18n.localize("MERCHANTNPC.error-noGM"));
+			return ui.notifications.error(game.i18n.localize("MERCHANTNPC.error-noGM"));
 		} else if (!allowNoTargetGM) {
-			gmId = targetGm.data._id;
+			gmId = targetGm.id;
 		} else if (allowNoTargetGM) {
-			ui.notifications?.info((<Game>game).i18n.localize("MERCHANTNPC.info-noGM"));
+			ui.notifications?.info(game.i18n.localize("MERCHANTNPC.info-noGM"));
 		}
 
 		if (this.token === null) {
 			// @ts-ignore
-			return ui.notifications.error((<Game>game).i18n.localize("MERCHANTNPC.error-noToken"));
+			return ui.notifications.error(game.i18n.localize("MERCHANTNPC.error-noToken"));
 		}
 		// @ts-ignore
-		if (!(<Game>game).user.actorId) {
+		let actorId = game.user.character.id;
+		if (!actorId) {
 			// @ts-ignore
-			return ui.notifications.error((<Game>game).i18n.localize("MERCHANTNPC.error-noCharacter"));
+			return ui.notifications.error(game.i18n.localize("MERCHANTNPC.error-noCharacter"));
 		}
 
 		let itemId = $(event.currentTarget).parents(".merchant-item").attr("data-item-id");
@@ -805,12 +802,12 @@ class MerchantSheet extends ActorSheet {
 		const item: ItemData = this.actor.getEmbeddedDocument("Item", itemId);
 		// @ts-ignore
 		if (currencyCalculator.getQuantity(item.data.data.quantity) <= 0) {
-			return (ui.notifications || new Notifications).error((<Game>game).i18n.localize("MERCHANTNPC.invalidQuantity"));
+			return (ui.notifications || new Notifications).error(game.i18n.localize("MERCHANTNPC.invalidQuantity"));
 		}
 		const packet = {
 			type: "buy",
 			// @ts-ignore
-			buyerId: (<Game>game).user.actorId,
+			buyerId: actorId,
 			tokenId: this.token.id,
 			itemId: itemId,
 			quantity: 1,
@@ -856,12 +853,12 @@ class MerchantSheet extends ActorSheet {
 
 
 		let d = new Dialog({
-			title: (<Game>game).i18n.localize('MERCHANTNPC.quantity'),
+			title: game.i18n.localize('MERCHANTNPC.quantity'),
 			content: rendered_html,
 			buttons: {
 				one: {
 					icon: '<i class="fas fa-check"></i>',
-					label: (<Game>game).i18n.localize('MERCHANTNPC.update'),
+					label: game.i18n.localize('MERCHANTNPC.update'),
 					callback: () => {
 						let quantityChanger = new QuantityChanger(MerchantSheetNPCHelper.getElementById("quantity-infinity").checked, MerchantSheetNPCHelper.getElementById("quantity-value").value);
 						this.updateQuantityForAllItems(this.actor, quantityChanger)
@@ -870,7 +867,7 @@ class MerchantSheet extends ActorSheet {
 				},
 				two: {
 					icon: '<i class="fas fa-times"></i>',
-					label: (<Game>game).i18n.localize('MERCHANTNPC.cancel'),
+					label: game.i18n.localize('MERCHANTNPC.cancel'),
 					callback: () => console.log("Merchant sheet | Stack Modifier Cancelled")
 				}
 			},
@@ -915,23 +912,23 @@ class QuantityDialog extends Dialog {
 
 		let applyChanges = false;
 		super({
-			title: (<Game>game).i18n.localize("MERCHANTNPC.quantity"),
+			title: game.i18n.localize("MERCHANTNPC.quantity"),
 			content: `
             <form>
                 <div class="form-group">
-                    <label>` + (<Game>game).i18n.localize("MERCHANTNPC.quantity") + `:</label>
+                    <label>` + game.i18n.localize("MERCHANTNPC.quantity") + `:</label>
                     <input style="` + currencyCalculator.inputStyle() + `" type=number min="1" id="quantity" name="quantity" value="1">
                 </div>
             </form>`,
 			buttons: {
 				yes: {
 					icon: "<i class='fas fa-check'></i>",
-					label: options.acceptLabel ? options.acceptLabel : (<Game>game).i18n.localize("MERCHANTNPC.item-buy"),
+					label: options.acceptLabel ? options.acceptLabel : game.i18n.localize("MERCHANTNPC.item-buy"),
 					callback: () => applyChanges = true
 				},
 				no: {
 					icon: "<i class='fas fa-times'></i>",
-					label: (<Game>game).i18n.localize("MERCHANTNPC.cancel")
+					label: game.i18n.localize("MERCHANTNPC.cancel")
 				},
 			},
 			default: "yes",
@@ -942,7 +939,7 @@ class QuantityDialog extends Dialog {
 
 					if (isNaN(quantity)) {
 						// @ts-ignore
-						return ui.notifications.error((<Game>game).i18n.localize("MERCHANTNPC.error-quantityInvalid"))
+						return ui.notifications.error(game.i18n.localize("MERCHANTNPC.error-quantityInvalid"))
 					}
 
 					callback(quantity);
@@ -961,7 +958,7 @@ class SellerQuantityDialog extends Dialog {
 
 		let applyChanges = false;
 		super({
-			title: (<Game>game).i18n.localize("MERCHANTNPC.quantity"),
+			title: game.i18n.localize("MERCHANTNPC.quantity"),
 			content: `
             <form>
                 <div class="form-group">
@@ -972,12 +969,12 @@ class SellerQuantityDialog extends Dialog {
 			buttons: {
 				yes: {
 					icon: "<i class='fas fa-check'></i>",
-					label: options.acceptLabel ? options.acceptLabel : (<Game>game).i18n.localize("MERCHANTNPC.sell"),
+					label: options.acceptLabel ? options.acceptLabel : game.i18n.localize("MERCHANTNPC.sell"),
 					callback: () => applyChanges = true
 				},
 				no: {
 					icon: "<i class='fas fa-times'></i>",
-					label: (<Game>game).i18n.localize("MERCHANTNPC.cancel")
+					label: game.i18n.localize("MERCHANTNPC.cancel")
 				},
 			},
 			default: "yes",
@@ -1054,7 +1051,7 @@ Hooks.on('dropActorSheetData', async function (target: Actor, sheet: any, dragSo
 	}
 	if (merchantDragSource.quantity <= 0) {
 		Logger.Log("Quantity invalid",merchantDragSource.quantity);
-		(ui.notifications || new Notifications).error((<Game>game).i18n.localize("MERCHANTNPC.invalidQuantity"));
+		(ui.notifications || new Notifications).error(game.i18n.localize("MERCHANTNPC.invalidQuantity"));
 		return;
 	}
 	if (target.data._id == merchantDragSource.actorId) {
@@ -1062,7 +1059,7 @@ Hooks.on('dropActorSheetData', async function (target: Actor, sheet: any, dragSo
 		// ignore dropping on self
 		return;
 	}
-	let sourceActor = (<Game>game).actors?.get(merchantDragSource.actorId);
+	let sourceActor = game.actors?.get(merchantDragSource.actorId);
 	if (sourceActor === undefined) {
 		Logger.Log("Seller not found");
 		return false;
@@ -1082,22 +1079,22 @@ Hooks.on('dropActorSheetData', async function (target: Actor, sheet: any, dragSo
 
 
 	let price = currencyCalculator.priceInText(buyModifier * merchantDragSource.itemPrice);
-	var html = "<div>" + (<Game>game).i18n.format('MERCHANTNPC.sell-items-player', {
+	var html = "<div>" + game.i18n.format('MERCHANTNPC.sell-items-player', {
 		name: merchantDragSource.name,
 		price: price
 	}) + "</div>";
 	html += '<div><input name="quantity-modifier" id="quantity-modifier" type="range" min="0" max="' + merchantDragSource.quantity + '" value="1" class="slider"></div>';
-	html += '<div><label>' + (<Game>game).i18n.localize("MERCHANTNPC.quantity") + ':</label> <input style="' + currencyCalculator.inputStyle() + '" type=number min="0" max="' + merchantDragSource.quantity + '" value="1" id="quantity-modifier-display"></div> <input type="hidden" id="quantity-modifier-price" value = "' + (buyModifier * merchantDragSource.itemPrice) + '"/>';
+	html += '<div><label>' + game.i18n.localize("MERCHANTNPC.quantity") + ':</label> <input style="' + currencyCalculator.inputStyle() + '" type=number min="0" max="' + merchantDragSource.quantity + '" value="1" id="quantity-modifier-display"></div> <input type="hidden" id="quantity-modifier-price" value = "' + (buyModifier * merchantDragSource.itemPrice) + '"/>';
 	html += '<script>var pmSlider = document.getElementById("quantity-modifier"); var pmDisplay = document.getElementById("quantity-modifier-display"); var total = document.getElementById("quantity-modifier-total"); var price = document.getElementById("quantity-modifier-price"); pmDisplay.value = pmSlider.value; pmSlider.oninput = function() { pmDisplay.value = this.value;  total.value =this.value * price.value; }; pmDisplay.oninput = function() { pmSlider.value = this.value; };</script>';
-	html += '<div>' + (<Game>game).i18n.localize("MERCHANTNPC.total") + '<input style="' + currencyCalculator.inputStyle() + '" readonly type="text"  value="' + (merchantDragSource.itemPrice * buyModifier) + '" id = "quantity-modifier-total"/> </div>';
+	html += '<div>' + game.i18n.localize("MERCHANTNPC.total") + '<input style="' + currencyCalculator.inputStyle() + '" readonly type="text"  value="' + (merchantDragSource.itemPrice * buyModifier) + '" id = "quantity-modifier-total"/> </div>';
 
 	let d = new Dialog({
-		title: (<Game>game).i18n.localize("MERCHANTNPC.sell-item"),
+		title: game.i18n.localize("MERCHANTNPC.sell-item"),
 		content: html,
 		buttons: {
 			one: {
 				icon: '<i class="fas fa-check"></i>',
-				label: (<Game>game).i18n.localize('MERCHANTNPC.sell'),
+				label: game.i18n.localize('MERCHANTNPC.sell'),
 				callback: () => {
 					// @ts-ignore
 					let quantity = MerchantSheet.getHtmlInputStringValue("quantity-modifier", document);
@@ -1116,7 +1113,7 @@ Hooks.on('dropActorSheetData', async function (target: Actor, sheet: any, dragSo
 			},
 			two: {
 				icon: '<i class="fas fa-times"></i>',
-				label: (<Game>game).i18n.localize('MERCHANTNPC.cancel'),
+				label: game.i18n.localize('MERCHANTNPC.cancel'),
 				callback: () => console.log("Merchant sheet | Price Modifier Cancelled")
 			}
 		},
