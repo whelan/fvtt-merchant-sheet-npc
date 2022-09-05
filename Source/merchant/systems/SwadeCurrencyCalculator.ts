@@ -18,22 +18,22 @@ export default class SwadeCurrencyCalculator extends CurrencyCalculator {
         // Actions
         const features = {
             weapons: {
-                label: (<Game>game).i18n.localize("MERCHANTNPC.weapons"),
+                label: game.i18n.localize("MERCHANTNPC.weapons"),
                 items: [],
                 type: "weapon"
             },
             armor: {
-                label: (<Game>game).i18n.localize("MERCHANTNPC.armor"),
+                label: game.i18n.localize("MERCHANTNPC.armor"),
                 items: [],
                 type: "armor"
             },
             shields: {
-                label: (<Game>game).i18n.localize("MERCHANTNPC.shields"),
+                label: game.i18n.localize("MERCHANTNPC.shields"),
                 items: [],
                 type: "shield"
             },
             gear: {
-                label: (<Game>game).i18n.localize("MERCHANTNPC.gear"),
+                label: game.i18n.localize("MERCHANTNPC.gear"),
                 items: [],
                 type: "gear"
             }
@@ -63,7 +63,7 @@ export default class SwadeCurrencyCalculator extends CurrencyCalculator {
 
 	getPriceFromItem(item: Item) {
         // @ts-ignore
-		return item.data.price;
+		return item.system.price;
     }
 
     getPriceItemKey() {
@@ -71,7 +71,7 @@ export default class SwadeCurrencyCalculator extends CurrencyCalculator {
     }
 
     priceInText(itemCostInGold: number) {
-        return itemCostInGold + ' ' + (<Game>game).settings.get("swade","currencyName");
+        return itemCostInGold + ' ' + game.settings.get("swade","currencyName");
     }
 
 	getDescription(chatData: any): string {
@@ -79,7 +79,7 @@ export default class SwadeCurrencyCalculator extends CurrencyCalculator {
 	}
 
 	currency(): string {
-		return '' + (<Game>game).settings.get("swade","currencyName");
+		return '' + game.settings.get("swade","currencyName");
 	}
 
 

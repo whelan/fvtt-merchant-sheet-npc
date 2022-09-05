@@ -20,77 +20,77 @@ export default class SfrpgCurrencyCalculator extends CurrencyCalculator {
         // // Actions
         const features = {
             ammunition: {
-                label: (<Game>game).i18n.localize("MERCHANTNPC.ammunition"),
+                label: game.i18n.localize("MERCHANTNPC.ammunition"),
                 items: items.ammunition,
                 type: "ammunition"
             },
             augmentation: {
-                label: (<Game>game).i18n.localize("MERCHANTNPC.augmentation"),
+                label: game.i18n.localize("MERCHANTNPC.augmentation"),
                 items: items.augmentation,
                 type: "augmentation"
             },
             consumable: {
-                label: (<Game>game).i18n.localize("MERCHANTNPC.consumable"),
+                label: game.i18n.localize("MERCHANTNPC.consumable"),
                 items: items.consumable,
                 type: "consumable"
             },
             container: {
-                label: (<Game>game).i18n.localize("MERCHANTNPC.container"),
+                label: game.i18n.localize("MERCHANTNPC.container"),
                 items: items.container,
                 type: "container"
             },
             equipment: {
-                label: (<Game>game).i18n.localize("MERCHANTNPC.equipment"),
+                label: game.i18n.localize("MERCHANTNPC.equipment"),
                 items: items.equipment,
                 type: "equipment"
             },
             fusion: {
-                label: (<Game>game).i18n.localize("MERCHANTNPC.fusion"),
+                label: game.i18n.localize("MERCHANTNPC.fusion"),
                 items: items.fusion,
                 type: "fusion"
             },
             goods: {
-                label: (<Game>game).i18n.localize("MERCHANTNPC.goods"),
+                label: game.i18n.localize("MERCHANTNPC.goods"),
                 items: items.goods,
                 type: "goods"
             },
             hybrid: {
-                label: (<Game>game).i18n.localize("MERCHANTNPC.hybrid"),
+                label: game.i18n.localize("MERCHANTNPC.hybrid"),
                 items: items.hybrid,
                 type: "hybrid"
             },
             magic: {
-                label: (<Game>game).i18n.localize("MERCHANTNPC.magic"),
+                label: game.i18n.localize("MERCHANTNPC.magic"),
                 items: items.magic,
                 type: "magic"
             },
             shield: {
-                label: (<Game>game).i18n.localize("MERCHANTNPC.shield"),
+                label: game.i18n.localize("MERCHANTNPC.shield"),
                 items: items.shield,
                 type: "shield"
             },
             spell: {
-                label: (<Game>game).i18n.localize("MERCHANTNPC.spell"),
+                label: game.i18n.localize("MERCHANTNPC.spell"),
                 items: items.spell,
                 type: "spell"
             },
             technological: {
-                label: (<Game>game).i18n.localize("MERCHANTNPC.technological"),
+                label: game.i18n.localize("MERCHANTNPC.technological"),
                 items: items.technological,
                 type: "technological"
             },
             upgrade: {
-                label: (<Game>game).i18n.localize("MERCHANTNPC.upgrade"),
+                label: game.i18n.localize("MERCHANTNPC.upgrade"),
                 items: items.upgrade,
                 type: "Upgrade"
             },
             weapon: {
-                label: (<Game>game).i18n.localize("MERCHANTNPC.weapon"),
+                label: game.i18n.localize("MERCHANTNPC.weapon"),
                 items: items.weapon,
                 type: "weapon"
             },
             weaponAccessory: {
-                label: (<Game>game).i18n.localize("MERCHANTNPC.weaponAccessory"),
+                label: game.i18n.localize("MERCHANTNPC.weaponAccessory"),
                 items: items.weaponAccessory,
                 type: "weaponAccessory"
             },
@@ -127,7 +127,7 @@ export default class SfrpgCurrencyCalculator extends CurrencyCalculator {
 
     getPriceFromItem(item: Item) {
         // @ts-ignore
-		return item.data.price;
+		return item.system.price;
     }
 
     getPriceItemKey() {

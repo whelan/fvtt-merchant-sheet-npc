@@ -59,7 +59,7 @@ export default class Dnd5eCurrencyCalculator extends CurrencyCalculator {
 		const desc = `${scrollIntro}<hr/><h3>${itemData.name} (Level ${level})</h3><hr/>${description.value}<hr/><h3>Scroll Details</h3><hr/>${scrollDetails}`;
 
 		let clone = duplicate(itemData);
-		clone.name = `${(<Game>game).i18n.localize("DND5E.SpellScroll")}: ${itemData.name}`;
+		clone.name = `${game.i18n.localize("DND5E.SpellScroll")}: ${itemData.name}`;
 		clone.img = scrollData.img
 		clone.type = "consumable";
 		// @ts-ignore
@@ -73,7 +73,6 @@ export default class Dnd5eCurrencyCalculator extends CurrencyCalculator {
 	}
 
 	actorCurrency(actor: Actor) {
-		console.log(actor)
 		// @ts-ignore
 		return actor.system.currency;
 	}
@@ -248,7 +247,6 @@ export default class Dnd5eCurrencyCalculator extends CurrencyCalculator {
 	}
 
 	getPriceOutputWithModifier(basePriceItem: Item, modifier: number) {
-		console.log(basePriceItem)
 		// @ts-ignore
 		let basePrice = basePriceItem.system.price
 		return this.priceInText((basePrice * modifier * 100) / 100)
@@ -290,32 +288,32 @@ export default class Dnd5eCurrencyCalculator extends CurrencyCalculator {
 		// Actions
 		const features = {
 			weapons: {
-				label: (<Game>game).i18n.localize("MERCHANTNPC.weapons"),
+				label: game.i18n.localize("MERCHANTNPC.weapons"),
 				items: [],
 				type: "weapon"
 			},
 			equipment: {
-				label: (<Game>game).i18n.localize("MERCHANTNPC.equipment"),
+				label: game.i18n.localize("MERCHANTNPC.equipment"),
 				items: [],
 				type: "equipment"
 			},
 			consumables: {
-				label: (<Game>game).i18n.localize("MERCHANTNPC.consumables"),
+				label: game.i18n.localize("MERCHANTNPC.consumables"),
 				items: [],
 				type: "consumable"
 			},
 			tools: {
-				label: (<Game>game).i18n.localize("MERCHANTNPC.tools"),
+				label: game.i18n.localize("MERCHANTNPC.tools"),
 				items: [],
 				type: "tool"
 			},
 			containers: {
-				label: (<Game>game).i18n.localize("MERCHANTNPC.containers"),
+				label: game.i18n.localize("MERCHANTNPC.containers"),
 				items: [],
 				type: "container"
 			},
 			loot: {
-				label: (<Game>game).i18n.localize("MERCHANTNPC.loot"),
+				label: game.i18n.localize("MERCHANTNPC.loot"),
 				items: [],
 				type: "loot"
 			},
@@ -365,7 +363,7 @@ export default class Dnd5eCurrencyCalculator extends CurrencyCalculator {
 			"cp": CONFIG.DND5E.currencies.cp.conversion.each
 		};
 		this.registerSystemSettings();
-		this.useEP = (<Game>game).settings.get(Globals.ModuleName, "useEP");
+		this.useEP = game.settings.get(Globals.ModuleName, "useEP");
 		super.initSettings();
 	}
 

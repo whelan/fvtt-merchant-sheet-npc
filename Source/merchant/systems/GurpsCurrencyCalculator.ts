@@ -55,7 +55,7 @@ export default class GurpsCurrencyCalculator extends CurrencyCalculator {
 		const desc = `${scrollIntro}<hr/><h3>${itemData.name} (Level ${level})</h3><hr/>${description.value}<hr/><h3>Scroll Details</h3><hr/>${scrollDetails}`;
 
 		let clone = duplicate(itemData);
-		clone.name = `${(<Game>game).i18n.localize("DND5E.SpellScroll")}: ${itemData.name}`;
+		clone.name = `${game.i18n.localize("DND5E.SpellScroll")}: ${itemData.name}`;
 		clone.img = scrollData.img
 		clone.type = "consumable";
 		// @ts-ignore
@@ -161,32 +161,32 @@ export default class GurpsCurrencyCalculator extends CurrencyCalculator {
 		// Actions
 		const features = {
 			weapons: {
-				label: (<Game>game).i18n.localize("MERCHANTNPC.weapons"),
+				label: game.i18n.localize("MERCHANTNPC.weapons"),
 				items: [],
 				type: "weapon"
 			},
 			equipment: {
-				label: (<Game>game).i18n.localize("MERCHANTNPC.equipment"),
+				label: game.i18n.localize("MERCHANTNPC.equipment"),
 				items: [],
 				type: "equipment"
 			},
 			consumables: {
-				label: (<Game>game).i18n.localize("MERCHANTNPC.consumables"),
+				label: game.i18n.localize("MERCHANTNPC.consumables"),
 				items: [],
 				type: "consumable"
 			},
 			tools: {
-				label: (<Game>game).i18n.localize("MERCHANTNPC.tools"),
+				label: game.i18n.localize("MERCHANTNPC.tools"),
 				items: [],
 				type: "tool"
 			},
 			containers: {
-				label: (<Game>game).i18n.localize("MERCHANTNPC.containers"),
+				label: game.i18n.localize("MERCHANTNPC.containers"),
 				items: [],
 				type: "container"
 			},
 			loot: {
-				label: (<Game>game).i18n.localize("MERCHANTNPC.loot"),
+				label: game.i18n.localize("MERCHANTNPC.loot"),
 				items: [],
 				type: "loot"
 			},
@@ -229,9 +229,9 @@ export default class GurpsCurrencyCalculator extends CurrencyCalculator {
 	}
 
 	public registerSystemSettings() {
-		// (<Game>game).settings.register(Globals.ModuleName, "useEP", {
-		// 	name: (<Game>game).i18n.format("MERCHANTNPC.global-settings.use-ep-name"),
-		// 	hint: (<Game>game).i18n.format("MERCHANTNPC.global-settings.use-ep-hint"),
+		// game.settings.register(Globals.ModuleName, "useEP", {
+		// 	name: game.i18n.format("MERCHANTNPC.global-settings.use-ep-name"),
+		// 	hint: game.i18n.format("MERCHANTNPC.global-settings.use-ep-hint"),
 		// 	scope: "world",
 		// 	config: true,
 		// 	default: true,
@@ -242,7 +242,7 @@ export default class GurpsCurrencyCalculator extends CurrencyCalculator {
 	getPriceFromItem(item: Item) {
 		console.log(item)
 		// @ts-ignore
-		return item.data.eqt.cost;
+		return item.system.eqt.cost;
 	}
 
 	getPriceItemKey() {

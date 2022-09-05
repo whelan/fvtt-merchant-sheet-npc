@@ -11,9 +11,9 @@ import PacketType from "./merchant/model/PacketType";
 
 
 function getTypesForSheet() {
-	if ((<Game>game).system.id === 'sfrpg') {
+	if (game.system.id === 'sfrpg') {
 		return ['npc','npc2'];
-	} else if ((<Game>game).system.id === 'gurps') {
+	} else if (game.system.id === 'gurps') {
 		return ['character'];
 	}
 	return ['npc'];
@@ -44,7 +44,7 @@ Hooks.once("setup", () => {
 	// @ts-ignore
 	socket.on('module.merchantsheetnpc', (packet: MoveItemsPacket | MerchantCurrencyPacket) => {
 		// @ts-ignore
-		if (!(<Game>game).user?.isGM || packet === undefined) {
+		if (!game.user?.isGM || packet === undefined) {
 			return;
 		}
 
@@ -62,7 +62,7 @@ Hooks.once("setup", () => {
 });
 
 Hooks.once("ready", () => {
-	console.log("MERCHANT SHEET SYSTEM: " + (<Game>game).system.id);
+	console.log("MERCHANT SHEET SYSTEM: " + game.system.id);
 	MerchantSettings.Get().RegisterSettings();
 	new MerchantSheetNPCHelper().systemCurrencyCalculator().registerSystemSettings();
 	Logger.Ok("Template module is now ready.");

@@ -25,9 +25,9 @@ class MerchantSheetNPCHelper {
 
 	public systemCurrencyCalculator(): CurrencyCalculator {
 		if (currencyCalculator === null || currencyCalculator === undefined) {
-			let currencyModuleImport = (<Game>game).system.id.charAt(0).toUpperCase() + (<Game>game).system.id.slice(1) + "CurrencyCalculator";
+			let currencyModuleImport = game.system.id.charAt(0).toUpperCase() + game.system.id.slice(1) + "CurrencyCalculator";
 			Logger.Log("System currency to get: " + currencyModuleImport);
-			if ((<Game>game).modules.get("world-currency-5e")?.active) {
+			if (game.modules.get("world-currency-5e")?.active) {
 				currencyCalculator = new World5eCurrencyCalculator();
 				currencyCalculator.initSettings();
 			} else if (currencyModuleImport === 'Dnd5eCurrencyCalculator') {
@@ -57,12 +57,12 @@ class MerchantSheetNPCHelper {
 
 	public getMerchantPermissionForPlayer(actorData: ActorData, player: PermissionPlayer): number {
 		let defaultPermission = actorData.permission.default;
-		if (player.data._id === null) {
+		if (player.id === null) {
 			return 0;
 		}
-		if (player.data._id in actorData.permission) {
+		if (player.id in actorData.permission) {
 			// @ts-ignore
-			return actorData.permission[player.data._id];
+			return actorData.permission[player.id];
 		} else if (typeof defaultPermission !== "undefined") {
 			return defaultPermission;
 		}
@@ -82,9 +82,9 @@ class MerchantSheetNPCHelper {
 
 	public getPermissionDescription(merchantPermission: number): string {
 		const description = {
-			0: (<Game>game).i18n.localize("MERCHANTNPC.permission-none-help"),
-			2: (<Game>game).i18n.localize("MERCHANTNPC.permission-observer-help"),
-			999: (<Game>game).i18n.localize("MERCHANTNPC.permission-all-help")
+			0: game.i18n.localize("MERCHANTNPC.permission-none-help"),
+			2: game.i18n.localize("MERCHANTNPC.permission-observer-help"),
+			999: game.i18n.localize("MERCHANTNPC.permission-all-help")
 		};
 		// @ts-ignore
 		return description[merchantPermission];
@@ -113,16 +113,16 @@ class MerchantSheetNPCHelper {
 		// @ts-ignore
 		const item: Item = actor.getEmbeddedDocument("Item", itemId);
 		const template_file = "modules/" + Globals.ModuleName + "/templates/change_price.html";
-		const template_data = {price: currencyCalculator.getPriceFromItem(item.data)};
+		const template_data = {price: currencyCalculator.getPriceFromItem(item)};
 		const rendered_html = await renderTemplate(template_file, template_data);
 
 		let d = new Dialog({
-			title: (<Game>game).i18n.localize('MERCHANTNPC.priceDialog-title'),
+			title: game.i18n.localize('MERCHANTNPC.priceDialog-title'),
 			content: rendered_html,
 			buttons: {
 				one: {
 					icon: '<i class="fas fa-check"></i>',
-					label: (<Game>game).i18n.localize('MERCHANTNPC.update'),
+					label: game.i18n.localize('MERCHANTNPC.update'),
 					callback: () => {
 						// @ts-ignore
 						item.update({[currencyCalculator.getPriceItemKey()]: currencyCalculator.getPrice(document.getElementById("price-value").value)});
@@ -130,7 +130,7 @@ class MerchantSheetNPCHelper {
 				},
 				two: {
 					icon: '<i class="fas fa-times"></i>',
-					label: (<Game>game).i18n.localize('MERCHANTNPC.cancel'),
+					label: game.i18n.localize('MERCHANTNPC.cancel'),
 					callback: () => console.log("Merchant sheet | Change price Cancelled")
 				}
 			},
@@ -199,12 +199,12 @@ class MerchantSheetNPCHelper {
 		};
 		const rendered_html = await renderTemplate(template_file, template_data);
 		let d = new Dialog({
-			title: (<Game>game).i18n.localize('MERCHANTNPC.quantityDialog-title'),
+			title: game.i18n.localize('MERCHANTNPC.quantityDialog-title'),
 			content: rendered_html,
 			buttons: {
 				one: {
 					icon: '<i class="fas fa-check"></i>',
-					label: (<Game>game).i18n.localize('MERCHANTNPC.update'),
+					label: game.i18n.localize('MERCHANTNPC.update'),
 					callback: () => {
 						let itemFound = currencyCalculator.findItemByNameForActor(actor,currencyCalculator.getNameFromItem(item));
 						// @ts-ignore
@@ -228,7 +228,7 @@ class MerchantSheetNPCHelper {
 				},
 				two: {
 					icon: '<i class="fas fa-times"></i>',
-					label: (<Game>game).i18n.localize('MERCHANTNPC.cancel'),
+					label: game.i18n.localize('MERCHANTNPC.cancel'),
 					callback: () => console.log("Merchant sheet | Change quantity Cancelled")
 				}
 			},
@@ -251,7 +251,7 @@ class MerchantSheetNPCHelper {
 
 		// On negative quantity we show an error
 		if (quantity < 0) {
-			this.errorMessageToActor(buyer, (<Game>game).i18n.localize("MERCHANTNPC.error-negativeAmountItems"));
+			this.errorMessageToActor(buyer, game.i18n.localize("MERCHANTNPC.error-negativeAmountItems"));
 			return;
 		}
 
@@ -277,7 +277,7 @@ class MerchantSheetNPCHelper {
 		let buyerFunds = duplicate(currency);
 
 		if (currencyCalculator.buyerHaveNotEnoughFunds(itemCostInGold, buyerFunds)) {
-			this.errorMessageToActor(buyer, (<Game>game).i18n.localize("MERCHANTNPC.error-noFunds"));
+			this.errorMessageToActor(buyer, game.i18n.localize("MERCHANTNPC.error-noFunds"));
 			return;
 		}
 
@@ -293,7 +293,7 @@ class MerchantSheetNPCHelper {
 			for (let m of moved) {
 				this.chatMessage(
 					seller, buyer,
-					(<Game>game).i18n.format('MERCHANTNPC.buyText', {
+					game.i18n.format('MERCHANTNPC.buyText', {
 						buyer: buyer.name,
 						quantity: quantity,
 						itemName: m.item.name,
@@ -303,7 +303,7 @@ class MerchantSheetNPCHelper {
 			}
 		} else {
 			// @ts-ignore
-			this.chatMessage(seller, buyer, (<Game>game).i18n.format('MERCHANTNPC.buyText', {
+			this.chatMessage(seller, buyer, game.i18n.format('MERCHANTNPC.buyText', {
 				buyer: buyer.name,
 				quantity: quantity,
 				// @ts-ignore
@@ -315,7 +315,7 @@ class MerchantSheetNPCHelper {
 	}
 
 	private chatMessage(speaker: Actor, owner: Actor, message: string, item: MerchantDragSource | Item, service: Boolean) {
-		if ((<Game>game).settings.get(Globals.ModuleName, "buyChat")) {
+		if (game.settings.get(Globals.ModuleName, "buyChat")) {
 			message = `
             <div class="chat-card item-card" data-actor-id="${owner.id}" data-item-id="${item.id}">
                 <header class="card-header flexrow">
@@ -330,7 +330,7 @@ class MerchantSheetNPCHelper {
             `;
 			ChatMessage.create({
 				// @ts-ignore
-				user: (<Game>game).user.id,
+				user: game.user.id,
 				speaker: {
 					// @ts-ignore
 					actor: speaker,
@@ -342,12 +342,12 @@ class MerchantSheetNPCHelper {
 	}
 
 	public errorMessageToActor(target: Actor, message: string) {
-		// let allowNoTargetGM = (<Game>game).settings.get(Globals.ModuleName, "allowNoGM")
+		// let allowNoTargetGM = game.settings.get(Globals.ModuleName, "allowNoGM")
 		// if (allowNoTargetGM) {
 		ui.notifications?.error(message);
 		// } else {
 		// 	// @ts-ignore
-		// 	(<Game>game).socket.emit(Globals.Socket, {
+		// 	game.socket.emit(Globals.Socket, {
 		// 		type: "error",
 		// 		targetId: target.id,
 		// 		message: message
@@ -360,14 +360,14 @@ class MerchantSheetNPCHelper {
 		console.log("Merchant sheet | buyTransaction ", data)
 		if (data.type === "buy") {
 			// @ts-ignore
-			let buyer = (<Game>game).actors.get(data.buyerId);
+			let buyer = game.actors.get(data.buyerId);
 			// @ts-ignore
 			let seller = canvas.tokens.get(data.tokenId);
 
 			if (buyer && seller && seller.actor) {
 				helper.transaction(seller.actor, buyer, data.itemId, data.quantity);
 			} else if (!seller) {
-				ui.notifications?.error((<Game>game).i18n.localize("MERCHANTNPC.playerOtherScene"));
+				ui.notifications?.error(game.i18n.localize("MERCHANTNPC.playerOtherScene"));
 			}
 		}
 	}
@@ -382,10 +382,10 @@ class MerchantSheetNPCHelper {
 			let buyerFunds = duplicate(currencyCalculator.actorCurrency(target));
 			console.log("merchant currency", target, currencyCalculator.actorCurrency(target))
 			if (currencyCalculator.buyerHaveNotEnoughFunds(totalItemsPrice, buyerFunds)) {
-				let message = (<Game>game).i18n.localize('MERCHANTNPC.merchantNotEnoughMoney');
+				let message = game.i18n.localize('MERCHANTNPC.merchantNotEnoughMoney');
 				throw message
 			} else {
-				let allowNoTargetGM = (<Game>game).settings.get(Globals.ModuleName, "allowNoGM")
+				let allowNoTargetGM = game.settings.get(Globals.ModuleName, "allowNoGM")
 				let packet: MerchantCurrencyPacket | undefined;
 				if (!allowNoTargetGM) {
 					packet = new MerchantCurrencyPacket();
@@ -416,14 +416,14 @@ class MerchantSheetNPCHelper {
 					packet.price = totalItemsPrice;
 					if (packet) {
 						// @ts-ignore
-						(<Game>game).socket.emit(Globals.Socket, packet);
+						game.socket.emit(Globals.Socket, packet);
 					}
 				}
 
 			}
 		}
 		// @ts-ignore
-		this.chatMessage(sourceActor, target, (<Game>game).i18n.format('MERCHANTNPC.sellText', {
+		this.chatMessage(sourceActor, target, game.i18n.format('MERCHANTNPC.sellText', {
 			seller: sourceActor.name,
 			quantity: quantity,
 			itemName: dragSource.name,
@@ -438,7 +438,7 @@ class MerchantSheetNPCHelper {
 		// @ts-ignore
 		const destUpdates = [];
 		const results = [];
-		let allowNoTargetGM = (<Game>game).settings.get(Globals.ModuleName, "allowNoGM")
+		let allowNoTargetGM = game.settings.get(Globals.ModuleName, "allowNoGM")
 		for (let i of items) {
 			// @ts-ignore
 			let itemId = i.itemId;
@@ -518,7 +518,7 @@ class MerchantSheetNPCHelper {
 			}
 			if (packet) {
 				// @ts-ignore
-				(<Game>game).socket.emit(Globals.Socket, packet);
+				game.socket.emit(Globals.Socket, packet);
 			}
 		}
 		console.log("Destination", destination)
@@ -542,7 +542,7 @@ class MerchantSheetNPCHelper {
 			packet.updates = destUpdates;
 			if (packet) {
 				// @ts-ignore
-				(<Game>game).socket.emit(Globals.Socket, packet);
+				game.socket.emit(Globals.Socket, packet);
 			}
 
 		}
@@ -571,10 +571,10 @@ class MerchantSheetNPCHelper {
 		let actor: Actor | null = null;
 		if (packet.actorLink) {
 			// @ts-ignore
-			actor = await (<Game>game).actors.get(packet.actorId);
+			actor = await game.actors.get(packet.actorId);
 		} else {
 			// @ts-ignore
-			let scene: Scene = await (<Game>game).scenes.get(packet.sceneId);
+			let scene: Scene = await game.scenes.get(packet.sceneId);
 			Logger.Log("Scene found", scene);
 
 			// @ts-ignore
@@ -634,10 +634,10 @@ class MerchantSheetNPCHelper {
 		Logger.Log("Packet updating currency", packet);
 		if (packet.actorLink) {
 			// @ts-ignore
-			actor = await (<Game>game).actors.get(packet.actorId);
+			actor = await game.actors.get(packet.actorId);
 		} else {
 			// @ts-ignore
-			let scene: Scene = await (<Game>game).scenes.get(packet.sceneId);
+			let scene: Scene = await game.scenes.get(packet.sceneId);
 
 			// @ts-ignore
 			let token: TokenDocument = await scene.tokens.get(packet.tokenId);

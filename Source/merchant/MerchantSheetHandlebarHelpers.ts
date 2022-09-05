@@ -50,7 +50,7 @@ export default class HandlebarHelpersMerchantSheet {
 
 
 		Handlebars.registerHelper('itemSelected', function (key: string): string {
-			let selectedKey: any = (<Game>game).settings.get(Globals.ModuleName, "itemCompendium")
+			let selectedKey: any = game.settings.get(Globals.ModuleName, "itemCompendium")
 			console.log(key, " - ", selectedKey)
 			if (key === selectedKey) {
 				return 'selected';
@@ -59,7 +59,7 @@ export default class HandlebarHelpersMerchantSheet {
 		});
 
 		Handlebars.registerHelper('getTypeLocalized', function (key: string): string {
-			return (<Game>game).i18n.localize("MERCHANTNPC." + key)
+			return game.i18n.localize("MERCHANTNPC." + key)
 		});
 
 		Handlebars.registerHelper('merchantsheetprice', function (basePrice, modifier) {

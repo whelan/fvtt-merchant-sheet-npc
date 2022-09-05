@@ -51,17 +51,13 @@ class MerchantSheet extends ActorSheet {
 
 
 		// Prepare GM Settings
+		console.log(sheetData.actor)
 
-		// @ts-ignore
 		let merchant = this.prepareGMSettings(sheetData.actor);
 
 		// Prepare isGM attribute in sheet Data
 
-		if (game.user?.isGM) {
-			sheetData.isGM = true;
-		} else {
-			sheetData.isGM = false;
-		}
+		sheetData.isGM = !!game.user?.isGM;
 
 		sheetData.isPermissionShown = sheetData.isGM && currencyCalculator.isPermissionShown();
 
@@ -72,17 +68,15 @@ class MerchantSheet extends ActorSheet {
 		sheetData.isBuyStack = !(<boolean>this.actor.getFlag(Globals.ModuleName, "hideBuyStack"));
 		let stackModifier: number = <number>this.actor.getFlag(Globals.ModuleName, "stackModifier");
 
-		sheetData.totalItems = this.actor.data.items.size;
+		sheetData.totalItems = this.actor.items.size;
 		sheetData.priceModifier = priceModifier;
 		sheetData.stackModifier = stackModifier;
 		sheetData.currencies = currencyCalculator.merchantCurrency(this.actor);
 		sheetData.sections = currencyCalculator.prepareItems(this.actor.itemTypes);
 		sheetData.merchant = merchant;
 		sheetData.owner = sheetData.isGM;
-		// Return data for rendering
 
 
-		// @ts-ignore
 		return sheetData;
 	}
 

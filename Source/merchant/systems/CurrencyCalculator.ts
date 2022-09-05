@@ -77,7 +77,7 @@ export default class CurrencyCalculator {
 
 	getPriceFromItem(item: any) {
 		// @ts-ignore
-		return item.data.price;
+		return item.system.price;
 	}
 
 	getPriceItemKey() {

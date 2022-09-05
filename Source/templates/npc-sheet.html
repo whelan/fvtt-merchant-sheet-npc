@@ -100,8 +100,8 @@
 				{{/if}}
 			</div>
 			<div style="{{editorStyle}}" class="editor">
-				{{editor content=data.data.details.biography.value target="data.details.biography.value" button=true
-				owner=owner editable=isGM}}
+				{{editor biographyHTML target="system.details.biography.value" button=true editable=editable
+				engine="prosemirror" collaborate=isGM}}
 			</div>
 		</section>
 
@@ -130,7 +130,7 @@
 				<div class="merchant-items expanded">
 				{{#each section.items as |item iid| }}
 				{{#if ../../isService}}
-				<li class="merchant-item flexrow" data-item-id="{{item.data._id}}"
+				<li class="merchant-item flexrow" data-item-id="{{item.id}}"
 					data-item-stack="{{../../stackModifier}}">
 					<div class="item-name">{{item.name}}</div>
 					<div class="item-price">
@@ -157,8 +157,8 @@
 				</li>
 
 				{{else}}
-				{{#if (shouldItemBeVisible item (getItemQuantity (getQuantity item.data.data)) ../../isGM)}}
-				<li class="merchant-item flexrow" data-item-id="{{item.data._id}}"
+				{{#if (shouldItemBeVisible item (getItemQuantity (getQuantity item)) ../../isGM)}}
+				<li class="merchant-item flexrow" data-item-id="{{item.id}}"
 					data-item-stack="{{../../stackModifier}}">
 					<div class="merchant-item-image" style="background-image: url('{{item.img}}')"></div>
 					<div class="item-name">{{item.name}}</div>
@@ -168,18 +168,18 @@
 						<a class="item-control change-item-quantity"
 						   title="{{localize 'MERCHANTNPC.change-item-quantity-help'}}">
 							<i class="fas fa-box"></i>
-							{{#if (itemInfinity (getItemQuantity (getQuantity item.data.data)) ../../infinity)}}
+							{{#if (itemInfinity (getItemQuantity (getQuantity item)) ../../infinity)}}
 							<i class="fas fa-infinity"></i>
 							{{else}}
-							{{getItemQuantity (getQuantity item.data.data)}}
+							{{getItemQuantity (getQuantity item)}}
 							{{/if}}
 						</a>
 						{{else}}
 						<i class="fas fa-box"></i>
-						{{#if (itemInfinity (getItemQuantity (getQuantity item.data.data)) ../../infinity)}}
+						{{#if (itemInfinity (getItemQuantity (getQuantity item)) ../../infinity)}}
 						<i class="fas fa-infinity"></i>
 						{{else}}
-						{{getItemQuantity (getQuantity item.data.data)}}
+						{{getItemQuantity (getQuantity item)}}
 						{{/if}}
 						{{/if}}
 
@@ -188,8 +188,8 @@
 					<div class="item-weight">
 						<i class="fas fa-weight-hanging" title="{{localize 'MERCHANTNPC.weight'}}"></i>
 						{{merchantsheetweight
-						(getItemWeight item.data.data)}}{{merchantsheetstackweight (getItemWeight item.data.data)
-						(getItemQuantity (getQuantity item.data.data)) ../../infinity}}
+						(getItemWeight item)}}{{merchantsheetstackweight (getItemWeight item)
+						(getItemQuantity (getQuantity item)) ../../infinity}}
 					</div>
 					<div class="item-price">
 						{{#if ../../isGM}}
