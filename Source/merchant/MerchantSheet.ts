@@ -51,7 +51,6 @@ class MerchantSheet extends ActorSheet {
 
 
 		// Prepare GM Settings
-		console.log(sheetData.actor)
 
 		let merchant = this.prepareGMSettings(sheetData.actor);
 
@@ -97,7 +96,7 @@ class MerchantSheet extends ActorSheet {
 			let player = <PermissionPlayer>p;
 			//     // get the name of the primary actor for a player
 			// @ts-ignore
-			const actor = g.actors.get(player.data.character);
+			const actor = g.actors.get(player.character);
 			//
 			if (actor) {
 				player.actor = actor.data.name;
@@ -746,8 +745,8 @@ class MerchantSheet extends ActorSheet {
 			// @ts-ignore
 			for (let extraItem of value) {
 				if (itemToUpdateQuantity !== extraItem) {
-					let newQty = currencyCalculator.getQuantity(currencyCalculator.getQuantityNumber(itemToUpdateQuantity.data.data)) + currencyCalculator.getQuantity(currencyCalculator.getQuantityNumber(extraItem.data.data));
-					await itemToUpdateQuantity.update({"data.quantity": newQty});
+					let newQty = currencyCalculator.getQuantity(currencyCalculator.getQuantityNumber(itemToUpdateQuantity)) + currencyCalculator.getQuantity(currencyCalculator.getQuantityNumber(extraItem));
+					await itemToUpdateQuantity.update({"system.quantity": newQty});
 					itemsToBeDeleted.push(extraItem.id);
 				}
 			}

@@ -6,6 +6,7 @@ import {ItemData} from "@league-of-foundry-developers/foundry-vtt-types/src/foun
 import Globals from "../../Globals";
 import MerchantCurrency from "../model/MerchantCurrency";
 import HtmlHelpers from "../../Utils/HtmlHelpers";
+import Logger from "../../Utils/Logger";
 
 let conversionRates: {[key:string]: number} = {"pp": 1,
 	"gp": 10,
@@ -177,7 +178,7 @@ export default class Dnd5eCurrencyCalculator extends CurrencyCalculator {
 		if ((buyerFundsInCopper - itemCostInCopper) < 0) {
 			throw "Could not do the transaction"
 		}
-		console.log(`buyerFundsInCopper : ${buyerFundsInCopper}`);
+		Logger.Log('buyerFundsInCopper', buyerFundsInCopper);
 
 		let buyerFunds = funds;
 		buyerFunds["cp"] -= itemCostInCopper
@@ -284,7 +285,7 @@ export default class Dnd5eCurrencyCalculator extends CurrencyCalculator {
 
 	public prepareItems(items: any) {
 
-		console.log("Merchant Sheet | Prepare Features");
+		Logger.Log("Prepare Features");
 		// Actions
 		const features = {
 			weapons: {

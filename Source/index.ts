@@ -42,7 +42,7 @@ Hooks.once("setup", () => {
 	});
 	console.log(records);
 	// @ts-ignore
-	socket.on('module.merchantsheetnpc', (packet: MoveItemsPacket | MerchantCurrencyPacket) => {
+	game.socket.on('module.merchantsheetnpc', (packet: MoveItemsPacket | MerchantCurrencyPacket) => {
 		// @ts-ignore
 		if (!game.user?.isGM || packet === undefined) {
 			return;

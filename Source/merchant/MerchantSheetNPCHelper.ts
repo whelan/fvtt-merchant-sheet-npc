@@ -183,7 +183,7 @@ class MerchantSheetNPCHelper {
 
 	public async changeQuantity(event: JQuery.ClickEvent, actor: Actor) {
 		event.preventDefault();
-		console.log("Merchant sheet | Change quantity");
+		Logger.Log("Change quantity");
 		let itemId = $(event.currentTarget).parents(".merchant-item").attr("data-item-id");
 
 		// @ts-ignore
@@ -210,19 +210,11 @@ class MerchantSheetNPCHelper {
 						// @ts-ignore
 						if (document.getElementById("quantity-infinity").checked) {
 							currencyCalculator.setQuantityForItem(itemFound,Number.MAX_VALUE)
-							// currencyCalculator.updateItemsOnActor(actor,[{
-							// 	_id: itemId,
-							// 	[currencyCalculator.getQuantityKey()]: Number.MAX_VALUE
-							// }])
 						} else {
 							// @ts-ignore
 							let newQuantity: number = document.getElementById("quantity-value").value;
 							currencyCalculator.setQuantityForItem(itemFound,newQuantity)
 
-							// currencyCalculator.updateItemsOnActor(actor,[{
-							// 	_id: itemId,
-							// 	[currencyCalculator.getQuantityKey()]: newQuantity
-							// }])
 						}
 					}
 				},
@@ -233,7 +225,7 @@ class MerchantSheetNPCHelper {
 				}
 			},
 			default: "one",
-			close: () => console.log("Merchant sheet | Change quantity Closed")
+			close: () => Logger.Log("Change quantity Closed")
 		});
 		d.render(true);
 	}
@@ -244,9 +236,9 @@ class MerchantSheetNPCHelper {
 
 		let sellItem = seller.getEmbeddedDocument("Item", itemId);
 		// If the buyer attempts to buy more then what's in stock, buy all the stock.
-		if (sellItem !== undefined && currencyCalculator.getQuantityNumber(sellItem.data.data) < quantity) {
+		if (sellItem !== undefined && currencyCalculator.getQuantityNumber(sellItem) < quantity) {
 			// @ts-ignore
-			quantity = currencyCalculator.getQuantity(currencyCalculator.getQuantityNumber(sellItem.data.data));
+			quantity = currencyCalculator.getQuantity(currencyCalculator.getQuantityNumber(sellItem));
 		}
 
 		// On negative quantity we show an error

@@ -6,6 +6,7 @@ import MerchantCurrency from "../model/MerchantCurrency";
 import HtmlHelpers from "../../Utils/HtmlHelpers";
 import MerchantDragSource from "../model/MerchantDragSource";
 import AddItemHolder from "../model/AddItemHolder";
+import {number} from "yargs";
 
 
 export default class CurrencyCalculator {
@@ -93,14 +94,15 @@ export default class CurrencyCalculator {
 	}
 
 	getQuantityKey(): string {
-		return "data.quantity"
+		return "system.quantity"
 	}
 
-	getWeight(itemData: any) {
-		return itemData.weight;
+	getWeight(item: Item) {
+		// @ts-ignore
+		return item.system.weight;
 	}
 	getQuantityNumber(itemData: any): number {
-		return itemData.quantity;
+		return itemData.system.quantity;
 	}
 
 	getPriceOutputWithModifier(basePriceItem: Item, modifier: number): string {
@@ -117,9 +119,10 @@ export default class CurrencyCalculator {
 		return '';
 	}
 
-	setQuantityForItemData(data: any, quantity: number) {
-		Logger.Log("Changing quantity for item and set quantity", data, quantity)
-		data.quantity = quantity;
+	setQuantityForItemData(item: any, quantity: number) {
+		Logger.Log("Changing quantity for item and set quantity", item, quantity)
+		item.update({[this.getQuantityKey()]: quantity});
+
 	}
 
 	inputStyle(): string {
@@ -167,7 +170,7 @@ export default class CurrencyCalculator {
 	}
 
 	findItemByNameForActor(destination: Actor, name: string) {
-		return destination.data.items.find(i => i.name == name)
+		return destination.items.find(i => i.name == name)
 	}
 
 	isItemNotFound(destItem: Item | undefined) {
@@ -177,12 +180,12 @@ export default class CurrencyCalculator {
 	updateItemAddToArray(destUpdates: any[], destItem: any, quantity: number) {
 		this.setQuantityForItemData(destItem.system, Number(this.getQuantity(this.getQuantityNumber(destItem.system))) + quantity)
 
-		if (this.getQuantity(this.getQuantityNumber(destItem.system)) < 0) {
+		if (this.getQuantity(this.getQuantityNumber(destItem)) < 0) {
 			this.setQuantityForItemData(destItem.system, 0)
 		}
 		const destUpdate = {
 			_id: destItem.id,
-			[this.getQuantityKey()]: this.getQuantity(this.getQuantityNumber(destItem.system))
+			[this.getQuantityKey()]: this.getQuantity(this.getQuantityNumber(destItem))
 		};
 		destUpdates.push(destUpdate);
 
@@ -196,7 +199,7 @@ export default class CurrencyCalculator {
 		if (dragSource.actorId === undefined || dragSource.type !== 'Item') {
 			return undefined;
 		}
-		return new MerchantDragSource(this.getQuantity(this.getQuantityNumber(dragSource.system)),
+		return new MerchantDragSource(this.getQuantity(this.getQuantityNumber(dragSource)),
 			dragSource.actorId,
 			this.getPriceFromItem(dragSource.data),
 			dragSource.system.name,
@@ -207,11 +210,11 @@ export default class CurrencyCalculator {
 	}
 
 	getQuantityFromItem(item: Item): number {
-		return this.getQuantity(this.getQuantityNumber(item.data));
+		return this.getQuantity(this.getQuantityNumber(item));
 	}
 
 	setQuantityForItem(newItem: any, quantity: number) {
-		this.setQuantityForItemData(newItem.system, quantity)
+		this.setQuantityForItemData(newItem, quantity)
 	}
 
 	getNameFromItem(newItem: any): string {

@@ -248,8 +248,9 @@ export default class Wfrp4eCurrencyCalculator extends CurrencyCalculator {
 		data.quantity.value = quantity;
 	}
 
-	getWeight(itemData: any) {
-		return itemData.encumbrance.value;
+	getWeight(item: Item) {
+		// @ts-ignore
+		return item.system.encumbrance.value;
 	}
 
 	getPriceOutputWithModifier(basePriceItem: Item, modifier: number): string {

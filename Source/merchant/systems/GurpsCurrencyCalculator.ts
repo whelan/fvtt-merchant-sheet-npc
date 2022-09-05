@@ -139,14 +139,14 @@ export default class GurpsCurrencyCalculator extends CurrencyCalculator {
 		return this.priceInText((basePrice * modifier * 100) / 100)
 	}
 
-	getWeight(itemData: any) {
+	getWeight(item: Item) {
 		// @ts-ignore
-		return itemData.eqt.weight;
+		return item.system.eqt.weight;
 	}
 
 	getQuantityNumber(itemData: any): number {
 		// @ts-ignore
-		return itemData.eqt.count;
+		return itemData.system.eqt.count;
 	}
 
 
@@ -370,11 +370,11 @@ export default class GurpsCurrencyCalculator extends CurrencyCalculator {
 			return undefined;
 		}
 		console.log("DragSource",dragSource)
-		return new MerchantDragSource(this.getQuantityNumber(dragSource.itemData.data),
+		return new MerchantDragSource(this.getQuantityNumber(dragSource.itemData),
 			dragSource.actorid,
 			this.getPriceFromItem(dragSource.itemData),
 			dragSource.itemData.name,
-			dragSource._id,
+			dragSource.id,
 			dragSource,
 			dragSource.itemData.img
 		);
@@ -384,7 +384,7 @@ export default class GurpsCurrencyCalculator extends CurrencyCalculator {
 		if (Array.isArray(item)) {
 			return item[0].count
 		} else {
-			return this.getQuantity(this.getQuantityNumber(item.data.data));
+			return this.getQuantity(this.getQuantityNumber(item));
 		}
 	}
 
