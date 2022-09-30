@@ -782,8 +782,8 @@ class MerchantSheet extends ActorSheet {
 			// @ts-ignore
 			return ui.notifications.error(game.i18n.localize("MERCHANTNPC.error-noToken"));
 		}
-		// @ts-ignore
-		let actorId = game.user.character.id;
+		console.log(game.user?.character)
+		let actorId = game.user?.character?.id;
 		if (!actorId) {
 			// @ts-ignore
 			return ui.notifications.error(game.i18n.localize("MERCHANTNPC.error-noCharacter"));
@@ -794,7 +794,7 @@ class MerchantSheet extends ActorSheet {
 		// @ts-ignore
 		const item: ItemData = this.actor.getEmbeddedDocument("Item", itemId);
 		// @ts-ignore
-		if (currencyCalculator.getQuantity(item.data.data.quantity) <= 0) {
+		if (currencyCalculator.getQuantity(item.system.quantity) <= 0) {
 			return (ui.notifications || new Notifications).error(game.i18n.localize("MERCHANTNPC.invalidQuantity"));
 		}
 		const packet = {
@@ -810,9 +810,9 @@ class MerchantSheet extends ActorSheet {
 		let service = this.token.actor.getFlag(Globals.ModuleName, "service");
 		if (stack || event.shiftKey) {
 			// @ts-ignore
-			if (currencyCalculator.getQuantity(item.data.data.quantity) < stackModifier) {
+			if (currencyCalculator.getQuantity(item.system.quantity) < stackModifier) {
 				// @ts-ignore
-				packet.quantity = currencyCalculator.getQuantity(item.data.data.quantity);
+				packet.quantity = currencyCalculator.getQuantity(item.system.quantity);
 			} else {
 				// @ts-ignore
 				packet.quantity = stackModifier;

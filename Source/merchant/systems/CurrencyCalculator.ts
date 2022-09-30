@@ -121,7 +121,8 @@ export default class CurrencyCalculator {
 
 	setQuantityForItemData(item: any, quantity: number) {
 		Logger.Log("Changing quantity for item and set quantity", item, quantity)
-		item.update({[this.getQuantityKey()]: quantity});
+		console.log(item)
+		item.updateSource({[this.getQuantityKey()]: quantity});
 
 	}
 
@@ -222,12 +223,12 @@ export default class CurrencyCalculator {
 	}
 
 	getUpdateObject(quantityFromItem: number, quantity: number, item: any, itemId: any, infinity: boolean) {
+
 		// @ts-ignore
 		return {
 			_id: itemId,
-
 		// @ts-ignore
-				[currencyCalculator.getQuantityKey()]: quantityFromItem >= Number.MAX_VALUE - 10000 || infinity ? Number.MAX_VALUE : quantityFromItem - quantity
+				[this.getQuantityKey()]: quantityFromItem >= Number.MAX_VALUE - 10000 || infinity ? Number.MAX_VALUE : quantityFromItem - quantity
 		};
 	}
 

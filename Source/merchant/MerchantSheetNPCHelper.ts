@@ -261,7 +261,7 @@ class MerchantSheetNPCHelper {
 		if (sellerStack !== undefined && quantity > sellerStack) quantity = sellerStack;
 
 		// @ts-ignore
-		let itemCostInGold = Math.round(currencyCalculator.getPriceFromItem(sellItem.data) * sellerModifier * 100) / 100;
+		let itemCostInGold = Math.round(currencyCalculator.getPriceFromItem(sellItem) * sellerModifier * 100) / 100;
 
 		itemCostInGold *= quantity;
 		let currency = currencyCalculator.actorCurrency(buyer);
@@ -432,6 +432,7 @@ class MerchantSheetNPCHelper {
 		const results = [];
 		let allowNoTargetGM = game.settings.get(Globals.ModuleName, "allowNoGM")
 		for (let i of items) {
+			console.log(i)
 			// @ts-ignore
 			let itemId = i.itemId;
 			let itemName = i.itemName;
