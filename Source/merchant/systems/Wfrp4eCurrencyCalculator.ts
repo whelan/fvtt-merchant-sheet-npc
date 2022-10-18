@@ -102,67 +102,67 @@ export default class Wfrp4eCurrencyCalculator extends CurrencyCalculator {
         // Actions
         const features = {
 			ammunition: {
-                label: (<Game>game).i18n.localize("MERCHANTNPC.ammunition"),
+                label: game.i18n.localize("MERCHANTNPC.ammunition"),
                 items: [],
                 type: "ammunition"
             },
 			armour: {
-                label: (<Game>game).i18n.localize("MERCHANTNPC.armour"),
+                label: game.i18n.localize("MERCHANTNPC.armour"),
                 items: [],
                 type: "armour"
             },
             weapons: {
-                label: (<Game>game).i18n.localize("MERCHANTNPC.weapons"),
+                label: game.i18n.localize("MERCHANTNPC.weapons"),
                 items: [],
                 type: "weapon"
             },
             container: {
-                label: (<Game>game).i18n.localize("MERCHANTNPC.container"),
+                label: game.i18n.localize("MERCHANTNPC.container"),
                 items: [],
                 type: "container"
             },
             spell: {
-                label: (<Game>game).i18n.localize("MERCHANTNPC.spell"),
+                label: game.i18n.localize("MERCHANTNPC.spell"),
                 items: [],
                 type: "spell"
             },
 			clothingAccessories: {
-                label: (<Game>game).i18n.localize("MERCHANTNPC.clothingAccessories"),
+                label: game.i18n.localize("MERCHANTNPC.clothingAccessories"),
                 items: [],
                 type: "clothingAccessories"
             },
 			foodAndDrink: {
-                label: (<Game>game).i18n.localize("MERCHANTNPC.foodAndDrink"),
+                label: game.i18n.localize("MERCHANTNPC.foodAndDrink"),
                 items: [],
                 type: "foodAndDrink"
             },
 			toolsAndKits: {
-                label: (<Game>game).i18n.localize("MERCHANTNPC.toolsAndKits"),
+                label: game.i18n.localize("MERCHANTNPC.toolsAndKits"),
                 items: [],
                 type: "toolsAndKits"
             },
 			booksAndDocuments: {
-                label: (<Game>game).i18n.localize("MERCHANTNPC.booksAndDocuments"),
+                label: game.i18n.localize("MERCHANTNPC.booksAndDocuments"),
                 items: [],
                 type: "booksAndDocuments"
             },
 			tradeTools: {
-                label: (<Game>game).i18n.localize("MERCHANTNPC.tradeTools"),
+                label: game.i18n.localize("MERCHANTNPC.tradeTools"),
                 items: [],
                 type: "tradeTools"
             },
 			drugsPoisonsHerbsDraughts: {
-                label: (<Game>game).i18n.localize("MERCHANTNPC.drugsPoisonsHerbsDraughts"),
+                label: game.i18n.localize("MERCHANTNPC.drugsPoisonsHerbsDraughts"),
                 items: [],
                 type: "drugsPoisonsHerbsDraughts"
             },
 			ingredient: {
-                label: (<Game>game).i18n.localize("MERCHANTNPC.ingredient"),
+                label: game.i18n.localize("MERCHANTNPC.ingredient"),
                 items: [],
                 type: "ingredient"
             },
             misc: {
-                label: (<Game>game).i18n.localize("MERCHANTNPC.misc"),
+                label: game.i18n.localize("MERCHANTNPC.misc"),
                 items: [],
                 type: "misc"
             },
@@ -230,7 +230,7 @@ export default class Wfrp4eCurrencyCalculator extends CurrencyCalculator {
 
     getPriceFromItem(item:any) {
         // @ts-ignore
-		return this.getBPprice(item.data.price);
+		return this.getBPprice(item.system.price);
 
     }
 
@@ -248,11 +248,15 @@ export default class Wfrp4eCurrencyCalculator extends CurrencyCalculator {
 		data.quantity.value = quantity;
 	}
 
-	getWeight(itemData: any) {
-		return itemData.encumbrance.value;
+	getWeight(item: Item) {
+		// @ts-ignore
+		return item.system.encumbrance.value;
 	}
 
-	getPriceOutputWithModifier(basePrice: any, modifier: number): string {
+	getPriceOutputWithModifier(basePriceItem: Item, modifier: number): string {
+		// @ts-ignore
+		let basePrice = basePriceItem.data.data.price
+
 		let baseAmount = this.getBPprice(basePrice);
 		let priceCalculated = Math.round(Math.round(baseAmount * modifier * 100) / 100);
 

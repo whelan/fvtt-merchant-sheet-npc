@@ -6,6 +6,7 @@ import {ItemData} from "@league-of-foundry-developers/foundry-vtt-types/src/foun
 import Globals from "../../Globals";
 import MerchantCurrency from "../model/MerchantCurrency";
 import HtmlHelpers from "../../Utils/HtmlHelpers";
+import Logger from "../../Utils/Logger";
 
 let conversionRates: {[key:string]: number} = {"pp": 1,
 	"gp": 10,
@@ -59,7 +60,7 @@ export default class Dnd5eCurrencyCalculator extends CurrencyCalculator {
 		const desc = `${scrollIntro}<hr/><h3>${itemData.name} (Level ${level})</h3><hr/>${description.value}<hr/><h3>Scroll Details</h3><hr/>${scrollDetails}`;
 
 		let clone = duplicate(itemData);
-		clone.name = `${(<Game>game).i18n.localize("DND5E.SpellScroll")}: ${itemData.name}`;
+		clone.name = `${game.i18n.localize("DND5E.SpellScroll")}: ${itemData.name}`;
 		clone.img = scrollData.img
 		clone.type = "consumable";
 		// @ts-ignore
@@ -74,7 +75,7 @@ export default class Dnd5eCurrencyCalculator extends CurrencyCalculator {
 
 	actorCurrency(actor: Actor) {
 		// @ts-ignore
-		return actor.data.data.currency;
+		return actor.system.currency;
 	}
 
 	merchantCurrency(actor: Actor): MerchantCurrency[] {
@@ -177,7 +178,7 @@ export default class Dnd5eCurrencyCalculator extends CurrencyCalculator {
 		if ((buyerFundsInCopper - itemCostInCopper) < 0) {
 			throw "Could not do the transaction"
 		}
-		console.log(`buyerFundsInCopper : ${buyerFundsInCopper}`);
+		Logger.Log('buyerFundsInCopper', buyerFundsInCopper);
 
 		let buyerFunds = funds;
 		buyerFunds["cp"] -= itemCostInCopper
@@ -246,7 +247,9 @@ export default class Dnd5eCurrencyCalculator extends CurrencyCalculator {
 		this.updateActorWithNewFunds(seller, sellerFunds);
 	}
 
-	getPriceOutputWithModifier(basePrice: number, modifier: number) {
+	getPriceOutputWithModifier(basePriceItem: Item, modifier: number) {
+		// @ts-ignore
+		let basePrice = basePriceItem.system.price
 		return this.priceInText((basePrice * modifier * 100) / 100)
 	}
 
@@ -282,36 +285,36 @@ export default class Dnd5eCurrencyCalculator extends CurrencyCalculator {
 
 	public prepareItems(items: any) {
 
-		console.log("Merchant Sheet | Prepare Features");
+		Logger.Log("Prepare Features");
 		// Actions
 		const features = {
 			weapons: {
-				label: (<Game>game).i18n.localize("MERCHANTNPC.weapons"),
+				label: game.i18n.localize("MERCHANTNPC.weapons"),
 				items: [],
 				type: "weapon"
 			},
 			equipment: {
-				label: (<Game>game).i18n.localize("MERCHANTNPC.equipment"),
+				label: game.i18n.localize("MERCHANTNPC.equipment"),
 				items: [],
 				type: "equipment"
 			},
 			consumables: {
-				label: (<Game>game).i18n.localize("MERCHANTNPC.consumables"),
+				label: game.i18n.localize("MERCHANTNPC.consumables"),
 				items: [],
 				type: "consumable"
 			},
 			tools: {
-				label: (<Game>game).i18n.localize("MERCHANTNPC.tools"),
+				label: game.i18n.localize("MERCHANTNPC.tools"),
 				items: [],
 				type: "tool"
 			},
 			containers: {
-				label: (<Game>game).i18n.localize("MERCHANTNPC.containers"),
+				label: game.i18n.localize("MERCHANTNPC.containers"),
 				items: [],
 				type: "container"
 			},
 			loot: {
-				label: (<Game>game).i18n.localize("MERCHANTNPC.loot"),
+				label: game.i18n.localize("MERCHANTNPC.loot"),
 				items: [],
 				type: "loot"
 			},
@@ -361,14 +364,14 @@ export default class Dnd5eCurrencyCalculator extends CurrencyCalculator {
 			"cp": CONFIG.DND5E.currencies.cp.conversion.each
 		};
 		this.registerSystemSettings();
-		this.useEP = (<Game>game).settings.get(Globals.ModuleName, "useEP");
+		this.useEP = game.settings.get(Globals.ModuleName, "useEP");
 		super.initSettings();
 	}
 
 	public registerSystemSettings() {
-		(<Game>game).settings.register(Globals.ModuleName, "useEP", {
-			name: (<Game>game).i18n.format("MERCHANTNPC.global-settings.use-ep-name"),
-			hint: (<Game>game).i18n.format("MERCHANTNPC.global-settings.use-ep-hint"),
+		game.settings.register(Globals.ModuleName, "useEP", {
+			name: game.i18n.format("MERCHANTNPC.global-settings.use-ep-name"),
+			hint: game.i18n.format("MERCHANTNPC.global-settings.use-ep-hint"),
 			scope: "world",
 			config: true,
 			default: true,
@@ -378,11 +381,11 @@ export default class Dnd5eCurrencyCalculator extends CurrencyCalculator {
 
 	getPriceFromItem(item: Item) {
 		// @ts-ignore
-		return item.data.price;
+		return item.system.price;
 	}
 
 	getPriceItemKey() {
-		return "data.price";
+		return "system.price";
 	}
 
 	currency(): string {

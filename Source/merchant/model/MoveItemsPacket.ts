@@ -1,10 +1,11 @@
 import Packet from "./Packet";
 import PacketType from "./PacketType";
+import AddItemHolder from "./AddItemHolder";
 
 class MoveItemsPacket extends Packet {
     updates: any[] = [];
     deletes: string[] = [];
-    additions: any[] = [];
+    additions: AddItemHolder[] = [];
 	actorId: string = "";
 	sceneId: string = "";
 	actorLink: boolean = true;
