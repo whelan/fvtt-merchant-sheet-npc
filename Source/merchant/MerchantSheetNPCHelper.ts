@@ -149,12 +149,12 @@ class MerchantSheetNPCHelper {
 		actor.deleteEmbeddedDocuments("Item", [itemId]);
 	}
 
-	public onItemSummary(event: JQuery.ClickEvent, actor: Actor) {
+	public async onItemSummary(event: JQuery.ClickEvent, actor: Actor) {
 		event.preventDefault();
 		let li = $(event.currentTarget).parents(".merchant-item"),
 			item = actor.items.get(li.data("item-id")),
 			// @ts-ignore
-			chatData = item.getChatData({secrets: actor.isOwner});
+			chatData = await item.getChatData({secrets: actor.isOwner});
 		// Toggle summary
 		if (li.hasClass("expanded")) {
 			let summary = li.children(".merchant-item-summary");
@@ -209,11 +209,11 @@ class MerchantSheetNPCHelper {
 						let itemFound = currencyCalculator.findItemByNameForActor(actor,currencyCalculator.getNameFromItem(item));
 						// @ts-ignore
 						if (document.getElementById("quantity-infinity").checked) {
-							currencyCalculator.setQuantityForItem(itemFound,Number.MAX_VALUE)
+							currencyCalculator.setQuantityForItem(actor,itemFound,Number.MAX_VALUE)
 						} else {
 							// @ts-ignore
 							let newQuantity: number = document.getElementById("quantity-value").value;
-							currencyCalculator.setQuantityForItem(itemFound,newQuantity)
+							currencyCalculator.setQuantityForItem(actor,itemFound,newQuantity)
 
 						}
 					}
@@ -395,7 +395,6 @@ class MerchantSheetNPCHelper {
 								// @ts-ignore
 								let sceneId = canvas.scene.id;
 								// @ts-ignore
-								Logger.Log("Scene", canvas.scene.id)
 								if (sceneId) {
 									packet.sceneId = sceneId;
 								}
@@ -463,18 +462,19 @@ class MerchantSheetNPCHelper {
 			} else {
 				updates.push(update);
 			}
-			currencyCalculator.setQuantityForItem(newItem, quantity);
+			// currencyCalculator.setQuantityForItem(destination, newItem, quantity);
 			results.push({
 				item: newItem,
 				quantity: quantity
 			});
 			let destItem = currencyCalculator.findItemByNameForActor(destination,currencyCalculator.getNameFromItem(newItem));
+			Logger.Log("move Item from source to destination with item", source, destination, itemId, item, destItem);
 			console.log("destItem", destItem)
 			if (currencyCalculator.isItemNotFound(destItem)) {
 				additions.push(new AddItemHolder(newItem,i));
 			} else if (destItem !== undefined) {
 				// @ts-ignore
-				currencyCalculator.updateItemAddToArray(destUpdates,destItem,quantity)
+				currencyCalculator.updateItemAddToArray(destination,destUpdates,destItem,quantity)
 			}
 		}
 		let packet = null;
@@ -494,8 +494,9 @@ class MerchantSheetNPCHelper {
 			packet.updates = updates;
 
 
-			// @ts-ignore
-			let actorLink: boolean = source.data.actorLink
+
+			let actorLink: boolean = !source.isToken
+			Logger.Log("Token control" , source, actorLink)
 			if (!actorLink) {
 				if (source.parent) {
 					// @ts-ignore
@@ -505,7 +506,8 @@ class MerchantSheetNPCHelper {
 					if (sceneId) {
 						packet.sceneId = sceneId;
 					}
-					packet.tokenId = source.parent.id;
+					// @ts-ignore
+					packet.tokenId = source.token.id;
 					packet.actorLink = false;
 				}
 			}
@@ -568,7 +570,6 @@ class MerchantSheetNPCHelper {
 		} else {
 			// @ts-ignore
 			let scene: Scene = await game.scenes.get(packet.sceneId);
-			Logger.Log("Scene found", scene);
 
 			// @ts-ignore
 			let token: TokenDocument = await scene.tokens.get(packet.tokenId);
@@ -586,12 +587,12 @@ class MerchantSheetNPCHelper {
 		}
 
 		if (packet.updates.length > 0) {
-			Logger.Log("delete Items ", packet.updates)
+			Logger.Log("update packet Items ", packet.updates)
 			await currencyCalculator.updateItemsOnActor(actor,packet.updates)
 		}
 
 		if (packet.additions.length > 0) {
-			Logger.Log("delete Items ", packet.additions)
+			Logger.Log("add Items ", packet.additions)
 			await currencyCalculator.addItemsToActor(actor,packet.additions)
 		}
 	}
@@ -624,7 +625,6 @@ class MerchantSheetNPCHelper {
 
 	static async updateCurrencyWithPacket(packet: MerchantCurrencyPacket) {
 		let actor: Actor | null = null;
-		Logger.Log("Packet updating currency", packet);
 		if (packet.actorLink) {
 			// @ts-ignore
 			actor = await game.actors.get(packet.actorId);

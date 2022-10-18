@@ -119,10 +119,16 @@ export default class CurrencyCalculator {
 		return '';
 	}
 
-	setQuantityForItemData(item: any, quantity: number) {
+	setQuantityForItemData(actor: Actor, item: any, quantity: number) {
 		Logger.Log("Changing quantity for item and set quantity", item, quantity)
-		console.log(item)
-		item.updateSource({[this.getQuantityKey()]: quantity});
+		// @ts-ignore
+		actor.updateEmbeddedDocuments("Item", [
+			{
+				_id: item.id,
+				[this.getQuantityKey()]: quantity
+			}
+		]);
+		// item.updateSource({[this.getQuantityKey()]: quantity});
 
 	}
 
@@ -178,11 +184,11 @@ export default class CurrencyCalculator {
 		return destItem === undefined;
 	}
 
-	updateItemAddToArray(destUpdates: any[], destItem: any, quantity: number) {
-		this.setQuantityForItemData(destItem.system, Number(this.getQuantity(this.getQuantityNumber(destItem.system))) + quantity)
+	updateItemAddToArray(actor: Actor, destUpdates: any[], destItem: any, quantity: number) {
+		this.setQuantityForItemData(actor, destItem, Number(this.getQuantity(this.getQuantityNumber(destItem))) + quantity)
 
 		if (this.getQuantity(this.getQuantityNumber(destItem)) < 0) {
-			this.setQuantityForItemData(destItem.system, 0)
+			this.setQuantityForItemData(actor, destItem.system, 0)
 		}
 		const destUpdate = {
 			_id: destItem.id,
@@ -214,8 +220,8 @@ export default class CurrencyCalculator {
 		return this.getQuantity(this.getQuantityNumber(item));
 	}
 
-	setQuantityForItem(newItem: any, quantity: number) {
-		this.setQuantityForItemData(newItem, quantity)
+	setQuantityForItem(actor: Actor, newItem: any, quantity: number) {
+		this.setQuantityForItemData(actor, newItem, quantity)
 	}
 
 	getNameFromItem(newItem: any): string {

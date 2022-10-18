@@ -353,7 +353,7 @@ export default class GurpsCurrencyCalculator extends CurrencyCalculator {
 		return true;
 	}
 
-	updateItemAddToArray(destUpdates: any[], destItem: any, quantity: number) {
+	updateItemAddToArray(actor: Actor, destUpdates: any[], destItem: any, quantity: number) {
 		destItem[0].count = destItem[0].count+quantity;
 		destUpdates.push(destItem)
 	}
