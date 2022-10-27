@@ -187,14 +187,14 @@ export default class World5eCurrencyCalculator extends CurrencyCalculator {
         //@ts-ignore
         let standard = this.getStandard();
         //@ts-ignore
-        return n * CONFIG.DND5E.currencies.gp.conversion[standard];
+        return n * CONFIG.DND5E.currencies[standard].conversion;
     }
 
     standardToGp(n: number) {
         // @ts-ignore
         let standard = this.getStandard();
         // @ts-ignore
-        return n / CONFIG.DND5E.currencies.gp.conversion[standard];
+        return n / CONFIG.DND5E.currencies[standard].conversion;
     }
 
     getPriceFromItem(item: Item) {
