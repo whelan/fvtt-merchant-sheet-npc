@@ -55,14 +55,16 @@ class MerchantSheetNPCHelper {
 		return currencyCalculator;
 	}
 
-	public getMerchantPermissionForPlayer(actorData: ActorData, player: PermissionPlayer): number {
-		let defaultPermission = actorData.permission.default;
+	public getMerchantPermissionForPlayer(actorData: Actor, player: PermissionPlayer): number {
+		// @ts-ignore
+		let defaultPermission = actorData.ownership.default;
 		if (player.id === null) {
 			return 0;
 		}
-		if (player.id in actorData.permission) {
+		// @ts-ignore
+		if (player.id in actorData.ownership) {
 			// @ts-ignore
-			return actorData.permission[player.id];
+			return actorData.ownership[player.id];
 		} else if (typeof defaultPermission !== "undefined") {
 			return defaultPermission;
 		}
@@ -97,9 +99,10 @@ class MerchantSheetNPCHelper {
 		// @ts-ignore
 		currentPermissions[playerId] = newLevel;
 		// Save updated player permissions
-		console.log("Merchant sheet | _updatePermission ", currentPermissions, actorData.data.permission)
 		// @ts-ignore
-		const merchantPermissions: PermissionControl = new PermissionControl(actorData.data);
+		console.log("Merchant sheet | _updatePermission ", currentPermissions, actorData.ownership)
+		// @ts-ignore
+		const merchantPermissions: PermissionControl = new PermissionControl(actorData);
 		console.log("Merchant sheet | _updatePermission merchantPermissions", merchantPermissions)
 		// @ts-ignore
 		merchantPermissions._updateObject(event, currentPermissions);
