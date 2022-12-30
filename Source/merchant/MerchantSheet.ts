@@ -86,6 +86,7 @@ class MerchantSheet extends ActorSheet {
 
 		let players = g.users?.players;
 		let commonPlayersPermission = -1;
+		console.log(players)
 		if (players === undefined) {
 			return {};
 		}
@@ -96,18 +97,21 @@ class MerchantSheet extends ActorSheet {
 			let player = <PermissionPlayer>p;
 			//     // get the name of the primary actor for a player
 			// @ts-ignore
-			const actor = g.actors.get(player.character);
+			const actor = g.actors.get(player.character.id);
 			//
+			console.log(actor)
 			if (actor) {
-				player.actor = actor.data.name;
-				player.actorId = actor.data._id;
-				player.playerId = player.data._id;
+				// @ts-ignore
+				player.actor = actor.name;
+				player.actorId = actor.id;
+				player.playerId = player.id;
 
 				//
-				player.merchantPermission = merchantSheetNPC.getMerchantPermissionForPlayer(this.actor.data, player);
+				player.merchantPermission = merchantSheetNPC.getMerchantPermissionForPlayer(this.actor, player);
+				console.log(player.merchantPermission)
 				//
-				if (player.merchantPermission >= 2 && !observers.includes(actor.data._id)) {
-					observers.push(actor.data._id);
+				if (player.merchantPermission >= 2 && !observers.includes(actor.id)) {
+					observers.push(actor.id);
 				}
 
 				//Set icons and permission texts for html
@@ -120,6 +124,7 @@ class MerchantSheet extends ActorSheet {
 				player.icon = merchantSheetNPC.getPermissionIcon(player.merchantPermission);
 				player.merchantPermissionDescription = merchantSheetNPC.getPermissionDescription(player.merchantPermission);
 				playerData.push(player);
+				console.log(player)
 			}
 		}
 
@@ -152,7 +157,7 @@ class MerchantSheet extends ActorSheet {
 			type: type,
 			data: foundry.utils.deepClone(header.dataset)
 		};
-		delete itemData.data.type;
+		delete itemData.type;
 		return this.actor.createEmbeddedDocuments("Item", [itemData]);
 	}
 
@@ -278,9 +283,9 @@ class MerchantSheet extends ActorSheet {
 		let currentPermissions = duplicate(actorData.permission);
 		if (users !== undefined) {
 			for (let u of users) {
-				if (u.data.role === 1 || u.data.role === 2) {
+				if (u.role === 1 || u.role === 2) {
 					// @ts-ignore
-					currentPermissions[u.data._id] = newLevel;
+					currentPermissions[u.id] = newLevel;
 				}
 			}
 			const merchantPermissions = new PermissionControl(this.actor);

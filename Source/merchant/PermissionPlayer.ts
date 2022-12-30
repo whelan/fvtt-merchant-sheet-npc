@@ -1,4 +1,4 @@
-class PermissionPlayer extends User {
+class 	PermissionPlayer extends User {
 	actor = '';
 	actorId = '';
 	playerId: string | null = '';
