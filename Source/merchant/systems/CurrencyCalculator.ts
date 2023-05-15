@@ -22,7 +22,7 @@ export default class CurrencyCalculator {
 	actorCurrency(actor: Actor) {
 		// @ts-ignore
 
-		return actor.data.data.currency;
+		return actor.data.data.money.carried;
 	}
 
 	buyerHaveNotEnoughFunds(itemCostInGold: number, buyerFunds: number) {
@@ -42,7 +42,7 @@ export default class CurrencyCalculator {
 	}
 
 	updateActorWithNewFunds(buyer: Actor, buyerFunds: number) {
-		buyer.update({"data.currency": buyerFunds});
+		buyer.update({"data.money.carried": buyerFunds});
 	}
 
 	priceInText(itemCostInGold: number): string {
